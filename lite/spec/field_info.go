@@ -11,6 +11,7 @@ type FieldInfo struct {
 	FieldDataEncoding       Encoding
 	LengthIndicatorEncoding Encoding
 	LengthIndicatorSize     int
+	Msg                     *Message
 }
 
 func NewFieldInfo(sFieldInfo []string) *FieldInfo {
