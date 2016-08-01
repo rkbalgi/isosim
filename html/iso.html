@@ -1,0 +1,335 @@
+<html>
+
+    <head>
+
+        <style>
+            .cl_small_btn {
+                font-family: Times;
+                font-size: 10pt;
+                color: black;
+                background: #33d6ff;
+                width: 100px;
+            }
+
+            .cl_small_text {
+                font-family: Times;
+                font-size: 10pt;
+                color: black;
+            }
+
+            .cl_field_value {
+                font-family: Courier New;
+                font-size: 10pt;
+                color: blue;
+                width: 200px;
+            }
+        </style>
+
+        <script language="javascript">
+            /*
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                function to load specs by calling appropriate service
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
+            function jsLoadSpecs() {
+
+                var onSuccessFuncCall = function(jsonData) {
+
+                        var specsObj = JSON.parse(jsonData);
+                        var htmlContent = '';
+                        for (i = 0; i < specsObj.length; i++) {
+                            specObj = specsObj[i];
+                            htmlContent += "<option class=\"cl_small_text\" id=\"" + specObj.Id + "\">" + specObj.Name + "</option>";
+
+                        }
+                        elem = document.getElementById('idJsSpec');
+                        elem.innerHTML = htmlContent;
+
+                    } //end onSuccessFuncCall
+
+                doAjaxCall('/iso/v0/specs', onSuccessFuncCall);
+
+
+            } //end jsLoadSpecs
+
+            function jsLoadSpecMessages() {
+
+                var specsElem = document.getElementById('idJsSpec');
+                var selectedOption = specsElem.options[specsElem.selectedIndex];
+                if (selectedOption) {
+                    var specId = selectedOption.id;
+                    var specId = selectedOption.id;
+                    var url = '/iso/v0/msgs/' + specId;
+                    var onSuccessFunc = function(jsonData) {
+                            var msgsObj = JSON.parse(jsonData);
+                            var htmlContent = '';
+                            for (i = 0; i < msgsObj.length; i++) {
+                                msgObj = msgsObj[i];
+                                htmlContent += "<option class=\"cl_small_text\" id=\"" + msgObj.Id + "\">" + msgObj.Name + "</option>";
+
+                            }
+                            var elem = document.getElementById('idJsSpecMsgs');
+                            elem.innerHTML = htmlContent;
+
+
+
+                        } //end onSuccessFunc call
+
+                    doAjaxCall(url, onSuccessFunc)
+                } else {
+                    console.log('please select a spec');
+                }
+
+
+
+
+            } //end jsLoadSpecMessages
+
+
+            function jsLoadTemplate() {
+
+                var specsElem = document.getElementById('idJsSpec');
+                var selectedSpecOption = specsElem.options[specsElem.selectedIndex];
+                if (selectedSpecOption) {
+                    var specId = selectedSpecOption.id;
+
+                    var msgsElem = document.getElementById('idJsSpecMsgs');
+                    var selectedMsgOption = msgsElem.options[msgsElem.selectedIndex];
+
+                    if (selectedMsgOption) {
+                        var msgId = selectedMsgOption.id;
+
+                        //now do the AJAX call
+                        var url = '/iso/v0/template/' + specId + '/' + msgId;
+                        var onSuccessFunc = function(jsonData) {
+
+
+                                //alert(jsonData);
+                                var obj = JSON.parse(jsonData);
+                                var fieldsObj = obj.Fields;
+
+                                var htmlContent = '';
+                                htmlContent += "<tr class=\"cl_small_text\"><th > Selected? </th> <th> Field </th> <th> Value </th></tr>\n";
+                                for (i = 0; i < fieldsObj.length; i++) {
+                                    var fieldObj = fieldsObj[i];
+                                    htmlContent += '<tr>';
+                                    htmlContent += "<td class=\"cl_small_text\"> <input  id=\"idJsFieldSelectedId_" + fieldObj.Id + "\" type=\"checkbox\"/> </td>"
+                                    htmlContent += "<td class=\"cl_small_text\" id=idJsFieldId_\"" + fieldObj.Id + "\">" + fieldObj.Name + "</td>";
+                                    htmlContent += "<td>" + "<input id=\"idJsFieldValueId_" + fieldObj.Id + "\" class=\"cl_field_value\" type=\"text\" class=\"cl_small_text\"/>" + "</td> </tr>";
+
+                                    htmlContent += appendChildFields(fieldObj);
+
+
+                                }
+                                var elem = document.getElementById('idJsRequestTable');
+                                elem.innerHTML = htmlContent;
+                            } //end onSuccessFunc call
+
+                        doAjaxCall(url, onSuccessFunc)
+                    }
+
+
+                } else {
+                    console.log('please select a spec and msg');
+                }
+
+            } //end jsLoadTemplate
+
+            function appendChildFields(pFieldObj) {
+
+                var htmlContent = '';
+                if (pFieldObj.Children.length > 0) {
+                    //alert(pFieldObj.Children.length);
+
+                    for (var i = 0; i < pFieldObj.Children.length; i++) {
+                        var fieldObj = pFieldObj.Children[i];
+                        //alert(fieldObj);
+                        htmlContent += '<tr>';
+                        htmlContent += "<td class=\"cl_small_text\"> <input id=\"idJsFieldSelectedId_" + fieldObj.Id + "\" type=\"checkbox\"/> </td>"
+                        htmlContent += "<td class=\"cl_small_text\" id=idJsFieldId_\"" + fieldObj.Id + "\">\u21b3 " + fieldObj.Name + "</td>";
+                        htmlContent += "<td >" + "<input id=\"idJsFieldValueId_" + fieldObj.Id + "\" class = \"cl_field_value\" type=\"text\" class=\"cl_small_text\"/>" + "</td> </tr>";
+                        htmlContent += appendChildFields(fieldObj);
+
+
+                    }
+
+                }
+                return htmlContent;
+
+            }
+
+            function doAjaxCall(url, onSuccess, data, method = 'GET') {
+                xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function() {
+
+
+                        if (xhr.readyState == 4) {
+                            if (xhr.status == 200) {
+                                onSuccess(xhr.responseText);
+                            } else {
+                                console.log('failed. status code =' + xhr.status);
+                            }
+                        }
+                    } //end onreadystatechange
+                xhr.open(method, url);
+
+                console.log('making ajax request .. ' + url);
+                xhr.send(data);
+            } //end doAjaxCall()
+
+
+
+            function jsShowTraceDialog() {
+
+                var elem = document.getElementById('idJsTraceDiv');
+                elem.style.display = "block";
+                elem.style.position = "absolute";
+                elem.style.left = "200px";
+                elem.style.top = "300px";
+                elem.style['z-index'] = "2";
+
+            }
+
+            function jsCancelTraceParseAction() {
+                var elem = document.getElementById('idJsTraceDiv');
+                elem.style.display = "none";
+
+            }
+
+
+            function jsParseTrace() {
+
+                var specsElem = document.getElementById('idJsSpec');
+                var selectedSpecOption = specsElem.options[specsElem.selectedIndex];
+                if (selectedSpecOption) {
+                    var specId = selectedSpecOption.id;
+
+                    var msgsElem = document.getElementById('idJsSpecMsgs');
+                    var selectedMsgOption = msgsElem.options[msgsElem.selectedIndex];
+
+                    if (selectedMsgOption) {
+
+                        var elem = document.getElementById('idJsTrace');
+                        url = '/iso/v0/parse/' + specId + '/' + selectedMsgOption.id;
+                        doAjaxCall(url, function(responseText) {
+
+                            alert(responseText);
+                            var parsedMsgObj = JSON.parse(responseText);
+                            alert(parsedMsgObj.length)
+                            for (var i = 0; i < parsedMsgObj.length; i++) {
+
+                                var fieldDataObj = parsedMsgObj[i];
+                                var elemId = 'idJsFieldValueId_' + fieldDataObj.Id;
+                                alert(elemId);
+                                document.getElementById(elemId).value = fieldDataObj.Value;
+                                document.getElementById('idJsFieldSelectedId_' + fieldDataObj.Id).checked = true;
+
+                            }
+                            jsCancelTraceParseAction();
+                        }, elem.value, 'POST');
+
+
+
+                    }
+                }
+
+
+
+            }
+        </script>
+
+    </head>
+
+    <body>
+
+        <h2 style="font-family: 'Comic Sans MS'"> ISO WebSim v0 </h2>
+        <div class="cl_small_text">Developers: Raghavendra Balgi (raghavendra.a.balgi@aexp.com) </div>
+        <hr>
+
+        <table style="position: relative; z-index: 1;">
+            <tr>
+                <td>
+                    <input class="cl_small_btn" type="button" value="Load Specs" onClick="jsLoadSpecs()" />
+                </td>
+
+                <td>
+                    <select id="idJsSpec" name="jsSpec" style="width: 200px;">
+                    </select>
+                </td>
+
+            </tr>
+
+
+            <! -- second row -->
+
+            <tr>
+                <td>
+                    <input class="cl_small_btn" type="button" value="Load Messages" onClick="jsLoadSpecMessages()" />
+                </td>
+
+                <td>
+                    <select id="idJsSpecMsgs" name="jsSpecMsgs" style="width: 200px;"></select>
+                </td>
+
+            </tr>
+
+            <tr>
+                <table>
+
+                    <tr>
+
+                        <td>Host</td>
+                        <td>
+                            <input type="text" value="127.0.0.1" />
+                        </td>
+                        <td>Port</td>
+                        <td>
+                            <input type="text" value="6767" />
+                        </td>
+
+                    </tr>
+
+
+                </table>
+
+            </tr>
+
+
+
+        </table>
+
+        <br/>
+        <br/>
+        <div style="position:relative; z-index: 1;">
+            <input class="cl_small_btn" type="button" value="Load Template" onClick="jsLoadTemplate()" />
+            <input class="cl_small_btn" type="button" value="Parse Trace" onClick="jsShowTraceDialog()" />
+            <input class="cl_small_btn" type="button" value="Send" onClick="jsSendMsg()" />
+        </div>
+
+        <br/>
+        <br/>
+        <table border="1">
+            <!-- Request Table -->
+            <table id="idJsRequestTable">
+
+            </table>
+            <!-- Response Table -->
+            <table id="idJsResponseTable">
+            </table>
+        </table>
+
+        <div id="idJsTraceDiv" style="margin: auto; width:450px; height: 280px;border-style: solid; display: none; background: blue;">
+            <textarea id="idJsTrace" rows="5" cols="40" style="margin-right: 10px; margin:10px; width: 400px; height:200px;">F1F1F0F0723C240128428000F1F5F3F7F5F7F2F2F6F5F8F7F0F9F2F3F9F0F0F4F0F0F0F0F0F0F0F0F0F0F0F1F0F0F0F0F4F2F1F1F0F2F4F5F1F1F1F0F6F0F2F0F5F1F0F1F8F1F9F4F3F1F2F0F5F0F3F0F9F0F1F8F4F0F2F6F1F1F0F1F1F0F1F1F4F0F0F1F0F3F7F3F7F5F7F2F2F6F5F8F7F0F9F2F3F9C4F0F8F0F8F1F0F1F0F4F0F1F3F6F6F7F2F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F1F5F4F3F4F5F0F1F3F6F74040404040F2F4F9C1E7C9C1C3F2F1F0F9F0F1F0F1C1D7D5F2F3C6D9D6E2E340D1C1D5C540D440D4D9E240404040404040C1C2C34040E7E8E94040D9E3C7F6F1F1F0C1C2C3404061C4C5C6404061C7C8C9404061D1D2D3404061D4D5D6404061D7D8D9404061E2E3E4404061E5E6E7404061E8E9C1404061E7E8E94040C1D3C3F5F5F0F9C1C240404061E7E840404061C2C340404061C3C440404061C4C540404061C4C54040406140C3C440404061C2C340404061C1C2404040C1C2C3F1F2F3C4C5C6F4F5F6C7C8C9F7F8F9D1D2D3F0F1F2F0F0F1F1F2F74BF1F4F24BF1F5F14BF2F2F3C3C540F2F4C3C6C6D9D6E2E37CC5D4C1C9D3C1C4C4D9C5E2E24BC3D6D4F8F4F0</textarea>
+
+
+            <br/>
+            <br/>
+            <div align="center" style="align-content:center;">
+                <input type="button" class="cl_small_btn" value="OK " onclick="jsParseTrace()" />
+                <input type="button" class="cl_small_btn" value="Cancel " onclick="jsCancelTraceParseAction()" />
+            </div>
+        </div>
+
+
+
+    </body>
+
+</html>

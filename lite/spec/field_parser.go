@@ -48,9 +48,6 @@ func (pMsg *ParsedMsg) Copy() *ParsedMsg {
 
 }
 
-func (pMsg *ParsedMsg) Assemble() {
-
-}
 
 func Parse(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 
@@ -206,3 +203,4 @@ func NextBytes(buf *bytes.Buffer, n int) []byte {
 	return replica
 
 }
+

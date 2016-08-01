@@ -11,9 +11,18 @@ type JsonFieldTemplate struct {
 	Children []*JsonFieldTemplate
 }
 
+type JsonFieldDataRep struct{
+
+	Id int
+	Value string
+
+}
+
 type JsonMessageTemplate struct {
 	Fields []*JsonFieldTemplate
 }
+
+
 
 func newJsonFieldTemplate(field *spec.Field) *JsonFieldTemplate {
 	jsonFieldTemplate := &JsonFieldTemplate{Children:make([]*JsonFieldTemplate, 0, 10)}
@@ -22,6 +31,7 @@ func newJsonFieldTemplate(field *spec.Field) *JsonFieldTemplate {
 	if (field.HasChildren()) {
 		for _, childField := range (field.Children()) {
 			childJsonFieldTemplate := newJsonFieldTemplate(childField);
+			childJsonFieldTemplate.ParentId=field.Id;
 			jsonFieldTemplate.Children = append(jsonFieldTemplate.Children, childJsonFieldTemplate);
 		}
 

@@ -11,6 +11,8 @@ type Bitmap struct {
 	bmpData   []uint64;
 	childData map[int]*FieldData
 	field     *Field
+	//This field is required during response building only
+	parsedMsg *ParsedMsg
 }
 
 const HighBitMask uint64 = uint64(1) << 63;
@@ -53,6 +55,8 @@ func (bmp *Bitmap) Set(pos int, val string) {
 	} else {
 		fieldData = &FieldData{Field:childField}
 		fieldData.Data = childField.ValueFromString(val);
+		bmp.parsedMsg.FieldDataMap[childField.Id] = fieldData;
+		bmp.childData[childField.Position] = fieldData;
 		bmp.SetOn(pos);
 	}
 
@@ -63,7 +67,24 @@ func (bmp *Bitmap) Copy() *Bitmap {
 
 	newBmp := NewBitmap();
 	copy(newBmp.bmpData, bmp.bmpData);
+	newBmp.field = bmp.field;
 	return newBmp;
+
+}
+
+//Returns the bitmap as a slice of bytes
+func (bmp *Bitmap) Bytes() []byte {
+
+	buf := new(bytes.Buffer)
+	for _, b := range (bmp.bmpData) {
+		if (b != 0) {
+			binary.Write(buf, binary.BigEndian, b);
+		} else {
+			break;
+		}
+
+	}
+	return buf.Bytes();
 
 }
 
@@ -115,52 +136,61 @@ func (bmp *Bitmap) Parse(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) 
 
 }
 
-func (bmp *Bitmap) targetAndMask(position int) (targetInt *uint64, mask uint64) {
+func (bmp *Bitmap) targetAndMask(position int) (targetInt *uint64, mask uint64, bc int) {
 
 	var pivot uint64 = 1;
 	var shift uint64
+	bc = 1
 	switch{
 	case position > 0 && position < 65:{
 		targetInt = &bmp.bmpData[0];
 		shift = (uint64(64) - uint64(position));
+		bc = 1;
 	}
 	case position > 64 && position < 129:{
 		targetInt = &bmp.bmpData[1];
 		//position -= 64;
 		shift = (uint64(128) - uint64(position));
+		bc = 2;
 	}
 	case position < 193:{
 		targetInt = &bmp.bmpData[2];
 		//position -= 128;
 		shift = (uint64(192) - uint64(position));
+		bc = 3;
 	}
 	default:
 		log.Fatal("invalid bitmap position -", position);
 	}
 
 	mask = pivot << shift;
-	return targetInt, mask;
+	return targetInt, mask, bc;
 
 
 }
 
 func (bmp *Bitmap) IsOn(position int) bool {
 
-	targetInt, mask := bmp.targetAndMask(position);
+	targetInt, mask, _ := bmp.targetAndMask(position);
 	return (*targetInt & mask) == mask
 
 }
 
 func (bmp *Bitmap) SetOn(position int) {
 
-	targetInt, mask := bmp.targetAndMask(position);
+	targetInt, mask, bc := bmp.targetAndMask(position);
 	*targetInt = *targetInt | mask
+	if (bc == 2) {
+		bmp.SetOn(1);
+	} else if (bc == 3) {
+		bmp.SetOn(65);
+	}
 
 }
 
 func (bmp *Bitmap) SetOff(position int) {
 
-	targetInt, mask := bmp.targetAndMask(position);
+	targetInt, mask, _ := bmp.targetAndMask(position);
 	*targetInt = *targetInt & (^mask)
 
 }

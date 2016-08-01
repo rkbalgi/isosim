@@ -19,6 +19,7 @@ func SetRoutes() {
 	AllSpecsHandler();
 	GetSpecMessagesHandler();
 	GetMessageTemplateHandler();
+	ParseTraceHandler();
 }
 
 func sendError(rw http.ResponseWriter, errorMsg string) {
