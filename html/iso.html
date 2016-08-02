@@ -11,6 +11,14 @@
             width: 100px;
         }
         
+        .cl_vsmall_btn {
+            font-family: Times;
+            font-size: 10pt;
+            color: black;
+            background: #5AD65A;
+            width: 50px;
+        }
+        
         .cl_small_text {
             font-family: Times;
             font-size: 10pt;
@@ -21,7 +29,7 @@
             font-family: Courier New;
             font-size: 10pt;
             color: blue;
-            width: 300px;
+            width: 150px;
         }
         
         .cl_trace_value {
@@ -44,7 +52,7 @@
             color: #e26a21;
             font-family: Times;
             font-size: 10pt;
-            font-weight: 100
+            width: 100px;
         }
 
     </style>
@@ -152,6 +160,7 @@
                         currentMsgFields = fieldsObj;
 
                         var htmlContent = '';
+                        htmlContent += '<tr><td colspan=\"4\" align="center" style="background: #F36227" class="cl_small_text">Message Request</td><tr>';
                         htmlContent += "<tr class=\"cl_small_text\"><th > Selected? </th> <th> Field </th> <th> Value </th></tr>\n";
                         for (i = 0; i < fieldsObj.length; i++) {
                             var fieldObj = fieldsObj[i];
@@ -206,10 +215,15 @@
             htmlContent += "<td class=\"cl_small_text\" id=\"" + id1 + fieldObj.Id + "\">" + fieldObj.Name + "</td>";
             htmlContent += "<td>" + "<input id=\"" + id2 + fieldObj.Id + "\" class=\"cl_field_value\" type=\"text\" class=\"cl_small_text\" value=\"" + fieldData + "\"/>";
             if (isRequest) {
-                htmlContent += "<div class=\"cl_val_error\" style=\"display:none;\" id=\"" + reqFieldsValErrorIdPrefix + fieldObj.Id + "\"> </div>"
+                htmlContent += "<div class=\"cl_val_error\" style=\"display:none;\" id=\"" + reqFieldsValErrorIdPrefix + fieldObj.Id + "\"> </div></td>";
+                htmlContent += '<td><input class="cl_vsmall_btn" type="button" value="Edit" onClick="editRequestField()" /></td>';
+
+            } else {
+                htmlContent += '</td>'
+                htmlContent += '<td><input class="cl_vsmall_btn" type="button" value="View" onClick="viewResponseField()" /></td>';
             }
 
-            htmlContent += "</td> </tr>";
+            htmlContent += "</tr>";
 
             return htmlContent;
 
@@ -293,7 +307,7 @@
                     url = '/iso/v0/parse/' + specId + '/' + selectedMsgOption.id;
                     doAjaxCall(url, function(responseText) {
 
-                        //alert(responseText);
+                        console.log('parsed msg (json)' + responseText);
                         var parsedMsgObj = JSON.parse(responseText);
                         //alert(parsedMsgObj.length)
                         for (var i = 0; i < parsedMsgObj.length; i++) {
@@ -424,6 +438,8 @@
         */
         function jsSendMsg() {
 
+            document.getElementById('idJsResponseTable').innerHTML = "";
+
             var validationErrors = validateFields();
             if (validationErrors.length > 0) {
                 console.log('unable to send msg because of validation errors');
@@ -482,6 +498,8 @@
             selectedOption = document.getElementById('idJsSpecMsgs');
             var msgId = selectedOption.options[selectedOption.selectedIndex].id;
 
+            console.log('sending message - ' + msg);
+
             console.log('spec id = ' + specId + 'msg id = ' + msgId);
             var postData = 'host=' +
                 host + '&' + 'port=' + port + '&' + 'specId=' + specId + "&" + 'msgId=' + msgId + "&" + "msg=" + msg;
@@ -493,6 +511,7 @@
                 var responseData = JSON.parse(responseText);
 
                 var htmlContent = '';
+                htmlContent += '<tr><td colspan=\"4\" align="center" style="background: #F36227" class="cl_small_text">Message Response</td><tr>';
                 htmlContent += "<tr class=\"cl_small_text\"><th > Selected? </th> <th> Field </th> <th> Value </th></tr>\n";
                 for (var i = 0; i < currentMsgFields.length; i++) {
                     var fieldObj = currentMsgFields[i];
@@ -653,10 +672,10 @@
         </tr>
     </table>
 
-    <div id="idJsTraceDiv" style="margin-left: 10px; margin-right: 10px; width:450px; height: 230px;display: none; background: #ccff99;">
+    <div id="idJsTraceDiv" style="margin-left: 10px; margin-right: 10px; width:455px; height: 230px;display: none; background: #ccff99; border-style: groove;border-color: blue">
 
-        <div class="cl_small_text" style="width: 450px;height: 30px;background-color:#ff8080;">Hex Trace Input Dialog</div>
-        <textarea class="cl_trace_value" id="idJsTrace" rows="5" cols="40" style=" resize: none; margin: 5px; margin:5px; width: 440px; height:140px;">F1F1F0F0723C240128428000F1F5F3F7F5F7F2F2F6F5F8F7F0F9F2F3F9F0F0F4F0F0F0F0F0F0F0F0F0F0F0F1F0F0F0F0F4F2F1F1F0F2F4F5F1F1F1F0F6F0F2F0F5F1F0F1F8F1F9F4F3F1F2F0F5F0F3F0F9F0F1F8F4F0F2F6F1F1F0F1F1F0F1F1F4F0F0F1F0F3F7F3F7F5F7F2F2F6F5F8F7F0F9F2F3F9C4F0F8F0F8F1F0F1F0F4F0F1F3F6F6F7F2F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F1F5F4F3F4F5F0F1F3F6F74040404040F2F4F9C1E7C9C1C3F2F1F0F9F0F1F0F1C1D7D5F2F3C6D9D6E2E340D1C1D5C540D440D4D9E240404040404040C1C2C34040E7E8E94040D9E3C7F6F1F1F0C1C2C3404061C4C5C6404061C7C8C9404061D1D2D3404061D4D5D6404061D7D8D9404061E2E3E4404061E5E6E7404061E8E9C1404061E7E8E94040C1D3C3F5F5F0F9C1C240404061E7E840404061C2C340404061C3C440404061C4C540404061C4C54040406140C3C440404061C2C340404061C1C2404040C1C2C3F1F2F3C4C5C6F4F5F6C7C8C9F7F8F9D1D2D3F0F1F2F0F0F1F1F2F74BF1F4F24BF1F5F14BF2F2F3C3C540F2F4C3C6C6D9D6E2E37CC5D4C1C9D3C1C4C4D9C5E2E24BC3D6D4F8F4F0</textarea>
+        <div class="cl_small_text" style="width: 450px;height: 30px;background-color:#ff8080; margin:2px;">Hex Trace Input Dialog</div>
+        <textarea class="cl_trace_value" id="idJsTrace" rows="5" cols="40" style=" resize: none; margin: 10px; margin:5px; width: 440px; height:140px;">F1F1F0F0723C240128428000F1F5F3F7F5F7F2F2F6F5F8F7F0F9F2F3F9F0F0F4F0F0F0F0F0F0F0F0F0F0F0F1F0F0F0F0F4F2F1F1F0F2F4F5F1F1F1F0F6F0F2F0F5F1F0F1F8F1F9F4F3F1F2F0F5F0F3F0F9F0F1F8F4F0F2F6F1F1F0F1F1F0F1F1F4F0F0F1F0F3F7F3F7F5F7F2F2F6F5F8F7F0F9F2F3F9C4F0F8F0F8F1F0F1F0F4F0F1F3F6F6F7F2F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F1F5F4F3F4F5F0F1F3F6F74040404040F2F4F9C1E7C9C1C3F2F1F0F9F0F1F0F1C1D7D5F2F3C6D9D6E2E340D1C1D5C540D440D4D9E240404040404040C1C2C34040E7E8E94040D9E3C7F6F1F1F0C1C2C3404061C4C5C6404061C7C8C9404061D1D2D3404061D4D5D6404061D7D8D9404061E2E3E4404061E5E6E7404061E8E9C1404061E7E8E94040C1D3C3F5F5F0F9C1C240404061E7E840404061C2C340404061C3C440404061C4C540404061C4C54040406140C3C440404061C2C340404061C1C2404040C1C2C3F1F2F3C4C5C6F4F5F6C7C8C9F7F8F9D1D2D3F0F1F2F0F0F1F1F2F74BF1F4F24BF1F5F14BF2F2F3C3C540F2F4C3C6C6D9D6E2E37CC5D4C1C9D3C1C4C4D9C5E2E24BC3D6D4F8F4F0</textarea>
 
 
         <br/>
@@ -667,15 +686,15 @@
         </div>
     </div>
 
-    <div id="idJsErrorDiv" style="z-index:9999;margin-left: 10px; margin-right: 10px; width:450px; height: 250px;display: none; background: #ccff99;">
+    <div id="idJsErrorDiv" style="margin-left: 10px; margin-right: 10px; width:455px; height: 250px; display: none; background: #ccff99; border-style: groove;border-color: blue;">
 
-        <div class="cl_small_text" style="width: 450px;height: 30px;background-color:#ff8080;">WebSim Error Message</div>
-        <div id="idJsErrorMsg" class="cl_small_text" style="overflow:auto; margin: 5px; margin:5px; width: 440px; height:140px; color: red"></div>
+        <div class="cl_small_text " style="width: 450px;height: 30px;background-color:#ff8080; margin:2px; "> WebSim Error Message</div>
+        <div id="idJsErrorMsg" class="cl_small_text " style="overflow:auto; margin: 5px; margin:5px; width: 440px; height:140px; color: red;"></div>
 
         <br/>
         <br/>
-        <div align="center" style="align-content:center;">
-            <input type="button" class="cl_small_btn" value="OK " onclick="closeErrorDialog()" />
+        <div align="center" style="align-content:center; ">
+            <input type="button" class="cl_small_btn" value="OK" onclick="closeErrorDialog()" />
 
         </div>
     </div>

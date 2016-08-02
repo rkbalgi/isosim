@@ -98,7 +98,7 @@ func (msg *Message) ParseJSON(jsonMsg string) (*ParsedMsg, error) {
 
 	for _, pFieldIdValue := range (fieldValArr) {
 
-		log.Print("ID = ", pFieldIdValue.Id)
+		//log.Print("ID = ", pFieldIdValue.Id)
 		field := msg.fieldByIdMap[pFieldIdValue.Id];
 		if (field == nil) {
 			return nil, UnknownFieldError;
@@ -116,6 +116,7 @@ func (msg *Message) ParseJSON(jsonMsg string) (*ParsedMsg, error) {
 			if (field.ParentId != -1) {
 				parentField := msg.fieldByIdMap[field.ParentId];
 				if (parentField.FieldInfo.Type == BITMAP) {
+					log.Print("on field = ",field.Position);
 					isoBitmap.SetOn(field.Position);
 				}
 
