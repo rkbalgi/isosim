@@ -7,11 +7,19 @@ import (
 	"strconv"
 	"errors"
 	"encoding/json"
+	"net"
+)
+
+import (
+	local_net "github.com/rkbalgi/go/net"
+	"encoding/hex"
 )
 
 var InvalidSpecIdError = errors.New("Invalid spec id")
 var InvalidMsgIdError = errors.New("Invalid msg id")
 var ParseError = errors.New("Parse Error")
+
+var InvalidHostOrPortError = errors.New("Invalid Host or Port");
 
 func SendMsgHandler() {
 
@@ -31,6 +39,23 @@ func SendMsgHandler() {
 		log.Print(req.PostForm.Get("msgId"));
 		log.Print(strconv.Atoi(req.PostForm.Get("specId")));
 		log.Print(req.PostForm.Get("msg"));
+
+		var host = req.PostForm.Get("host");
+		port, err := strconv.Atoi(req.PostForm.Get("port"));
+		if (err != nil) {
+			sendError(rw, InvalidHostOrPortError.Error());
+			return
+
+		}
+		hostIpAddr, err := net.ResolveIPAddr("ip", host);
+		if (err != nil || hostIpAddr==nil) {
+			sendError(rw, "unable to resolve host " + host);
+			return;
+
+		}
+
+		log.Print(hostIpAddr, port)
+
 
 		if specId, err := strconv.Atoi(req.PostForm.Get("specId")); err == nil {
 			log.Print("Spec Id =" + strconv.Itoa(specId));
@@ -53,14 +78,35 @@ func SendMsgHandler() {
 					sendError(rw, ParseError.Error());
 					return;
 				}
-				log.Print("Generating response ...");
-				//for testing
-				responseMsg := parsedMsg.Copy();
-				iso := spec.NewIso(responseMsg);
-				isoBitmap := iso.Bitmap();
-				isoBitmap.Set(39, "000");
-				isoBitmap.Set(38, "ABC123");
 
+				iso := spec.NewIso(parsedMsg)
+				msgData := iso.Assemble();
+
+				netClient := local_net.NewNetCatClient(hostIpAddr.String() + ":" + req.PostForm.Get("port"), local_net.MLI_2I);
+				log.Print("connecting to -" + hostIpAddr.String() + ":", port)
+
+				log.Print("assembled request msg = " + hex.EncodeToString(msgData));
+				if err := netClient.OpenConnection(); err != nil {
+					sendError(rw, "failed to connect -" + err.Error())
+					return;
+				}
+				log.Print("opened connect to host - "+hostIpAddr.String())
+
+				if err := netClient.Write(msgData); err != nil {
+					sendError(rw, "write error -" + err.Error())
+					return;
+				}
+				log.Print("message written ok.");
+				responseData,err:=netClient.ReadNextPacket();
+				if err := netClient.Write(msgData); err != nil {
+					sendError(rw, "error reading response -" + err.Error())
+					return;
+				}
+				responseMsg,err:=msg.Parse(responseData);
+				if err := netClient.Write(msgData); err != nil {
+					sendError(rw, "parse failure on response from host -" + err.Error())
+					return;
+				}
 				fieldDataList := ToJsonList(responseMsg);
 				log.Print("Response List =", fieldDataList)
 				json.NewEncoder(rw).Encode(fieldDataList);

@@ -50,9 +50,9 @@
     </style>
 
     <script language="javascript">
-        reqFieldsPrefixId0 = 'idJsRespFieldSelectedId_';
-        reqFieldsPrefixId1 = 'idJsRespFieldId_';
-        reqFieldsPrefixId2 = 'idJsRespFieldValueId_';
+        reqFieldsPrefixId0 = 'idJsReqFieldSelectedId_';
+        reqFieldsPrefixId1 = 'idJsReqFieldId_';
+        reqFieldsPrefixId2 = 'idJsReqFieldValueId_';
         reqFieldsValErrorIdPrefix = 'idJsFieldValErr_';
 
         respFieldsPrefixId0 = 'idJsRespFieldSelectedId_';
@@ -178,6 +178,7 @@
         function getFieldHtml(fieldObj, fieldData = "", isRequest = true) {
 
 
+
             var fieldPosition = "";
             if (fieldObj.Position > 0) {
                 fieldPosition = "[" + fieldObj.Position + "]";
@@ -185,15 +186,20 @@
                 fieldPosition = "[_]";
             }
 
+
+
+            //console.log('isreq ' + isRequest);
             var id0 = reqFieldsPrefixId0;
             var id1 = reqFieldsPrefixId1;
             var id2 = reqFieldsPrefixId2;
 
             if (isRequest == false) {
+                console.log('madness');
                 id0 = respFieldsPrefixId0;
                 id1 = respFieldsPrefixId1;
                 id2 = respFieldsPrefixId2;
             }
+            //console.log(id0 + id1 + id2)
 
             var htmlContent = '<tr>';
             htmlContent += "<td class=\"cl_small_text\"> <input  class=\"cl_req_field_sel_cb\" id=\"" + id0 + fieldObj.Id + "\" type=\"checkbox\"/> " + fieldPosition + "</td>"
@@ -235,6 +241,7 @@
                             onSuccess(xhr.responseText);
                         } else {
                             console.log('failed. status code =' + xhr.status);
+                            showErrorMessage('Request Failed. ' + 'Http Status: ' + xhr.status + ' Message = ' + xhr.responseText);
                         }
                     }
                 } //end onreadystatechange
@@ -419,9 +426,30 @@
 
             var validationErrors = validateFields();
             if (validationErrors.length > 0) {
+                console.log('unable to send msg because of validation errors');
+                return;
+            }
+
+            var hostElem = document.getElementById('idJsHost');
+            var portElem = document.getElementById('idJsPort');
+
+            if (!hostElem.value) {
+                showErrorMessage('please provide a valid host name/ip address');
                 return;
 
             }
+            var re = /^[0-9]+$/;
+            if (!re.exec(portElem.value)) {
+                showErrorMessage('please provide a valid port number');
+                return;
+
+            }
+
+            var host = hostElem.value;
+            var port = portElem.value;
+
+
+
 
             var selectedObjs = document.getElementsByClassName('cl_req_field_sel_cb');
             var resultObj = new Array();
@@ -454,11 +482,14 @@
             selectedOption = document.getElementById('idJsSpecMsgs');
             var msgId = selectedOption.options[selectedOption.selectedIndex].id;
 
-            console.log('spec id = ' + specId + ' msg id = ' + msgId);
-            var postData = 'specId=' + specId + "&" + 'msgId=' + msgId + "&" + "msg=" + msg;
+            console.log('spec id = ' + specId + 'msg id = ' + msgId);
+            var postData = 'host=' +
+                host + '&' + 'port=' + port + '&' + 'specId=' + specId + "&" + 'msgId=' + msgId + "&" + "msg=" + msg;
+            //var postData = 'specId=' + specId + "&" + 'msgId=' + msgId + "&" + "msg=" + msg;
+
             console.log('postData = ' + postData);
             doAjaxCall('/iso/v0/send', function(responseText) {
-                alert(responseText);
+                //alert(responseText);
                 var responseData = JSON.parse(responseText);
 
                 var htmlContent = '';
@@ -469,23 +500,19 @@
                     htmlContent += appendChildFields(fieldObj, isRequest = false);
                 }
 
-                alert(htmlContent);
+                //alert(htmlContent);
 
                 var elem = document.getElementById('idJsResponseTable');
                 elem.innerHTML = htmlContent;
 
                 for (var i = 0; i < responseData.length; i++) {
 
+                    console.log('setting ' + responseData[i].Id + ' ' + responseData[i].Value);
+
                     var id = respFieldsPrefixId0 + responseData[i].Id;
                     var fieldId = respFieldsPrefixId2 + responseData[i].Id;
                     document.getElementById(id).checked = true;
                     document.getElementById(fieldId).value = responseData[i].Value;
-
-
-
-
-
-
                 }
 
 
@@ -521,7 +548,7 @@
 <body onload="init()">
 
     <h2 style="font-family: 'Comic Sans MS'"> ISO WebSim</h2>
-    <div class="cl_small_text">Developer(s): Raghavendra Balgi (raghavendra.a.balgi@aexp.com) </div>
+    <div class="cl_small_text">Developer(s): Raghavendra Balgi (rkbalgi@gmail.com) </div>
     <hr>
 
     <table style="position: relative; z-index: 1;">
@@ -562,13 +589,13 @@
                         <div class="cl_text_label">Host</div>
                     </td>
                     <td>
-                        <input type="text" value="127.0.0.1" />
+                        <input id="idJsHost" type="text" value="127.0.0.1" />
                     </td>
                     <td>
                         <div class="cl_text_label">Port</div>
                     </td>
                     <td>
-                        <input type="text" value="6767" />
+                        <input id="idJsPort" type="text" value="6767" />
                     </td>
 
                 </tr>
@@ -618,7 +645,7 @@
             </td>
 
             <td>
-                <!-- Request Table -->
+                <!-- Response Table -->
                 <table id="idJsResponseTable">
 
                 </table>
