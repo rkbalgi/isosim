@@ -74,17 +74,7 @@ func ParseTraceHandler() {
 							return;
 						}
 
-						fieldDataList := make([]ui_data.JsonFieldDataRep, 0, 10);
-						for id, fieldData := range (parsedMsg.FieldDataMap) {
-							dataRep := ui_data.JsonFieldDataRep{Id:id, Value:fieldData.Field.ValueToString(fieldData.Data)};
-							if (fieldData.Field.FieldInfo.Type == spec.BITMAP) {
-								dataRep.Value = fieldData.Bitmap.BinaryString();
-
-							}
-
-							fieldDataList = append(fieldDataList, dataRep);
-						}
-
+						fieldDataList := ToJsonList(parsedMsg);
 						//log.Print(fieldDataMap)
 						json.NewEncoder(rw).Encode(fieldDataList);
 
@@ -103,6 +93,24 @@ func ParseTraceHandler() {
 	});
 
 
+}
+
+func ToJsonList(parsedMsg *spec.ParsedMsg) []ui_data.JsonFieldDataRep {
+
+
+	fieldDataList := make([]ui_data.JsonFieldDataRep, 0, 10);
+	for id, fieldData := range (parsedMsg.FieldDataMap) {
+		//log.Print(fieldData.Field.Name, fieldData.Value())
+		dataRep := ui_data.JsonFieldDataRep{Id:id, Value:fieldData.Field.ValueToString(fieldData.Data)};
+		if (fieldData.Field.FieldInfo.Type == spec.BITMAP) {
+			dataRep.Value = fieldData.Bitmap.BinaryString();
+
+		}
+
+		fieldDataList = append(fieldDataList, dataRep);
+	}
+
+	return fieldDataList;
 }
 
 

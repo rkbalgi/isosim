@@ -21,7 +21,7 @@ const (
 	BINARY
 )
 
-func getEncodingName(encoding Encoding) string {
+func GetEncodingName(encoding Encoding) string {
 
 	switch encoding{
 	case ASCII:{

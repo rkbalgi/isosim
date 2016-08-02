@@ -20,7 +20,7 @@ func (spec *Spec) GetOrAddMsg(msgName string) *Message {
 
 	msg, ok := spec.messages[msgName]
 	if !ok {
-		msg = &Message{Name: msgName, Id: NextId(), fields:make([]*Field, 0, 10)}
+		msg = &Message{Name: msgName, Id: NextId(), fields:make([]*Field, 0, 10), fieldByIdMap:make(map[int]*Field, 10)}
 		spec.messages[msgName] = msg
 	}
 	return msg
