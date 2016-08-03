@@ -98,15 +98,14 @@ func SendMsgHandler() {
 				}
 				log.Print("message written ok.");
 				responseData,err:=netClient.ReadNextPacket();
-				if err := netClient.Write(msgData); err != nil {
+				if err != nil {
 					sendError(rw, "error reading response -" + err.Error())
 					return;
 				}
+				log.Print("Received from host ="+hex.EncodeToString(responseData));
+
 				responseMsg,err:=msg.Parse(responseData);
-				if err := netClient.Write(msgData); err != nil {
-					sendError(rw, "parse failure on response from host -" + err.Error())
-					return;
-				}
+				netClient.Close();
 				fieldDataList := ToJsonList(responseMsg);
 				log.Print("Response List =", fieldDataList)
 				json.NewEncoder(rw).Encode(fieldDataList);

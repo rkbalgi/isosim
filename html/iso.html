@@ -2,39 +2,126 @@
 
 <head>
 
+    <link href="https://fonts.googleapis.com/css?family=Cormorant+Garamond|Gloria+Hallelujah|Lora" rel="stylesheet">
+
     <style>
+        #navDiv {
+            position: relative;
+            //top: 0px;
+            left: 0px;
+            width: 10%;
+            height: 100%;
+            float: left;
+            //border-style: groove;
+            //border-color: blue;
+            padding: 2px;
+            margin: 0px;
+        }
+        
+        #headerDiv {
+            position: relative;
+            top: 0px;
+            left: 0px;
+            height: 15%;
+            width: 100%;
+            float: left;
+            //border-style: dashed;
+            //border-color: red;
+        }
+        
+        #bodyDiv {
+            position: relative;
+            //top: 200px;
+            //left: 30px;
+            //height: 80px;
+            width: 85%;
+            float: left;
+            //border-style: double;
+            overflow: hidden;
+        }
+        
+        .cl_cursive_heading {
+            font-family: "Gloria Hallelujah", cursive;
+            font-size: 35px;
+        }
+        
+        .cl_small_text_new {
+            font-family: 'Lora', serif;
+            font-size: 14px;
+        }
+        
         .cl_small_btn {
-            font-family: Times;
+            font-family: 'Lora', serif;
             font-size: 10pt;
             color: black;
             background: #33d6ff;
-            width: 100px;
+            width: 120px;
         }
         
-        .cl_vsmall_btn {
+        .cl_vsmall_btn_edit {
+            font-family: Lora;
+            font-size: 9pt;
+            color: black;
+            background: #bfbb53;
+            width: 50px;
+        }
+        
+        .cl_vsmall_btn_view {
             font-family: Times;
             font-size: 10pt;
             color: black;
-            background: #5AD65A;
+            background: #bfbb53;
             width: 50px;
         }
         
         .cl_small_text {
-            font-family: Times;
+            font-family: Lora, serif;
             font-size: 10pt;
             color: black;
         }
         
+        .cl_field_name {
+            font-family: 'Cormorant Garamond', 'Lora', serif;
+            font-size: 18px;
+            color: #25235a;
+        }
+        
+        .cl_table_heading {
+            font-family: 'Cormorant Garamond', 'Lora', serif;
+            font-size: 19px;
+            color: #221441;
+        }
+        
+        .cl_segment_header_req {
+            font-family: Lora, serif;
+            font-size: 12pt;
+            font-weight: 200;
+            background: #ccff99;
+        }
+        
+        .cl_segment_header_resp {
+            font-family: Lora, serif;
+            font-size: 11pt;
+            font-weight: 200;
+            background: #cacadd;
+        }
+        
         .cl_field_value {
-            font-family: Courier New;
-            font-size: 10pt;
-            color: blue;
+            font-family: 'Courier New', monospace;
+            font-size: 11pt;
+            color: #090933;
             width: 150px;
         }
         
+        .cl_field_pos {
+            font-family: Lora, serif;
+            font-size: 11pt;
+            color: #e64a0a;
+        }
+        
         .cl_trace_value {
-            font-family: Courier New;
-            font-size: 8pt;
+            font-family: 'Courier New', monospace;
+            font-size: 10pt;
             color: black;
         }
         
@@ -44,31 +131,92 @@
         
         .cl_val_error {
             color: red;
-            font-family: Times;
-            font-size: 10pt;
+            font-family: Lora, serif;
+            font-size: 9pt;
         }
         
         .cl_text_label {
-            color: #e26a21;
-            font-family: Times;
-            font-size: 10pt;
-            width: 100px;
+            color: black;
+            font-family: Lora, serif;
+            font-size: 11pt;
+            height: 25px;
+            width: 150px;
+            //align-content: center;
+            background: #bbcad1;
+        }
+        
+        .cl_std_text_box {
+            background-color: #ededdd;
+            border: 1px solid #848484;
+            height: 25px;
+            width: 200px;
+            outline: 0;
+            font-family: Lora, serif;
+            font-size: 11pt;
+        }
+        
+        .cl_std_cbox {
+            background-color: #ededdd;
+            border: 1px solid #848484;
+            height: 25px;
+            width: 200px;
+            outline: 0;
+            font-family: Lora, serif;
+            font-size: 11pt;
+        }
+        
+        .cl_trace_dlg {
+            margin-left: 10px;
+            margin-right: 10px;
+            width: 455px;
+            height: 230px;
+            display: none;
+            background: white;
+            border-style: groove;
+            border-color: blue;
+        }
+        
+        .cl_cb_opt {
+            font-family: SourceCodePro-Medium;
+            font-size: 11pt;
+        }
+        
+        .cl_dlg_header {
+            font-family: Lora, serif;
+            width: 455px;
+            background: gainsboro;
         }
 
     </style>
 
     <script language="javascript">
-        reqFieldsPrefixId0 = 'idJsReqFieldSelectedId_';
-        reqFieldsPrefixId1 = 'idJsReqFieldId_';
-        reqFieldsPrefixId2 = 'idJsReqFieldValueId_';
-        reqFieldsValErrorIdPrefix = 'idJsFieldValErr_';
+        //globals
 
-        respFieldsPrefixId0 = 'idJsRespFieldSelectedId_';
-        respFieldsPrefixId1 = 'idJsRespFieldId_';
-        respFieldsPrefixId2 = 'idJsRespFieldValueId_';
+        var reqFieldsPrefixId0 = 'idJsReqFieldSelectedId_';
+        var reqFieldsPrefixId1 = 'idJsReqFieldId_';
+        var reqFieldsPrefixId2 = 'idJsReqFieldValueId_';
+        var reqFieldsValErrorIdPrefix = 'idJsFieldValErr_';
+
+        var respFieldsPrefixId0 = 'idJsRespFieldSelectedId_';
+        var respFieldsPrefixId1 = 'idJsRespFieldId_';
+        var respFieldsPrefixId2 = 'idJsRespFieldValueId_';
+
+        gFieldEdited = {
+            fieldId: "",
+            fieldSegment: 'request'
+        };
 
         function init() {
-            jsLoadSpecs();
+
+            //console.log(window.chrome + '' + window.chrome.webstore)
+            if (window.chrome && window.chrome.webstore) {
+                jsLoadSpecs();
+
+            } else {
+                alert('This application has been tested only on chrome browser.');
+            }
+
+
         }
 
         function jsLoadSpecs() {
@@ -79,7 +227,7 @@
                     var htmlContent = '';
                     for (i = 0; i < specsObj.length; i++) {
                         specObj = specsObj[i];
-                        htmlContent += "<option class=\"cl_small_text\" id=\"" + specObj.Id + "\">" + specObj.Name + "</option>";
+                        htmlContent += "<option class=\"cl_cb_opt\" id=\"" + specObj.Id + "\">" + specObj.Name + "</option>";
 
                     }
                     elem = document.getElementById('idJsSpec');
@@ -94,6 +242,8 @@
         } //end jsLoadSpecs
 
         function jsLoadSpecMessages(loadTemplate = false) {
+
+            document.getElementById('idJsResponseTable').innerHTML = '';
 
             var specsElem = document.getElementById('idJsSpec');
             var selectedOption = specsElem.options[specsElem.selectedIndex];
@@ -160,8 +310,8 @@
                         currentMsgFields = fieldsObj;
 
                         var htmlContent = '';
-                        htmlContent += '<tr><td colspan=\"4\" align="center" style="background: #F36227" class="cl_small_text">Message Request</td><tr>';
-                        htmlContent += "<tr class=\"cl_small_text\"><th > Selected? </th> <th> Field </th> <th> Value </th></tr>\n";
+                        htmlContent += '<tr><td colspan=\"4\" align="center"><div class="cl_segment_header_req">Message Request</div></td><tr>';
+                        htmlContent += "<tr class=\"cl_table_heading\"><th > Selected? </th> <th> Field </th> <th> Value </th></tr>\n";
                         for (i = 0; i < fieldsObj.length; i++) {
                             var fieldObj = fieldsObj[i];
                             htmlContent += getFieldHtml(fieldObj, "", isRequest = true);
@@ -170,6 +320,24 @@
 
                         var elem = document.getElementById('idJsRequestTable');
                         elem.innerHTML = htmlContent;
+
+                        var elems = document.getElementsByClassName('cl_vsmall_btn_edit');
+                        for (var i = 0; i < elems.length; i++) {
+                            elems[i].addEventListener('click', function(event) {
+
+                                var fieldVal = "";
+                                var index = event.target.id.indexOf('_');
+                                var fieldId = event.target.id.substring(index + 1, event.target.id.length);
+                                console.log('fieldid =' + fieldId);
+                                fieldVal = getRequestFieldValElem(fieldId).value;
+
+
+                                jsShowUserInputDialog(event, fieldId, fieldVal, true, false);
+                            }, true);
+                        }
+
+
+
                     }
 
                     doAjaxCall(url, onSuccessFunc)
@@ -192,7 +360,7 @@
             if (fieldObj.Position > 0) {
                 fieldPosition = "[" + fieldObj.Position + "]";
             } else {
-                fieldPosition = "[_]";
+                fieldPosition = "[!]";
             }
 
 
@@ -211,16 +379,27 @@
             //console.log(id0 + id1 + id2)
 
             var htmlContent = '<tr>';
-            htmlContent += "<td class=\"cl_small_text\"> <input  class=\"cl_req_field_sel_cb\" id=\"" + id0 + fieldObj.Id + "\" type=\"checkbox\"/> " + fieldPosition + "</td>"
-            htmlContent += "<td class=\"cl_small_text\" id=\"" + id1 + fieldObj.Id + "\">" + fieldObj.Name + "</td>";
-            htmlContent += "<td>" + "<input id=\"" + id2 + fieldObj.Id + "\" class=\"cl_field_value\" type=\"text\" class=\"cl_small_text\" value=\"" + fieldData + "\"/>";
+
+            var disabledFlag = "";
+            if (isRequest == false) {
+                disabledFlag = "disabled";
+
+            }
+
+            htmlContent += "<td class=\"cl_field_pos\"> <input class=\"cl_req_field_sel_cb\" id=\"" + id0 + fieldObj.Id + "\" type=\"checkbox\"" + disabledFlag + "/>" + fieldPosition + "</td>"
+            htmlContent += "<td class=\"cl_field_name\" id=\"" + id1 + fieldObj.Id + "\">" + fieldObj.Name + "</td>";
+
+
+
             if (isRequest) {
+                htmlContent += "<td>" + "<input id=\"" + id2 + fieldObj.Id + "\" class=\"cl_field_value\" type=\"text\" class=\"cl_small_text\" value=\"" + fieldData + "\"/>";
                 htmlContent += "<div class=\"cl_val_error\" style=\"display:none;\" id=\"" + reqFieldsValErrorIdPrefix + fieldObj.Id + "\"> </div></td>";
-                htmlContent += '<td><input class="cl_vsmall_btn" type="button" value="Edit" onClick="editRequestField()" /></td>';
+                htmlContent += '<td><input class="cl_vsmall_btn_edit" type="button" value="Edit" id="idReqFieldEdit_' + fieldObj.Id + '\")/> </td>';
 
             } else {
+                htmlContent += "<td>" + "<input id=\"" + id2 + fieldObj.Id + "\" class=\"cl_field_value\" type=\"text\" class=\"cl_small_text\" value=\"" + fieldData + "\" disabled/>";
                 htmlContent += '</td>'
-                htmlContent += '<td><input class="cl_vsmall_btn" type="button" value="View" onClick="viewResponseField()" /></td>';
+                htmlContent += '<td><input class="cl_vsmall_btn_view" type="button" value="View" id="idRespFieldView_' + fieldObj.Id + '\"/> </td>';
             }
 
             htmlContent += "</tr>";
@@ -274,9 +453,9 @@
 
             var elem = document.getElementById('idJsTraceDiv');
             elem.style.display = "block";
-            elem.style.position = "absolute";
-            elem.style.left = "200px";
-            elem.style.top = "300px";
+            elem.style.position = "fixed";
+            elem.style.left = "35%";
+            elem.style.top = "50%";
             elem.style['z-index'] = "2";
 
         }
@@ -287,7 +466,127 @@
 
         }
 
+        function getRequestFieldValElem(fieldId) {
+            return document.getElementById(reqFieldsPrefixId2 + fieldId);
+        }
 
+        //functions related to dealing with user input - 
+
+
+        function editRequestField(fieldId) {
+
+            var fieldElem = getRequestFieldValElem(fieldId);
+            var initialValue = fieldElem.value;
+            jsShowUserInputDialog();
+
+        }
+
+        function jsShowUserInputDialog(e, fieldId, initialValue, isrequest = true, readonly = false) {
+
+            var x = e.clientX;
+            var y = e.pageY - e.screenY;
+            if (fieldId) {
+                //var elem = getRequestFieldValElem(fieldId);
+                var divElem = document.getElementById('idJsUserInputDiv');
+                var textAreaElem = document.getElementById('idJsUserInput');
+
+                //global vars to indicate what was being edited
+                if (isrequest) {
+                    gFieldEdited.fieldId = fieldId;
+                    gFieldEdited.fieldSegment = 'res';
+                }
+                //done global
+                textAreaElem.value = initialValue;
+                if (!readonly) {
+                    textAreaElem.disabled = false;
+                } else {
+                    textAreaElem.disabled = true;
+                }
+
+                x = 10;
+                //console.log('screenY = ' + e.pageY);
+                y = e.pageY - 500;
+                //show the div
+                divElem.style.display = "block";
+                //divElem.style.left = x;
+                //divElem.style.top = y;
+                console.log("right = " + divElem.style.right);
+                if (isrequest == false) {
+                    divElem.style.right = '0%';
+                } else {
+                    divElem.style.right = '';
+                }
+                divElem.style.bottom = '0%';
+                divElem.style.position = "fixed";
+
+
+
+
+            }
+
+        }
+
+        function getFieldValElem(fieldId, segment) {
+
+            var elemId = "";
+            if (segment == 'request') {
+                elemId = reqFieldsPrefixId2 + fieldId;
+            } else {
+                elemId = respFieldsPrefixId2 + fieldId;
+            }
+
+            return document.getElementById(elemId);
+
+        }
+
+        function getFieldSelectedElem(fieldId, segment) {
+
+            var elemId = "";
+            if (segment == 'request') {
+                elemId = reqFieldsPrefixId0 + fieldId;
+            } else {
+                elemId = respFieldsPrefixId0 + fieldId;
+            }
+
+            return document.getElementById(elemId);
+
+        }
+
+        function jsProcessUserInput() {
+
+            var elem = document.getElementById('idJsUserInputDiv');
+
+            var textAreaElem = document.getElementById('idJsUserInput');
+
+            if (textAreaElem.disabled) {
+                //response field being viewed, do nothing
+                textAreaElem.value = "";
+                textAreaElem.disabled = false;
+                elem.style.display = "none";
+                return;
+
+            }
+
+            var fieldId = gFieldEdited.fieldId;
+            console.log('field being edited -' + fieldId);
+            var fieldValElem = getFieldValElem(fieldId, 'request');
+            var fieldSelectedElem = getFieldSelectedElem(fieldId, 'request');
+            fieldValElem.value = textAreaElem.value;
+            if (fieldValElem.value) {
+                fieldSelectedElem.checked = true;
+            } else {
+                fieldSelectedElem.checked = false;
+            }
+            textAreaElem.value = "";
+            elem.style.display = "none";
+        }
+
+
+        function jsCancelUserInputDialog() {
+            var elem = document.getElementById('idJsUserInputDiv');
+            elem.style.display = "none";
+
+        }
 
 
 
@@ -356,7 +655,7 @@
                 //console.log('selected ? ' + isSelected)
                 if (isSelected) {
 
-                    elem.style.color = 'blue';
+                    elem.style.color = '#090933';
                     var fieldVal = elem.value;
                     if (fieldVal) {
 
@@ -370,11 +669,18 @@
 
 
                         } else if (fieldObj.DataEncoding == 'BCD' || fieldObj.DataEncoding == 'BINARY') {
-                            var len = fieldVal.length / 2;
-                            if (len != fieldObj.FixedSize) {
-                                errors.push(newErrObj(fieldObj, 'field size mismatch - required: ' + fieldObj.FixedSize + ' found: ' + len));
 
+                            if (fieldVal.length % 2 != 0) {
+                                errors.push(newErrObj(fieldObj, 'BCD/BINARY fields required to have even number of characters - field has only ' + fieldVal.length));
+                            } else {
+                                var len = fieldVal.length / 2;
+                                if (len != fieldObj.FixedSize) {
+                                    errors.push(newErrObj(fieldObj, 'field size mismatch - required: ' + fieldObj.FixedSize + ' found: ' + len));
+
+                                }
                             }
+
+
 
                         }
 
@@ -511,7 +817,7 @@
                 var responseData = JSON.parse(responseText);
 
                 var htmlContent = '';
-                htmlContent += '<tr><td colspan=\"4\" align="center" style="background: #F36227" class="cl_small_text">Message Response</td><tr>';
+                htmlContent += '<tr><td colspan=\"4\" align="center"><div class="cl_segment_header_resp">Message Response</div></td><tr>';
                 htmlContent += "<tr class=\"cl_small_text\"><th > Selected? </th> <th> Field </th> <th> Value </th></tr>\n";
                 for (var i = 0; i < currentMsgFields.length; i++) {
                     var fieldObj = currentMsgFields[i];
@@ -534,6 +840,21 @@
                     document.getElementById(fieldId).value = responseData[i].Value;
                 }
 
+                var elems = document.getElementsByClassName('cl_vsmall_btn_view');
+                for (var i = 0; i < elems.length; i++) {
+                    elems[i].addEventListener('click', function(event) {
+
+                        var fieldVal = "";
+                        var index = event.target.id.indexOf('_');
+                        var fieldId = event.target.id.substring(index + 1, event.target.id.length);
+                        console.log('fieldid =' + fieldId);
+                        fieldVal = getRequestFieldValElem(fieldId).value;
+
+
+                        jsShowUserInputDialog(event, fieldId, fieldVal, false, true);
+                    }, true);
+                }
+
 
             }, postData, 'POST', encoding = 'application/x-www-form-urlencoded');
 
@@ -549,9 +870,9 @@
 
             var elem = document.getElementById('idJsErrorDiv');
             elem.style.display = "block";
-            elem.style.position = "absolute";
-            elem.style.left = "200px";
-            elem.style.top = "300px";
+            elem.style.position = "fixed";
+            elem.style.left = "35%";
+            elem.style.top = "50%";
             elem.style['z-index'] = "2";
 
         }
@@ -566,115 +887,139 @@
 
 <body onload="init()">
 
-    <h2 style="font-family: 'Comic Sans MS'"> ISO WebSim</h2>
-    <div class="cl_small_text">Developer(s): Raghavendra Balgi (rkbalgi@gmail.com) </div>
-    <hr>
 
-    <table style="position: relative; z-index: 1;">
-        <tr>
-            <td>
-                <div class="cl_text_label">Specs</div>
-                <!--<input class="cl_small_btn" type="button" value="Load Specs" onClick="jsLoadSpecs()" /> -->
-            </td>
-
-            <td>
-                <select onchange="jsLoadSpecMessages(true)" id="idJsSpec" name="jsSpec" style="width: 200px;">
-                </select>
-            </td>
-
-        </tr>
-
-
-        <! -- second row -->
-
-        <tr>
-            <td>
-                <!--<input class="cl_small_btn" type="button" value="Load Messages" onClick="jsLoadSpecMessages()" />-->
-                <div class="cl_text_label">Spec Messages</div>
-            </td>
-
-            <td>
-                <select onchange="jsLoadTemplate()" id="idJsSpecMsgs" name="jsSpecMsgs" style="width: 200px;"></select>
-            </td>
-
-        </tr>
-
-        <tr>
-            <table>
-
-                <tr>
-
-                    <td>
-                        <div class="cl_text_label">Host</div>
-                    </td>
-                    <td>
-                        <input id="idJsHost" type="text" value="127.0.0.1" />
-                    </td>
-                    <td>
-                        <div class="cl_text_label">Port</div>
-                    </td>
-                    <td>
-                        <input id="idJsPort" type="text" value="6767" />
-                    </td>
-
-                </tr>
-                <tr>
-
-                    <td>
-                        <div class="cl_text_label">MLI</div>
-                    </td>
-                    <td>
-                        <select class="cl_small_text" id="idJsMli">
-                            <option name="2I">2I</option>
-                            <option name="2E">2E</option>
-                        </select>
-                    </td>
-
-
-                    <td></td>
-                </tr>
-
-
-            </table>
-
-        </tr>
-
-
-
-    </table>
-
-    <br/>
-    <br/>
-    <div style="position:relative; z-index: 1;">
-        <input class="cl_small_btn" type="button" value="Load Template" onClick="jsLoadTemplate()" />
-        <input class="cl_small_btn" type="button" value="Parse Trace" onClick="jsShowTraceDialog()" />
-        <input class="cl_small_btn" type="button" value="Validate" onClick="validateFields()" />
-        <input class="cl_small_btn" type="button" value="Send To Host" onClick="jsSendMsg()" />
+    <div id="headerDiv">
+        <div class="cl_cursive_heading"> ISO WebSim</div>
+        <div class="cl_small_text_new">Developer(s): Raghavendra Balgi (rkbalgi@gmail.com) </div>
     </div>
 
-    <br/>
-    <br/>
-    <table>
-        <tr>
-            <td>
-                <!-- Request Table -->
-                <table id="idJsRequestTable">
+
+    <!--nav_panel-->
+    <div id="navDiv" style="content-align:left;">
+
+
+        <ul style="list-style-type: none; margin:0;padding:0;">
+            <li>
+                <input class="cl_small_btn" type="button" value="Load Template" onClick="jsLoadTemplate()" />
+            </li>
+            <li>
+                <input class="cl_small_btn" type="button" value="Parse Trace" onClick="jsShowTraceDialog()" />
+            </li>
+            <li>
+                <input class="cl_small_btn" type="button" value="Validate" onClick="validateFields()" />
+            </li>
+            <li>
+                <input class="cl_small_btn" type="button" value="Send To Host" onClick="jsSendMsg()" />
+            </li>
+        </ul>
+
+    </div>
+
+
+    <div id="bodyDiv">
+
+        <table style="position: relative; z-index: 1;">
+            <tr>
+                <td align="center">
+                    <div class="cl_text_label">Specs</div>
+                    <!--<input class="cl_small_btn" type="button" value="Load Specs" onClick="jsLoadSpecs()" /> -->
+                </td>
+
+                <td>
+                    <select onchange="jsLoadSpecMessages(true)" id="idJsSpec" name="jsSpec" class="cl_std_cbox" style="width: 200px;">
+                    </select>
+                </td>
+
+            </tr>
+
+
+            <! -- second row -->
+
+            <tr>
+                <td align="center">
+                    <!--<input class="cl_small_btn" type="button" value="Load Messages" onClick="jsLoadSpecMessages()" />-->
+                    <div class="cl_text_label">Spec Messages</div>
+                </td>
+
+                <td>
+                    <select onchange="jsLoadTemplate()" id="idJsSpecMsgs" class="cl_std_cbox" name="jsSpecMsgs" style="width: 200px;"></select>
+                </td>
+
+            </tr>
+
+            <tr>
+                <table>
+
+                    <tr>
+
+                        <td align="center">
+                            <div class="cl_text_label">Host</div>
+                        </td>
+                        <td align="center">
+                            <input class="cl_std_text_box" id="idJsHost" type="text" value="127.0.0.1" />
+                        </td>
+                        <td align="center">
+                            <div class="cl_text_label">Port</div>
+                        </td>
+                        <td>
+                            <input class="cl_std_text_box" id="idJsPort" type="text" value="7777" />
+                        </td>
+
+                    </tr>
+                    <tr>
+
+                        <td align="center">
+                            <div class="cl_text_label">MLI</div>
+                        </td>
+                        <td>
+                            <select class="cl_std_cbox" style="width: 50px;" id="idJsMli">
+                                <option class="cl_cb_opt" name="2I">2I</option>
+                                <option class="cl_cb_opt" name="2E">2E</option>
+                            </select>
+                        </td>
+
+
+                        <td></td>
+                    </tr>
+
 
                 </table>
-            </td>
 
-            <td>
-                <!-- Response Table -->
-                <table id="idJsResponseTable">
+            </tr>
 
-                </table>
-            </td>
-        </tr>
-    </table>
 
-    <div id="idJsTraceDiv" style="margin-left: 10px; margin-right: 10px; width:455px; height: 230px;display: none; background: #ccff99; border-style: groove;border-color: blue">
 
-        <div class="cl_small_text" style="width: 450px;height: 30px;background-color:#ff8080; margin:2px;">Hex Trace Input Dialog</div>
+        </table>
+
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <table>
+            <tr>
+                <td>
+                    <!-- Request Table -->
+                    <table id="idJsRequestTable">
+
+                    </table>
+                </td>
+
+                <td style="width: 80px;"></td>
+
+
+                <td>
+                    <!-- Response Table -->
+                    <table id="idJsResponseTable">
+
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="idJsTraceDiv" class="cl_trace_dlg">
+
+        <div class="cl_dlg_header">Hex Trace Input Dialog</div>
         <textarea class="cl_trace_value" id="idJsTrace" rows="5" cols="40" style=" resize: none; margin: 10px; margin:5px; width: 440px; height:140px;">F1F1F0F0723C240128428000F1F5F3F7F5F7F2F2F6F5F8F7F0F9F2F3F9F0F0F4F0F0F0F0F0F0F0F0F0F0F0F1F0F0F0F0F4F2F1F1F0F2F4F5F1F1F1F0F6F0F2F0F5F1F0F1F8F1F9F4F3F1F2F0F5F0F3F0F9F0F1F8F4F0F2F6F1F1F0F1F1F0F1F1F4F0F0F1F0F3F7F3F7F5F7F2F2F6F5F8F7F0F9F2F3F9C4F0F8F0F8F1F0F1F0F4F0F1F3F6F6F7F2F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F1F5F4F3F4F5F0F1F3F6F74040404040F2F4F9C1E7C9C1C3F2F1F0F9F0F1F0F1C1D7D5F2F3C6D9D6E2E340D1C1D5C540D440D4D9E240404040404040C1C2C34040E7E8E94040D9E3C7F6F1F1F0C1C2C3404061C4C5C6404061C7C8C9404061D1D2D3404061D4D5D6404061D7D8D9404061E2E3E4404061E5E6E7404061E8E9C1404061E7E8E94040C1D3C3F5F5F0F9C1C240404061E7E840404061C2C340404061C3C440404061C4C540404061C4C54040406140C3C440404061C2C340404061C1C2404040C1C2C3F1F2F3C4C5C6F4F5F6C7C8C9F7F8F9D1D2D3F0F1F2F0F0F1F1F2F74BF1F4F24BF1F5F14BF2F2F3C3C540F2F4C3C6C6D9D6E2E37CC5D4C1C9D3C1C4C4D9C5E2E24BC3D6D4F8F4F0</textarea>
 
 
@@ -686,9 +1031,9 @@
         </div>
     </div>
 
-    <div id="idJsErrorDiv" style="margin-left: 10px; margin-right: 10px; width:455px; height: 250px; display: none; background: #ccff99; border-style: groove;border-color: blue;">
+    <div id="idJsErrorDiv" class="cl_trace_dlg">
 
-        <div class="cl_small_text " style="width: 450px;height: 30px;background-color:#ff8080; margin:2px; "> WebSim Error Message</div>
+        <div class="cl_dlg_header"> WebSim Error Message</div>
         <div id="idJsErrorMsg" class="cl_small_text " style="overflow:auto; margin: 5px; margin:5px; width: 440px; height:140px; color: red;"></div>
 
         <br/>
@@ -699,7 +1044,19 @@
         </div>
     </div>
 
+    <div id="idJsUserInputDiv" class="cl_trace_dlg">
 
+        <div class="cl_dlg_header"> User Input Dialog</div>
+        <textarea class="cl_trace_value" id="idJsUserInput" rows="5" cols="40" style=" resize: none; margin: 10px; margin:5px; width: 440px; height:140px;"></textarea>
+
+
+        <br/>
+        <br/>
+        <div align="center" style="align-content:center;">
+            <input type="button" class="cl_small_btn" value="OK " onclick="jsProcessUserInput()" />
+            <input type="button" class="cl_small_btn" value="Cancel " onclick="jsCancelUserInputDialog()" />
+        </div>
+    </div>
 
 
 </body>

@@ -49,6 +49,18 @@ func (spec *Spec) GetMessageById(msgId int) *Message {
 	}
 
 	return nil;
+}
+
+func (spec *Spec) GetMessageByName(msgName string) *Message {
+
+	for _, msg := range (spec.messages) {
+		if msg.Name == msgName {
+			return msg
+		}
+
+	}
+
+	return nil;
 
 }
 
@@ -102,6 +114,19 @@ func GetSpec(specId int) *Spec {
 	for _, spec := range (specMap) {
 
 		if (spec.Id == specId) {
+			return spec;
+		}
+
+	}
+	return nil;
+
+}
+
+func GetSpecByName(specName string) *Spec {
+
+	for _, spec := range (specMap) {
+
+		if (spec.Name == specName) {
 			return spec;
 		}
 
