@@ -640,69 +640,152 @@
 
         function validateField(fieldObj, errors) {
 
+
+
             var elem = document.getElementById(reqFieldsPrefixId2 + fieldObj.Id);
             var valErroElem = document.getElementById(reqFieldsValErrorIdPrefix + fieldObj.Id);
             valErroElem.style.display = "none";
             valErroElem.innerHTML = "";
 
-            if (fieldObj.Type == 'FIXED') {
-
-                //console.log('validing fixed field ' + fieldObj.Name);
-
-                var isSelected = document.getElementById(reqFieldsPrefixId0 + fieldObj.Id).checked;
+            elem.style.color = '#090933';
+            var fieldVal = elem.value;
+            var isSelected = document.getElementById(reqFieldsPrefixId0 + fieldObj.Id).checked;
 
 
-                //console.log('selected ? ' + isSelected)
-                if (isSelected) {
-
-                    elem.style.color = '#090933';
-                    var fieldVal = elem.value;
-                    if (fieldVal) {
-
-                        var len = fieldVal.length;
-                        //console.log('field length = ' + len + ' expected length = ' + fieldObj.FixedSize);
-                        if (fieldObj.DataEncoding == 'ASCII' || fieldObj.DataEncoding == 'EBCDIC') {
-
-                            if (fieldVal.length != fieldObj.FixedSize) {
-                                errors.push(newErrObj(fieldObj, 'field size mismatch - required: ' + fieldObj.FixedSize + ' found: ' + len));
-                            }
+            console.log('validating ' + fieldObj.Name + ' Id = ' + fieldObj.Id + ' field type = ' + fieldObj.Type + ' fieldVal = ' + fieldVal + ' is selected = ' + isSelected);
+            if (isSelected) {
 
 
-                        } else if (fieldObj.DataEncoding == 'BCD' || fieldObj.DataEncoding == 'BINARY') {
+                if (fieldObj.Type == 'VARIABLE') {
+                    validateVariableField(fieldObj, fieldVal, errors);
 
-                            if (fieldVal.length % 2 != 0) {
-                                errors.push(newErrObj(fieldObj, 'BCD/BINARY fields required to have even number of characters - field has only ' + fieldVal.length));
-                            } else {
-                                var len = fieldVal.length / 2;
-                                if (len != fieldObj.FixedSize) {
-                                    errors.push(newErrObj(fieldObj, 'field size mismatch - required: ' + fieldObj.FixedSize + ' found: ' + len));
-
-                                }
-                            }
-
-
-
-                        }
-
-                    } else {
-                        errors.push(newErrObj(fieldObj, 'field selected but no value provided.'));
-                    }
+                } else if (fieldObj.Type == 'FIXED') {
+                    validateFixedField(fieldObj, fieldVal, errors);
                 }
-
             }
-
 
 
             if (fieldObj.Children.length > 0) {
 
                 for (var i = 0; i < fieldObj.Children.length; i++) {
-                    console.log('validating ' + fieldObj.Children[i].Name + ' Id = ' + fieldObj.Children[i].Id + ' field type = ' + fieldObj.Children[i].Type);
                     validateField(fieldObj.Children[i], errors);
-
-
                 }
 
             }
+
+        }
+
+
+        function validateFixedField(fieldObj, fieldVal, errors) {
+
+            if (!fieldVal) {
+                errors.push(newErrObj(fieldObj, 'Field selected but no value provided.'));
+                return;
+
+            }
+
+            console.log('vali = ' + fieldObj.Name);
+
+            switch (fieldObj.DataEncoding) {
+
+                case 'ASCII':
+                case 'EBCDIC':
+                    {
+
+                        if (fieldVal.length != fieldObj.FixedSize) {
+                            errors.push(newErrObj(fieldObj, 'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = ' + fieldVal.length));
+                        }
+
+
+                        break;
+                    }
+                case 'BINARY':
+                    {
+                        if (!validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors)) {
+                            var len = fieldVal.length / 2;
+                            if (len != fieldObj.FixedSize) {
+                                errors.push(newErrObj(fieldObj, 'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = ' + len));
+                            }
+                        }
+                        //validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
+                        validateBinaryFieldForContent(fieldObj, fieldVal, errors);
+                        break;
+                    }
+                case 'BCD':
+                    {
+                        if (!validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors)) {
+                            var len = fieldVal.length / 2;
+                            if (len != fieldObj.FixedSize) {
+                                errors.push(newErrObj(fieldObj, 'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = ' + len));
+                            }
+                        }
+                        validateBcdFieldForContent(fieldObj, fieldVal, errors);
+                        break;
+                    }
+
+            }
+
+
+        }
+
+        function validateVariableField(fieldObj, fieldVal, errors) {
+
+            if (!fieldVal) {
+                errors.push(newErrObj(fieldObj, 'Field selected but no value provided.'));
+                return;
+
+            }
+
+            switch (fieldObj.DataEncoding) {
+
+                case 'ASCII':
+                case 'EBCDIC':
+                    {
+
+                        break;
+                    }
+                case 'BINARY':
+                    {
+                        validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
+                        validateBinaryFieldForContent(fieldObj, fieldVal, errors);
+                        break;
+                    }
+                case 'BCD':
+                    {
+                        validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
+                    }
+
+            }
+
+
+        }
+
+        function validateBinaryFieldForContent(fieldObj, fieldVal, errors) {
+            var re = /^[0123456789abcdefABCDEF]+$/;
+            if (!re.exec(fieldVal)) {
+                errors.push(newErrObj(fieldObj, 'BINARY fields should contain hex characters only ' + fieldVal));
+                return true;
+            }
+            return false;
+
+        }
+
+        function validateBcdFieldForContent(fieldObj, fieldVal, errors) {
+            var re = /^[0123456789]+$/;
+            if (!re.exec(fieldVal)) {
+                errors.push(newErrObj(fieldObj, 'BCD fields should contain decimal characters only ' + fieldVal));
+                return true;
+            }
+            return false;
+
+        }
+
+        function validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors) {
+            if (fieldVal.length % 2 != 0) {
+                errors.push(newErrObj(fieldObj, 'BCD/BINARY fields required to have even number of characters - field has only ' + fieldVal.length));
+                return true;
+            }
+            return false;
 
         }
 
@@ -984,15 +1067,9 @@
 
 
                 </table>
-
             </tr>
-
-
-
         </table>
 
-        <br/>
-        <br/>
         <br/>
         <br/>
         <table>

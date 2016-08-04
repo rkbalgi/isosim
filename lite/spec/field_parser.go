@@ -8,6 +8,7 @@ import (
 	"encoding/binary"
 	"strconv"
 	"github.com/rkbalgi/go/encoding/ebcdic"
+	"fmt"
 )
 
 var InsufficientDataError = errors.New("Insufficient data to parse field")
@@ -111,6 +112,7 @@ func parseFixed(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 	fieldData.Data = NextBytes(buf, bytesRequired)
 
 	if DebugEnabled {
+		log.Print("Remaining Buffer = ",hex.EncodeToString(buf.Bytes()))
 		log.Printf("Field : [%s] - Data = [%s]", field.Name, hex.EncodeToString(fieldData.Data));
 	}
 
@@ -129,13 +131,51 @@ func parseVariable(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error 
 	var err error;
 	switch field.FieldInfo.LengthIndicatorEncoding{
 	case BINARY:{
-		if len(lenData) > 4 {
+		if field.FieldInfo.LengthIndicatorSize > 4 {
 			return LargeLengthIndicatorSizeError;
 		}
 
-		if err = binary.Read(bytes.NewBuffer(lenData), binary.BigEndian, &length); err != nil {
+	switch(field.FieldInfo.LengthIndicatorSize){
+	case 1:{
+
+		var byteLength uint8;
+		if err = binary.Read(bytes.NewBuffer(lenData), binary.BigEndian, &byteLength); err != nil {
 			return err;
 		}
+		length=uint64(byteLength);
+
+	}
+	case 2:{
+		var byteLength uint16;
+		if err = binary.Read(bytes.NewBuffer(lenData), binary.BigEndian, &byteLength); err != nil {
+			return err;
+		}
+		length=uint64(byteLength);
+
+	}
+	case 4:{
+		var byteLength uint32;
+		if err = binary.Read(bytes.NewBuffer(lenData), binary.BigEndian, &byteLength); err != nil {
+			return err;
+		}
+		length=uint64(byteLength);
+
+	}
+	case 8:{
+		var byteLength uint64;
+		if err = binary.Read(bytes.NewBuffer(lenData), binary.BigEndian, &byteLength); err != nil {
+			return err;
+		}
+		length=byteLength;
+
+	}
+	default:{
+		return errors.New(fmt.Sprint("Invalid length indicator size for binary (max 8) -",field.FieldInfo.LengthIndicatorSize));
+
+	}
+
+
+	}
 
 	}
 	case BCD:{
@@ -165,7 +205,9 @@ func parseVariable(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error 
 	fieldData := &FieldData{Field: field}
 	fieldData.Data = NextBytes(buf, int(length))
 
+
 	if DebugEnabled {
+		log.Print("Remaining Buffer = ",hex.EncodeToString(buf.Bytes()))
 		log.Printf("Field : [%s] - Len: %02d - Data = [%s]", field.Name, length, hex.EncodeToString(fieldData.Data));
 	}
 
