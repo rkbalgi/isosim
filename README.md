@@ -1,12 +1,12 @@
 # isosim
 
 Iso Websim is a ISO8583 simulator built using golang (http://golang.org). It provides a simple interface to load ISO specifications. 
-The specifications themselves are defined in text file (more information on developing your own specs can be found here - 
-../specs/isoSpecs.spec. 
+The specifications themselves are defined in text file (more information on developing your own specs can be found in the file isoSpecs.spec. 
 
 You can load an existing trace or create a message from scratch and send it to a ISO host (identified by host and a port). 
-
 Note: Please note that this application has been tested to work only on chrome browser.
+
+I will also upload a document with some screenshots at a later point in time.
 
 The main program is started by the file isosim/isosim.go
 
