@@ -10,10 +10,8 @@ I will also upload a document with some screenshots at a later point in time.
 
 The main program is started by the file isosim/isosim.go
 
-C:\go run isosim.go -specDefFile specs\isoSpecs.spec -htmlDir .\html
-
-Usage:
----------------------------------------
+###Usage: 
+```
 C:>go run isosim.go -help
 Usage of C:\isosim.exe:
   -debugEnabled
@@ -25,4 +23,8 @@ Usage of C:\isosim.exe:
   -specDefFile string
         The file containing the ISO spec definitions. (default "isoSpec.spec")
 exit status 2
+```
+
+###Sample Invocation 
+C:\go run isosim.go -specDefFile specs\isoSpecs.spec -htmlDir .\html
 
