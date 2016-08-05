@@ -1,8 +1,8 @@
 package spec
 
 import (
-	"sync"
 	"log"
+	"sync"
 )
 
 const componentSeparator = "."
@@ -23,23 +23,27 @@ const (
 
 func GetEncodingName(encoding Encoding) string {
 
-	switch encoding{
-	case ASCII:{
-		return "ASCII";
-	}
-	case EBCDIC:{
-		return "EBCDIC";
+	switch encoding {
+	case ASCII:
+		{
+			return "ASCII"
+		}
+	case EBCDIC:
+		{
+			return "EBCDIC"
 
-	}
-	case BCD:{
-		return "BCD";
-	}
-	case BINARY:{
-		return "BINARY";
-	}
+		}
+	case BCD:
+		{
+			return "BCD"
+		}
+	case BINARY:
+		{
+			return "BINARY"
+		}
 	}
 
-	return "";
+	return ""
 
 }
 

@@ -1,19 +1,16 @@
 package iso_http
 
 import (
-	"net/http"
 	"encoding/json"
-	"github.com/rkbalgi/isosim/lite/spec"
+	"github.com/rkbalgi/isosim/web/spec"
+	"net/http"
 )
 
-func AllSpecsHandler() {
+func allSpecsHandler() {
 
 	http.HandleFunc(AllSpecsUrl, func(rw http.ResponseWriter, req *http.Request) {
-		json.NewEncoder(rw).Encode(spec.GetSpecs());
+		json.NewEncoder(rw).Encode(spec.GetSpecs())
 
-	});
-
+	})
 
 }
-
-

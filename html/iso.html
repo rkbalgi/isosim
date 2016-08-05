@@ -5,6 +5,17 @@
     <link href="https://fonts.googleapis.com/css?family=Cormorant+Garamond|Gloria+Hallelujah|Lora" rel="stylesheet">
 
     <style>
+        #overlay {
+            //display: none;
+            position: absolute;
+            z-index: 80;
+            opacity: 0.8;
+            left: 0px;
+            top: 0px;
+            width: 100%;
+            height: 100%
+        }
+        
         #navDiv {
             position: relative;
             //top: 0px;
@@ -16,6 +27,7 @@
             //border-color: blue;
             padding: 2px;
             margin: 0px;
+            z-index: 90;
         }
         
         #headerDiv {
@@ -27,6 +39,7 @@
             float: left;
             //border-style: dashed;
             //border-color: red;
+            z-index: 90;
         }
         
         #bodyDiv {
@@ -38,10 +51,11 @@
             float: left;
             //border-style: double;
             overflow: hidden;
+            z-index: 90;
         }
         
         .cl_cursive_heading {
-            font-family: "Gloria Hallelujah", cursive;
+            font-family: "Gloria Hallelujah", serif;
             font-size: 35px;
         }
         
@@ -60,14 +74,14 @@
         
         .cl_vsmall_btn_edit {
             font-family: Lora;
-            font-size: 9pt;
+            font-size: 10pt;
             color: black;
             background: #bfbb53;
             width: 50px;
         }
         
         .cl_vsmall_btn_view {
-            font-family: Times;
+            font-family: 'Lora', serif;
             font-size: 10pt;
             color: black;
             background: #bfbb53;
@@ -163,6 +177,7 @@
             outline: 0;
             font-family: Lora, serif;
             font-size: 11pt;
+            z-index: 90;
         }
         
         .cl_trace_dlg {
@@ -172,8 +187,27 @@
             height: 230px;
             display: none;
             background: white;
-            border-style: groove;
+            border-style: solid;
+            border-width: 1px;
             border-color: blue;
+            z-index: 100;
+            //opacity: 1;
+            position: absolute;
+        }
+        
+        .cl_about_dlg {
+            margin-left: 10px;
+            margin-right: 10px;
+            width: 455px;
+            height: 300px;
+            display: none;
+            background: white;
+            border-style: solid;
+            border-width: 1px;
+            border-color: blue;
+            z-index: 100;
+            //opacity: 1;
+            position: absolute;
         }
         
         .cl_cb_opt {
@@ -191,6 +225,10 @@
 
     <script language="javascript">
         //globals
+
+        var alphaRE = /^[a-zA-Z]+$/;
+        var alphaNumericRE = /^[0-9a-zA-Z]+$/;
+        var numericRE = /^[0-9]+$/;
 
         var reqFieldsPrefixId0 = 'idJsReqFieldSelectedId_';
         var reqFieldsPrefixId1 = 'idJsReqFieldId_';
@@ -449,25 +487,43 @@
 
 
 
+        function enableOverlay() {
+            document.getElementById('overlay').style['z-index'] = 99;
+        }
+
+        function disableOverlay() {
+            document.getElementById('overlay').style['z-index'] = 80;
+        }
+
         function jsShowTraceDialog() {
 
+            enableOverlay();
             var elem = document.getElementById('idJsTraceDiv');
             elem.style.display = "block";
             elem.style.position = "fixed";
             elem.style.left = "35%";
             elem.style.top = "50%";
-            elem.style['z-index'] = "2";
+
+
+
+            //elem.style['z-index'] = "2";
 
         }
 
         function jsCancelTraceParseAction() {
+            disableOverlay();
             var elem = document.getElementById('idJsTraceDiv');
             elem.style.display = "none";
+
 
         }
 
         function getRequestFieldValElem(fieldId) {
             return document.getElementById(reqFieldsPrefixId2 + fieldId);
+        }
+
+        function getResponseFieldValElem(fieldId) {
+            return document.getElementById(respFieldsPrefixId2 + fieldId);
         }
 
         //functions related to dealing with user input - 
@@ -483,6 +539,7 @@
 
         function jsShowUserInputDialog(e, fieldId, initialValue, isrequest = true, readonly = false) {
 
+            enableOverlay();
             var x = e.clientX;
             var y = e.pageY - e.screenY;
             if (fieldId) {
@@ -510,7 +567,7 @@
                 divElem.style.display = "block";
                 //divElem.style.left = x;
                 //divElem.style.top = y;
-                console.log("right = " + divElem.style.right);
+                //console.log("right = " + divElem.style.right);
                 if (isrequest == false) {
                     divElem.style.right = '0%';
                 } else {
@@ -518,9 +575,6 @@
                 }
                 divElem.style.bottom = '0%';
                 divElem.style.position = "fixed";
-
-
-
 
             }
 
@@ -554,6 +608,7 @@
 
         function jsProcessUserInput() {
 
+            //enableOverlay();
             var elem = document.getElementById('idJsUserInputDiv');
 
             var textAreaElem = document.getElementById('idJsUserInput');
@@ -563,6 +618,7 @@
                 textAreaElem.value = "";
                 textAreaElem.disabled = false;
                 elem.style.display = "none";
+                disableOverlay();
                 return;
 
             }
@@ -579,18 +635,21 @@
             }
             textAreaElem.value = "";
             elem.style.display = "none";
+            disableOverlay();
         }
 
 
         function jsCancelUserInputDialog() {
             var elem = document.getElementById('idJsUserInputDiv');
             elem.style.display = "none";
+            disableOverlay();
 
         }
 
 
 
         function jsParseTrace() {
+
 
             var specsElem = document.getElementById('idJsSpec');
             var selectedSpecOption = specsElem.options[specsElem.selectedIndex];
@@ -652,7 +711,7 @@
             var isSelected = document.getElementById(reqFieldsPrefixId0 + fieldObj.Id).checked;
 
 
-            console.log('validating ' + fieldObj.Name + ' Id = ' + fieldObj.Id + ' field type = ' + fieldObj.Type + ' fieldVal = ' + fieldVal + ' is selected = ' + isSelected);
+            //console.log('validating ' + fieldObj.Name + ' Id = ' + fieldObj.Id + ' field type = ' + fieldObj.Type + ' fieldVal = ' + fieldVal + ' is selected = ' + isSelected);
             if (isSelected) {
 
 
@@ -696,6 +755,8 @@
                             errors.push(newErrObj(fieldObj, 'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = ' + fieldVal.length));
                         }
 
+                        validateFieldContentConstraints(fieldObj, fieldVal, errors);
+
 
                         break;
                     }
@@ -728,6 +789,8 @@
 
         }
 
+
+
         function validateVariableField(fieldObj, fieldVal, errors) {
 
             if (!fieldVal) {
@@ -741,6 +804,8 @@
                 case 'ASCII':
                 case 'EBCDIC':
                     {
+                        validateFieldContentConstraints(fieldObj, fieldVal, errors);
+                        validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors);
 
                         break;
                     }
@@ -748,11 +813,14 @@
                     {
                         validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
                         validateBinaryFieldForContent(fieldObj, fieldVal, errors);
+                        validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors);
                         break;
                     }
                 case 'BCD':
                     {
                         validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
+                        validateBcdFieldForContent(fieldObj, fieldVal, errors);
+                        validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors);
                     }
 
             }
@@ -760,10 +828,83 @@
 
         }
 
+        function validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors) {
+
+
+            if (fieldObj.Type == 'VARIABLE') {
+
+                var fieldLen = 0;
+                if (fieldObj.DataEncoding == 'ASCII' || fieldObj.DataEncoding == 'EBCDIC') {
+                    fieldLen = fieldVal.length;
+                } else {
+                    fieldLen = fieldVal.length / 2;
+                }
+
+                //console.log('field length: ' + fieldLen);
+                //console.log('field min: ' + fieldObj.MinSize);
+                // console.log('field max: ' + fieldObj.MaxSize);
+
+
+                if (fieldObj.MinSize > 0 && fieldLen < fieldObj.MinSize) {
+                    errors.push(newErrObj(fieldObj, 'Field length less than minimum allowed length of ' + fieldObj.MinSize));
+                }
+
+                if (fieldObj.MaxSize > 0 && fieldLen > fieldObj.MaxSize) {
+                    errors.push(newErrObj(fieldObj, 'Field length exceeds maximum allowed length of ' + fieldObj.MaxSize));
+                }
+
+            }
+
+        }
+
+        function validateFieldContentConstraints(fieldObj, fieldVal, errors) {
+
+
+
+            switch (fieldObj.ContentType) {
+                case 'Alpha':
+                    {
+
+                        if (!alphaRE.exec(fieldVal)) {
+                            errors.push(newErrObj(fieldObj, 'Field content should be alphabets only.'));
+                            return true;
+
+                        }
+                        break;
+
+                    }
+                case 'AlphaNumeric':
+                    {
+
+                        if (!alphaRE.exec(fieldVal)) {
+                            errors.push(newErrObj(fieldObj, 'Field content should be alpha-numeric only.'));
+                            return true;
+
+                        }
+                        break;
+
+                    }
+                case 'Numeric':
+                    {
+
+                        if (!numericRE.exec(fieldVal)) {
+                            errors.push(newErrObj(fieldObj, 'Field content should be numeric only.'));
+                            return true;
+
+                        }
+                        break;
+                    }
+            }
+
+
+
+        }
+
+
         function validateBinaryFieldForContent(fieldObj, fieldVal, errors) {
             var re = /^[0123456789abcdefABCDEF]+$/;
             if (!re.exec(fieldVal)) {
-                errors.push(newErrObj(fieldObj, 'BINARY fields should contain hex characters only ' + fieldVal));
+                errors.push(newErrObj(fieldObj, 'BINARY fields should contain hex characters only.'));
                 return true;
             }
             return false;
@@ -773,7 +914,7 @@
         function validateBcdFieldForContent(fieldObj, fieldVal, errors) {
             var re = /^[0123456789]+$/;
             if (!re.exec(fieldVal)) {
-                errors.push(newErrObj(fieldObj, 'BCD fields should contain decimal characters only ' + fieldVal));
+                errors.push(newErrObj(fieldObj, 'BCD fields should contain decimal characters only.'));
                 return true;
             }
             return false;
@@ -931,7 +1072,7 @@
                         var index = event.target.id.indexOf('_');
                         var fieldId = event.target.id.substring(index + 1, event.target.id.length);
                         console.log('fieldid =' + fieldId);
-                        fieldVal = getRequestFieldValElem(fieldId).value;
+                        fieldVal = getResponseFieldValElem(fieldId).value;
 
 
                         jsShowUserInputDialog(event, fieldId, fieldVal, false, true);
@@ -948,7 +1089,7 @@
 
         function showErrorMessage(errMsg) {
 
-            //alert(errMsg);
+            enableOverlay();
             document.getElementById('idJsErrorMsg').innerHTML = errMsg;
 
             var elem = document.getElementById('idJsErrorDiv');
@@ -956,12 +1097,22 @@
             elem.style.position = "fixed";
             elem.style.left = "35%";
             elem.style.top = "50%";
-            elem.style['z-index'] = "2";
+            //elem.style['z-index'] = "2";
 
         }
 
         function closeErrorDialog() {
             document.getElementById('idJsErrorDiv').style.display = "none";
+            disableOverlay();
+        }
+
+        function showAboutDialog() {
+            document.getElementById('idAboutIsoWebSim').style.display = "block";
+        }
+
+
+        function closeAboutDialog() {
+            document.getElementById('idAboutIsoWebSim').style.display = "none";
         }
 
     </script>
@@ -970,14 +1121,15 @@
 
 <body onload="init()">
 
+    <div id="overlay"></div>
 
     <div id="headerDiv">
-        <div class="cl_cursive_heading"> ISO WebSim</div>
+        <div class="cl_cursive_heading"> ISO WebSim </div>
         <div class="cl_small_text_new">Developer(s): Raghavendra Balgi (rkbalgi@gmail.com) </div>
     </div>
 
 
-    <!--nav_panel-->
+
     <div id="navDiv" style="content-align:left;">
 
 
@@ -994,14 +1146,18 @@
             <li>
                 <input class="cl_small_btn" type="button" value="Send To Host" onClick="jsSendMsg()" />
             </li>
+            <li>
+                <input class="cl_small_btn" type="button" value="About" onClick="showAboutDialog()" />
+            </li>
         </ul>
 
     </div>
 
 
+
     <div id="bodyDiv">
 
-        <table style="position: relative; z-index: 1;">
+        <table style="position: relative;">
             <tr>
                 <td align="center">
                     <div class="cl_text_label">Specs</div>
@@ -1132,6 +1288,22 @@
         <div align="center" style="align-content:center;">
             <input type="button" class="cl_small_btn" value="OK " onclick="jsProcessUserInput()" />
             <input type="button" class="cl_small_btn" value="Cancel " onclick="jsCancelUserInputDialog()" />
+        </div>
+    </div>
+    <div id="idAboutIsoWebSim" class="cl_about_dlg">
+
+        <div class="cl_dlg_header"> About ISO WebSim </div>
+        <div class="cl_small_text" style=" resize: none; margin: 10px; margin:5px; width: 440px; height:200px;">
+            <p>
+                Iso Websim is a ISO8583 simulator built using golang (http://golang.org). It provides a simple interface to load ISO specifications. The specifications themselves are defined in text file (more information on developing your own specs can be found here - <a href="https://github.com/rkbalgi/isosim/blob/master/specs/isoSpecs.spec">https://github.com/rkbalgi/isosim/blob/master/specs/isoSpecs.spec</a>. The page you are viewing is hosted by a golang program that is supplied the spec definitions file to use. You can load an existing trace or create a message from scratch and send it to a ISO host (identified by host and a port). Note: Please note that this application has been tested to work only on chrome browser.
+            </p>
+        </div>
+
+
+        <br/>
+        <br/>
+        <div align="center" style="align-content:center;">
+            <input type="button" class="cl_small_btn" value="OK" onclick="closeAboutDialog()" />
         </div>
     </div>
 

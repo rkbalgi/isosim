@@ -34,29 +34,28 @@ func (fieldData *FieldData) GetAtPos(parsedMsg *ParsedMsg, position int) *FieldD
 
 //Returns the value of this field as a string
 func (fieldData *FieldData) Value() string {
-	return fieldData.Field.ValueToString(fieldData.Data);
+	return fieldData.Field.ValueToString(fieldData.Data)
 
 }
 
 func (fieldData *FieldData) Set(value string) {
-	fieldData.Data = fieldData.Field.ValueFromString(value);
+	fieldData.Data = fieldData.Field.ValueFromString(value)
 
 }
-
 
 //Returns a deep copy of FieldData
 func (fieldData *FieldData) Copy() *FieldData {
 
-	newFieldData := &FieldData{Field:fieldData.Field};
+	newFieldData := &FieldData{Field: fieldData.Field}
 	if fieldData.Bitmap != nil {
-		newFieldData.Bitmap = fieldData.Bitmap.Copy();
+		newFieldData.Bitmap = fieldData.Bitmap.Copy()
 	}
 
-	if (fieldData.Data != nil) {
-		newFieldData.Data = make([]byte, len(fieldData.Data));
+	if fieldData.Data != nil {
+		newFieldData.Data = make([]byte, len(fieldData.Data))
 		copy(newFieldData.Data, fieldData.Data)
 	}
 
-	return newFieldData;
+	return newFieldData
 
 }

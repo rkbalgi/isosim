@@ -1,20 +1,20 @@
 package spec
 
 import (
+	"bufio"
+	"errors"
 	"os"
 	"path/filepath"
-	"bufio"
-	"strings"
 	"strconv"
-	"log"
+	"strings"
 )
 
-func init() {
+func Init(specDefFile string) error {
 
-	file, err := os.Open(filepath.Join("c:\\users\\132968\\desktop", "spec.txt"))
+	file, err := os.Open(filepath.Join(specDefFile))
 	if err != nil {
-		log.Fatalf("initialization error", err.Error())
-		return
+		errors.New("Initialization error. Unable to open specDefFile - " + err.Error())
+		return err
 	}
 	reader := bufio.NewReader(file)
 	scanner := bufio.NewScanner(reader)
@@ -29,7 +29,7 @@ func init() {
 		}
 		splitLine := strings.Split(line, "=")
 		if len(splitLine) != 2 {
-			logAndExit("syntax error on line = " + line)
+			return errors.New("Syntax error on line. Line =" + line)
 		}
 		keyPart := strings.Split(splitLine[0], componentSeparator)
 		valuePart := strings.Split(splitLine[1], componentSeparator)
@@ -39,9 +39,8 @@ func init() {
 		case 4:
 			{
 				specName := keyPart[1]
-				if (strings.ContainsAny(specName, "/ '")) {
-					logAndExit("invalid spec name. contains invalid characters (/,[SPACE],') - " + specName)
-
+				if strings.ContainsAny(specName, "/ '") {
+					return errors.New("Invalid spec name. contains invalid characters (/,[SPACE],') - " + specName)
 				}
 				spec := getOrCreateNewSpec(specName)
 				msgName, fieldName := keyPart[2], keyPart[3]
@@ -56,20 +55,26 @@ func init() {
 				msgName, parentFieldName, position, childFieldName := keyPart[2], keyPart[3], keyPart[4], keyPart[5]
 				specMsg := spec.GetOrAddMsg(msgName)
 				parentField := specMsg.GetField(parentFieldName)
-				tmp, err := strconv.ParseInt(position, 10, 0);
-				if (err != nil) {
-					logAndExit("invalid field position - " + line);
+				tmp, err := strconv.ParseInt(position, 10, 0)
+				if err != nil {
+					return errors.New("Syntax error. " + "Invalid field position. Line = " + line)
 				}
 				parentField.AddChildField(childFieldName, int(tmp), fieldInfo)
 
 			}
 		default:
 			{
-				logAndExit("syntax error on line = " + line)
+				return errors.New("Syntax error. Line = " + line)
 			}
 		}
 	}
 
 	file.Close()
+
+	if DebugEnabled {
+		printAllSpecsInfo()
+	}
+
+	return nil
 
 }
