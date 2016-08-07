@@ -19,7 +19,7 @@ var version="0.0.0";
 func main() {
 
 	isDebugEnabled := flag.Bool("debugEnabled", true, "true if debug logging should be enabled.")
-	htmlDir := flag.String("htmlDir", ".", "Directory that contains any HTML's and js/css files etc.")
+	flag.StringVar(&spec.HtmlDir,"htmlDir", ".", "Directory that contains any HTML's and js/css files etc.")
 	specDefFile := flag.String("specDefFile", "isoSpec.spec", "The file containing the ISO spec definitions.")
 	httpPort := flag.Int("httpPort", 8080, "Http port to listen on.")
 
@@ -36,7 +36,7 @@ func main() {
 		log.Fatal(err.Error())
 	}
 	//check if all the required HTML files are available
-	if err = http_handlers.Init(*htmlDir); err != nil {
+	if err = http_handlers.Init(spec.HtmlDir); err != nil {
 		log.Fatal(err.Error())
 	}
 

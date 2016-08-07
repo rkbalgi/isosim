@@ -1,4 +1,4 @@
-package main
+package iso_server
 
 import (
 	"flag"
@@ -14,23 +14,37 @@ import (
 
 var isoSpec = spec.GetSpecByName("ISO8583");
 
-func main() {
+func StartIsoServer(port int) {
 
-	port := flag.Int("port", 7777, "-port 7777");
-	flag.Parse();
+	//port := flag.Int("port", 7777, "-port 7777");
+	//flag.Parse();
+	retVal:=make(chan error);
 
-	log.Print("Starting ISO .. Port = ",*port);
-	listener, err := net.Listen("tcp", ":" + strconv.Itoa(*port));
-	if err != nil {
-		log.Fatal(err.Error());
-	}
-	for {
-		connection, err := listener.Accept();
-		if (err!=nil) {
-			log.Fatal(err.Error());
+
+
+	go func(){
+
+		log.Print("Starting ISO Server.. .. Port = ",port);
+		listener, err := net.Listen("tcp", ":" + strconv.Itoa(port));
+		if err != nil {
+			retVal<- err;
 		}
+		for {
+			connection, err := listener.Accept();
+			if (err!=nil) {
+				retVal<-err;
+				return ;
+			}
 
-		go HandleConnection(connection);
+			go handleConnection(connection);
+		}
+	}();
+
+	select{
+		case errVal:=<-retVal:{
+		log.Print("Error on server. Error =  ",errVal);
+
+	}
 	}
 
 }
@@ -44,7 +58,7 @@ func CloseOnError(connection net.Conn, err error) {
 
 }
 
-func HandleConnection(connection net.Conn) {
+func handleConnection(connection net.Conn) {
 
 	buf := new(bytes.Buffer);
 	mli := make([]byte, 2);
@@ -91,7 +105,7 @@ func HandleConnection(connection net.Conn) {
 						var msgData = make([]byte, msgLen-2);
 						copy(msgData, buf.Bytes());
 
-						go HandleRequest(connection,msgData);
+						go handleRequest(connection,msgData);
 
 					}
 				}
@@ -104,7 +118,7 @@ func HandleConnection(connection net.Conn) {
 
 }
 
-func HandleRequest(connection net.Conn, msgData []byte) {
+func handleRequest(connection net.Conn, msgData []byte) {
 
 	specMsg := isoSpec.GetMessageByName("1100");
 
