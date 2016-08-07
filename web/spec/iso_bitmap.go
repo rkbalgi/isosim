@@ -31,11 +31,7 @@ func (bmp *Bitmap) Get(pos int) *FieldData {
 
 	if fieldData, ok := bmp.childData[pos]; ok {
 		return fieldData
-	} /*else {
-		fieldData := &FieldData{Data:make([]byte, 10), Field:childField}
-		bmp.SetOn(pos);
-		return fieldData;
-	}*/
+	}
 	return nil
 
 }
@@ -45,7 +41,7 @@ func (bmp *Bitmap) Set(pos int, val string) {
 	//log.Print("Bmp = ",bmp.field);
 	childField := bmp.field.fieldsByPosition[pos]
 	if childField == nil {
-		log.Fatal("No such field at position -", pos)
+		log.Fatal("No  field at position -", pos)
 	}
 
 	var fieldData *FieldData
@@ -93,7 +89,7 @@ func (bmp *Bitmap) BinaryString() string {
 	buf := bytes.NewBufferString("")
 	for _, b := range bmp.bmpData {
 		if b != 0 {
-			buf.WriteString(fmt.Sprintf("%064b-", b))
+			buf.WriteString(fmt.Sprintf("%064b", b));
 		}
 	}
 	return buf.String()
@@ -150,14 +146,12 @@ func (bmp *Bitmap) targetAndMask(position int) (targetInt *uint64, mask uint64, 
 	case position > 64 && position < 129:
 		{
 			targetInt = &bmp.bmpData[1]
-			//position -= 64;
 			shift = (uint64(128) - uint64(position))
 			bc = 2
 		}
 	case position < 193:
 		{
 			targetInt = &bmp.bmpData[2]
-			//position -= 128;
 			shift = (uint64(192) - uint64(position))
 			bc = 3
 		}
