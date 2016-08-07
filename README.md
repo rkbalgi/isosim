@@ -28,5 +28,7 @@ exit status 2
 ```
 
 ###Sample Invocation 
-C:\go run isosim.go -specDefFile specs\isoSpecs.spec -htmlDir .\html
+C:\go run isosim.go -httpPort 8080 -specDefFile specs\isoSpecs.spec -htmlDir .\html 
+
+And now open chrome and hit this URL [Iso WebSim](http://localhost:8080/iso/home)
 
