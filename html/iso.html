@@ -2,7 +2,7 @@
 
 <head>
 
-    <link href="https://fonts.googleapis.com/css?family=Cormorant+Garamond|Gloria+Hallelujah|Lora" rel="stylesheet">
+    <!--<link href="https://fonts.googleapis.com/css?family=Cormorant+Garamond|Gloria+Hallelujah|Lora" rel="stylesheet">-->
 
     <style>
         #overlay {
@@ -220,7 +220,6 @@
             width: 455px;
             background: gainsboro;
         }
-
     </style>
 
     <script language="javascript">
@@ -238,6 +237,11 @@
         var respFieldsPrefixId0 = 'idJsRespFieldSelectedId_';
         var respFieldsPrefixId1 = 'idJsRespFieldId_';
         var respFieldsPrefixId2 = 'idJsRespFieldValueId_';
+
+        var emptyBitmap = '0000000000000000000000000000000000000000000000000000000000000000';
+        var gPageState = {
+            layoutLoaded: false
+        };
 
         gFieldEdited = {
             fieldId: "",
@@ -257,9 +261,13 @@
 
         }
 
+        /**
+        This function fetches all the specs and populates the specs comboxes
+        */
+
         function jsLoadSpecs() {
 
-            var onSuccessFuncCall = function(jsonData) {
+            var onSuccessFuncCall = function (jsonData) {
 
                     var specsObj = JSON.parse(jsonData);
                     var htmlContent = '';
@@ -279,6 +287,10 @@
 
         } //end jsLoadSpecs
 
+        /**
+        Loads all the messages for the currently chosen spec.
+        */
+
         function jsLoadSpecMessages(loadTemplate = false) {
 
             document.getElementById('idJsResponseTable').innerHTML = '';
@@ -289,7 +301,7 @@
                 var specId = selectedOption.id;
 
                 var url = '/iso/v0/msgs/' + specId;
-                var onSuccessFunc = function(jsonData) {
+                var onSuccessFunc = function (jsonData) {
                         var msgsObj = JSON.parse(jsonData);
                         var htmlContent = '';
                         for (i = 0; i < msgsObj.length; i++) {
@@ -321,9 +333,14 @@
 
 
 
-        } //end jsLoadSpecMessages
+        }
 
 
+        /**
+        For the currently selected Spec and Spec Message gets the layout and 
+        displays it.
+        
+        */
         function jsLoadTemplate() {
 
             var specsElem = document.getElementById('idJsSpec');
@@ -339,7 +356,7 @@
 
                     //now do the AJAX call
                     var url = '/iso/v0/template/' + specId + '/' + msgId;
-                    var onSuccessFunc = function(jsonData) {
+                    var onSuccessFunc = function (jsonData) {
 
 
                         //alert(jsonData);
@@ -361,7 +378,7 @@
 
                         var elems = document.getElementsByClassName('cl_vsmall_btn_edit');
                         for (var i = 0; i < elems.length; i++) {
-                            elems[i].addEventListener('click', function(event) {
+                            elems[i].addEventListener('click', function (event) {
 
                                 var fieldVal = "";
                                 var index = event.target.id.indexOf('_');
@@ -373,6 +390,8 @@
                                 jsShowUserInputDialog(event, fieldId, fieldVal, true, false);
                             }, true);
                         }
+
+                        gPageState.layoutLoaded = true;
 
 
 
@@ -390,6 +409,11 @@
 
         } //end jsLoadTemplate
 
+
+
+        /**
+        Constructs a HTML fragment for field 'fieldObj'
+        */
         function getFieldHtml(fieldObj, fieldData = "", isRequest = true) {
 
 
@@ -424,15 +448,28 @@
 
             }
 
-            htmlContent += "<td class=\"cl_field_pos\"> <input class=\"cl_req_field_sel_cb\" id=\"" + id0 + fieldObj.Id + "\" type=\"checkbox\"" + disabledFlag + "/>" + fieldPosition + "</td>"
+            var reqBmpDisabled = "";
+
+            var reqBmpDisabled = "";
+            if (isRequest && fieldObj.Type == "BITMAP") {
+                reqBmpDisabled = "disabled";
+
+            }
+
+
+
+
+
+            htmlContent += "<td class=\"cl_field_pos\"> <input class=\"cl_req_field_sel_cb\" id=\"" + id0 + fieldObj.Id + "\" type=\"checkbox\"" + " onchange = \"fireReqFieldChanged(" + fieldObj.Id + ")\"" + disabledFlag + "/>" + fieldPosition + " </td>"
             htmlContent += "<td class=\"cl_field_name\" id=\"" + id1 + fieldObj.Id + "\">" + fieldObj.Name + "</td>";
 
 
 
             if (isRequest) {
-                htmlContent += "<td>" + "<input id=\"" + id2 + fieldObj.Id + "\" class=\"cl_field_value\" type=\"text\" class=\"cl_small_text\" value=\"" + fieldData + "\"/>";
+
+                htmlContent += "<td>" + "<input id=\"" + id2 + fieldObj.Id + "\" class=\"cl_field_value\" type=\"text\" " + reqBmpDisabled + " class=\"cl_small_text\" value=\"" + fieldData + "\"/>";
                 htmlContent += "<div class=\"cl_val_error\" style=\"display:none;\" id=\"" + reqFieldsValErrorIdPrefix + fieldObj.Id + "\"> </div></td>";
-                htmlContent += '<td><input class="cl_vsmall_btn_edit" type="button" value="Edit" id="idReqFieldEdit_' + fieldObj.Id + '\")/> </td>';
+                htmlContent += '<td><input class="cl_vsmall_btn_edit" type="button" value="Edit" id="idReqFieldEdit_' + fieldObj.Id + '\") ' + reqBmpDisabled + '/> </td>';
 
             } else {
                 htmlContent += "<td>" + "<input id=\"" + id2 + fieldObj.Id + "\" class=\"cl_field_value\" type=\"text\" class=\"cl_small_text\" value=\"" + fieldData + "\" disabled/>";
@@ -462,9 +499,140 @@
 
         }
 
+        /**
+        Returns the field object from the template/layout
+        
+        
+        
+        */
+        function getFieldObj(fieldId) {
+
+            for (var i = 0; i < currentMsgFields.length; i++) {
+                var fieldObj = currentMsgFields[i];
+                //console.log(fieldId + ' ' + fieldObj.Id)
+                if (fieldObj.Id == fieldId) {
+                    return fieldObj;
+                }
+
+                if (fieldObj.Children.length > 0) {
+
+                    for (var j = 0; j < fieldObj.Children.length; j++) {
+                        var cFieldObj = fieldObj.Children[j];
+                        if (cFieldObj.Id == fieldId) {
+                            return cFieldObj;
+                        }
+                    }
+
+                }
+
+            }
+
+        }
+
+
+        /**
+        This function will change the bitmap if a child field
+        is selected or deselected
+        */
+        function fireReqFieldChanged(fieldId) {
+
+            //alert(fieldId);
+            var fieldObj = getFieldObj(fieldId);
+            //alert(fieldObj);
+
+            if (fieldObj.ParentId > 0) {
+                //alert(fieldObj.ParentId);
+                var pFieldObj = getFieldObj(fieldObj.ParentId);
+                //alert(pFieldObj.Name);
+                if (pFieldObj && pFieldObj.Type == 'BITMAP') {
+
+                    //alert(pFieldObj.Name);
+                    if (isReqFieldSelected(fieldId)) {
+                        setBmpBit(pFieldObj, fieldObj.Position, true);
+                    } else {
+                        setBmpBit(pFieldObj, fieldObj.Position, false);
+                    }
+
+                }
+
+
+            }
+
+
+        }
+
+        function isReqFieldSelected(fieldId) {
+
+            return document.getElementById(reqFieldsPrefixId0 + fieldId).checked;
+        }
+
+
+        function setReqFieldSelected(fieldId) {
+
+            document.getElementById(reqFieldsPrefixId0 + fieldId).checked = true;
+        }
+
+        function setBmpBit(bmpFieldObj, position, on) {
+
+            var bitVal = '0';
+            if (on) {
+                bitVal = '1';
+
+            }
+
+            var bmpElem = getRequestFieldValElem(bmpFieldObj.Id);
+            if (bmpElem.value) {
+
+
+            } else {
+                //TODO:: this doesn't seem to be the best way to deal with this
+                //so some improvement is required
+                bmpElem.value = '0000000000000000000000000000000000000000000000000000000000000000';
+                bmpElem.value += '0000000000000000000000000000000000000000000000000000000000000000';
+                bmpElem.value += '0000000000000000000000000000000000000000000000000000000000000000';
+            }
+
+
+
+            var pre = bmpElem.value.substring(0, position - 1);
+            var post = bmpElem.value.substring(position + 1, bmpElem.value.length);
+            bmpElem.value = pre + bitVal + post;
+            setReqFieldSelected(bmpFieldObj.Id);
+
+            if (position > 64 && position < 128) {
+                if (on) {
+                    //setBmpBit(bmpFieldObj, 1, true);
+                    bmpElem.value = '1' + bmpElem.value.substring(1, bmpElem.value.length);
+                }
+            } else if (position > 128) {
+                if (on) {
+                    setBmpBit(bmpFieldObj, 65, true);
+                }
+
+            }
+
+            if (on == false) {
+                if (bmpElem.value.substring(65 - 1, 129 - 1) == emptyBitmap) {
+                    bmpElem.value = '0' + bmpElem.value.substring(1, bmpElem.value.length);
+                }
+                if (bmpElem.value.substring(129 - 1, 193 - 1) == emptyBitmap) {
+                    bmpElem.value = bmpElem.value.substring(1 - 1, 66 - 1) + '0' + bmpElem.value.substring(66 - 1, bmpElem.value.length);
+                }
+
+            }
+
+
+
+        }
+
+
+        /**
+        The central method that does all of the AJAX handling..
+        
+        */
         function doAjaxCall(url, onSuccess, data, method = 'GET', contentType = null) {
             xhr = new XMLHttpRequest();
-            xhr.onreadystatechange = function() {
+            xhr.onreadystatechange = function () {
 
 
                     if (xhr.readyState == 4) {
@@ -481,7 +649,7 @@
                 xhr.setRequestHeader('Content-Type', contentType);
             }
 
-            console.log('making ajax request .. ' + url);
+            console.log('Making ajax request .. ' + url);
             xhr.send(data);
         } //end doAjaxCall()
 
@@ -496,6 +664,12 @@
         }
 
         function jsShowTraceDialog() {
+
+            if (!gPageState.layoutLoaded) {
+                showErrorMessage('Please load a template before parsing.');
+                return;
+
+            }
 
             enableOverlay();
             var elem = document.getElementById('idJsTraceDiv');
@@ -650,6 +824,12 @@
 
         function jsParseTrace() {
 
+            if (!gPageState.layoutLoaded) {
+                showErrorMessage("Please load a template before parsing trace.");
+                return;
+
+            }
+
 
             var specsElem = document.getElementById('idJsSpec');
             var selectedSpecOption = specsElem.options[specsElem.selectedIndex];
@@ -663,7 +843,7 @@
 
                     var elem = document.getElementById('idJsTrace');
                     url = '/iso/v0/parse/' + specId + '/' + selectedMsgOption.id;
-                    doAjaxCall(url, function(responseText) {
+                    doAjaxCall(url, function (responseText) {
 
                         console.log('parsed msg (json)' + responseText);
                         var parsedMsgObj = JSON.parse(responseText);
@@ -747,42 +927,42 @@
 
             switch (fieldObj.DataEncoding) {
 
-                case 'ASCII':
-                case 'EBCDIC':
-                    {
+            case 'ASCII':
+            case 'EBCDIC':
+                {
 
-                        if (fieldVal.length != fieldObj.FixedSize) {
-                            errors.push(newErrObj(fieldObj, 'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = ' + fieldVal.length));
-                        }
-
-                        validateFieldContentConstraints(fieldObj, fieldVal, errors);
-
-
-                        break;
+                    if (fieldVal.length != fieldObj.FixedSize) {
+                        errors.push(newErrObj(fieldObj, 'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = ' + fieldVal.length));
                     }
-                case 'BINARY':
-                    {
-                        if (!validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors)) {
-                            var len = fieldVal.length / 2;
-                            if (len != fieldObj.FixedSize) {
-                                errors.push(newErrObj(fieldObj, 'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = ' + len));
-                            }
+
+                    validateFieldContentConstraints(fieldObj, fieldVal, errors);
+
+
+                    break;
+                }
+            case 'BINARY':
+                {
+                    if (!validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors)) {
+                        var len = fieldVal.length / 2;
+                        if (len != fieldObj.FixedSize) {
+                            errors.push(newErrObj(fieldObj, 'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = ' + len));
                         }
-                        //validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
-                        validateBinaryFieldForContent(fieldObj, fieldVal, errors);
-                        break;
                     }
-                case 'BCD':
-                    {
-                        if (!validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors)) {
-                            var len = fieldVal.length / 2;
-                            if (len != fieldObj.FixedSize) {
-                                errors.push(newErrObj(fieldObj, 'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = ' + len));
-                            }
+                    //validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
+                    validateBinaryFieldForContent(fieldObj, fieldVal, errors);
+                    break;
+                }
+            case 'BCD':
+                {
+                    if (!validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors)) {
+                        var len = fieldVal.length / 2;
+                        if (len != fieldObj.FixedSize) {
+                            errors.push(newErrObj(fieldObj, 'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = ' + len));
                         }
-                        validateBcdFieldForContent(fieldObj, fieldVal, errors);
-                        break;
                     }
+                    validateBcdFieldForContent(fieldObj, fieldVal, errors);
+                    break;
+                }
 
             }
 
@@ -801,27 +981,27 @@
 
             switch (fieldObj.DataEncoding) {
 
-                case 'ASCII':
-                case 'EBCDIC':
-                    {
-                        validateFieldContentConstraints(fieldObj, fieldVal, errors);
-                        validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors);
+            case 'ASCII':
+            case 'EBCDIC':
+                {
+                    validateFieldContentConstraints(fieldObj, fieldVal, errors);
+                    validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors);
 
-                        break;
-                    }
-                case 'BINARY':
-                    {
-                        validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
-                        validateBinaryFieldForContent(fieldObj, fieldVal, errors);
-                        validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors);
-                        break;
-                    }
-                case 'BCD':
-                    {
-                        validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
-                        validateBcdFieldForContent(fieldObj, fieldVal, errors);
-                        validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors);
-                    }
+                    break;
+                }
+            case 'BINARY':
+                {
+                    validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
+                    validateBinaryFieldForContent(fieldObj, fieldVal, errors);
+                    validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors);
+                    break;
+                }
+            case 'BCD':
+                {
+                    validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
+                    validateBcdFieldForContent(fieldObj, fieldVal, errors);
+                    validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors);
+                }
 
             }
 
@@ -862,38 +1042,38 @@
 
 
             switch (fieldObj.ContentType) {
-                case 'Alpha':
-                    {
+            case 'Alpha':
+                {
 
-                        if (!alphaRE.exec(fieldVal)) {
-                            errors.push(newErrObj(fieldObj, 'Field content should be alphabets only.'));
-                            return true;
-
-                        }
-                        break;
+                    if (!alphaRE.exec(fieldVal)) {
+                        errors.push(newErrObj(fieldObj, 'Field content should be alphabets only.'));
+                        return true;
 
                     }
-                case 'AlphaNumeric':
-                    {
+                    break;
 
-                        if (!alphaRE.exec(fieldVal)) {
-                            errors.push(newErrObj(fieldObj, 'Field content should be alpha-numeric only.'));
-                            return true;
+                }
+            case 'AlphaNumeric':
+                {
 
-                        }
-                        break;
+                    if (!alphaRE.exec(fieldVal)) {
+                        errors.push(newErrObj(fieldObj, 'Field content should be alpha-numeric only.'));
+                        return true;
 
                     }
-                case 'Numeric':
-                    {
+                    break;
 
-                        if (!numericRE.exec(fieldVal)) {
-                            errors.push(newErrObj(fieldObj, 'Field content should be numeric only.'));
-                            return true;
+                }
+            case 'Numeric':
+                {
 
-                        }
-                        break;
+                    if (!numericRE.exec(fieldVal)) {
+                        errors.push(newErrObj(fieldObj, 'Field content should be numeric only.'));
+                        return true;
+
                     }
+                    break;
+                }
             }
 
 
@@ -929,6 +1109,13 @@
             return false;
 
         }
+
+        /**
+        This function does basic validations on all request fields (user supplied). Example - content, length, constraints if any (Numeric, Alpha, AlphaNumeric
+        ..MinLength, MaxLength) etc..
+        
+        
+        */
 
         function validateFields() {
 
@@ -968,6 +1155,12 @@
         */
         function jsSendMsg() {
 
+            if (!gPageState.layoutLoaded) {
+                showErrorMessage("Please load a template, construct a message before sending to host.");
+                return;
+
+            }
+
             document.getElementById('idJsResponseTable').innerHTML = "";
 
             var validationErrors = validateFields();
@@ -999,11 +1192,13 @@
 
             var selectedObjs = document.getElementsByClassName('cl_req_field_sel_cb');
             var resultObj = new Array();
+            var dataPresent = false;
             for (var i = 0, j = 0; i < selectedObjs.length; i++) {
 
                 var childNode = selectedObjs[i];
                 //alert(JSON.stringify(childNode));
                 if (childNode.id) {
+
                     //alert(childNode.id)
 
                     if (childNode.checked) {
@@ -1015,12 +1210,20 @@
                         obj.Id = parseInt(childNodeId);
                         obj.Value = fieldValue;
                         resultObj[j++] = obj;
+                        dataPresent = true;
                     }
 
                 }
 
 
             }
+
+            if (!dataPresent) {
+                showErrorMessage('Please construct a message (or parse a trace) before sending to host.');
+                return;
+
+            }
+
             var msg = JSON.stringify(resultObj);
             var specsElem = document.getElementById('idJsSpec');
             var selectedOption = specsElem.options[specsElem.selectedIndex];
@@ -1036,7 +1239,7 @@
             //var postData = 'specId=' + specId + "&" + 'msgId=' + msgId + "&" + "msg=" + msg;
 
             console.log('postData = ' + postData);
-            doAjaxCall('/iso/v0/send', function(responseText) {
+            doAjaxCall('/iso/v0/send', function (responseText) {
                 //alert(responseText);
                 var responseData = JSON.parse(responseText);
 
@@ -1066,7 +1269,7 @@
 
                 var elems = document.getElementsByClassName('cl_vsmall_btn_view');
                 for (var i = 0; i < elems.length; i++) {
-                    elems[i].addEventListener('click', function(event) {
+                    elems[i].addEventListener('click', function (event) {
 
                         var fieldVal = "";
                         var index = event.target.id.indexOf('_');
@@ -1114,7 +1317,6 @@
         function closeAboutDialog() {
             document.getElementById('idAboutIsoWebSim').style.display = "none";
         }
-
     </script>
 
 </head>
@@ -1253,7 +1455,7 @@
     <div id="idJsTraceDiv" class="cl_trace_dlg">
 
         <div class="cl_dlg_header">Hex Trace Input Dialog</div>
-        <textarea class="cl_trace_value" id="idJsTrace" rows="5" cols="40" style=" resize: none; margin: 10px; margin:5px; width: 440px; height:140px;">F1F1F0F0723C240128428000F1F5F3F7F5F7F2F2F6F5F8F7F0F9F2F3F9F0F0F4F0F0F0F0F0F0F0F0F0F0F0F1F0F0F0F0F4F2F1F1F0F2F4F5F1F1F1F0F6F0F2F0F5F1F0F1F8F1F9F4F3F1F2F0F5F0F3F0F9F0F1F8F4F0F2F6F1F1F0F1F1F0F1F1F4F0F0F1F0F3F7F3F7F5F7F2F2F6F5F8F7F0F9F2F3F9C4F0F8F0F8F1F0F1F0F4F0F1F3F6F6F7F2F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F1F5F4F3F4F5F0F1F3F6F74040404040F2F4F9C1E7C9C1C3F2F1F0F9F0F1F0F1C1D7D5F2F3C6D9D6E2E340D1C1D5C540D440D4D9E240404040404040C1C2C34040E7E8E94040D9E3C7F6F1F1F0C1C2C3404061C4C5C6404061C7C8C9404061D1D2D3404061D4D5D6404061D7D8D9404061E2E3E4404061E5E6E7404061E8E9C1404061E7E8E94040C1D3C3F5F5F0F9C1C240404061E7E840404061C2C340404061C3C440404061C4C540404061C4C54040406140C3C440404061C2C340404061C1C2404040C1C2C3F1F2F3C4C5C6F4F5F6C7C8C9F7F8F9D1D2D3F0F1F2F0F0F1F1F2F74BF1F4F24BF1F5F14BF2F2F3C3C540F2F4C3C6C6D9D6E2E37CC5D4C1C9D3C1C4C4D9C5E2E24BC3D6D4F8F4F0</textarea>
+        <textarea class="cl_trace_value" id="idJsTrace" rows="5" cols="40" style=" resize: none; margin: 10px; margin:5px; width: 440px; height:140px;">1100....</textarea>
 
 
         <br/>
@@ -1295,7 +1497,14 @@
         <div class="cl_dlg_header"> About ISO WebSim </div>
         <div class="cl_small_text" style=" resize: none; margin: 10px; margin:5px; width: 440px; height:200px;">
             <p>
-                Iso Websim is a ISO8583 simulator built using golang (http://golang.org). It provides a simple interface to load ISO specifications. The specifications themselves are defined in text file (more information on developing your own specs can be found here - <a href="https://github.com/rkbalgi/isosim/blob/master/specs/isoSpecs.spec">https://github.com/rkbalgi/isosim/blob/master/specs/isoSpecs.spec</a>. The page you are viewing is hosted by a golang program that is supplied the spec definitions file to use. You can load an existing trace or create a message from scratch and send it to a ISO host (identified by host and a port). Note: Please note that this application has been tested to work only on chrome browser.
+                Iso Websim is a ISO8583 simulator built using golang (http://golang.org). It provides a simple interface to load ISO specifications. The specifications themselves are defined in text file (more information on developing your own specs can be found here - <a href="https://github.com/rkbalgi/isosim/blob/master/specs/isoSpecs.spec">https://github.com/rkbalgi/isosim/blob/master/specs/isoSpecs.spec</a>.
+                <br/>
+                <br/> The page you are viewing is hosted by a golang program that is supplied the spec definitions file to use. You can load an existing trace or create a message from scratch and send it to a ISO host (identified by host and a port).
+                <br/>
+                <br/> Note: Please note that this application has been tested on chrome browser only.
+
+                <br/>
+                <br/> For more information please visit <a href="https://github.com/rkbalgi/isosim">https://github.com/rkbalgi/isosim</a>
             </p>
         </div>
 

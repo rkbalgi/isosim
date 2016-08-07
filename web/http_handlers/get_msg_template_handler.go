@@ -1,4 +1,4 @@
-package iso_http
+package http_handlers
 
 import (
 	"bufio"

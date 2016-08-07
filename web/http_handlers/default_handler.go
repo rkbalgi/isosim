@@ -1,4 +1,4 @@
-package iso_http
+package http_handlers
 
 import (
 	"errors"
@@ -55,6 +55,9 @@ func setRoutes() {
 }
 
 func sendError(rw http.ResponseWriter, errorMsg string) {
+	if spec.DebugEnabled{
+		log.Print("Sending error = "+errorMsg);
+	}
 	rw.WriteHeader(http.StatusBadRequest)
 	rw.Write([]byte(errorMsg))
 

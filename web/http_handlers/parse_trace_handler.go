@@ -1,4 +1,4 @@
-package iso_http
+package http_handlers
 
 import (
 	"bufio"
@@ -34,7 +34,7 @@ func parseTraceHandler() {
 			return
 		}
 
-		rw.WriteHeader(200)
+		//rw.WriteHeader(200)
 		paramSpecId := urlComponents[3]
 		paramMsgId := urlComponents[4]
 
@@ -61,33 +61,34 @@ func parseTraceHandler() {
 					return
 				}
 				if spec.DebugEnabled {
-					log.Print("Trace = " + string(reqData))
-					msgData, err := hex.DecodeString(string(reqData))
+					log.Print("Processing Trace = " + string(reqData))
+				}
+				msgData, err := hex.DecodeString(string(reqData))
+				//log.Print("decoded ...", err, msgData)
+				if err != nil {
+					sendError(rw, "Invalid trace. Trace should only contain hex characters and should be multiple of 2.");
+					return
+				} else {
+					parsedMsg, err := msg.Parse(msgData)
 					if err != nil {
-						sendError(rw, " invalid trace - should be hex string "+err.Error())
+						sendError(rw, "Parse error "+err.Error())
 						return
-					} else {
-						parsedMsg, err := msg.Parse(msgData)
-						if err != nil {
-
-							sendError(rw, "parse error "+err.Error())
-							return
-						}
-
-						fieldDataList := ToJsonList(parsedMsg)
-						//log.Print(fieldDataMap)
-						json.NewEncoder(rw).Encode(fieldDataList)
-
 					}
+
+					fieldDataList := ToJsonList(parsedMsg)
+					//log.Print(fieldDataMap)
+					json.NewEncoder(rw).Encode(fieldDataList)
+
 				}
 
 			} else {
-				sendError(rw, "unknown msg id in url - "+reqUri)
+				sendError(rw, "Unknown msg id in url - "+reqUri)
 				return
 			}
 
 		} else {
 			sendError(rw, "unknown spec id in url - "+reqUri)
+			return
 		}
 
 	})
