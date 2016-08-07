@@ -2,7 +2,7 @@
 
 <head>
 
-    <link href="https://fonts.googleapis.com/css?family=Cormorant+Garamond|Gloria+Hallelujah|Lora" rel="stylesheet">
+    <!--<link href="https://fonts.googleapis.com/css?family=Cormorant+Garamond|Gloria+Hallelujah|Lora" rel="stylesheet">-->
 
     <style>
         #overlay {
@@ -390,6 +390,36 @@
 
         } //end jsLoadTemplate
 
+
+        function fireRequestFieldSelectionChanged(fieldId) {
+
+            var fieldObj = getFieldObjById(fieldId);
+            //alert(fieldId + " " + fieldObj.Id + ' ' + fieldObj.ParentId);
+            //var elem: = getRequestFieldValElem(fieldObj.Id);
+            var elem = document.getElementById(reqFieldsPrefixId0 + fieldObj.Id);
+
+            if (fieldObj.ParentId > 0) {
+                var parentElem = document.getElementById(reqFieldsPrefixId0 + fieldObj.ParentId);
+                if (elem.checked) {
+                    //get parent and set that as checked
+                    parentElem.checked = true;
+
+                } else {
+                    parentElem.checked = false;
+
+                }
+
+            }
+
+
+        }
+
+
+
+
+
+
+
         function getFieldHtml(fieldObj, fieldData = "", isRequest = true) {
 
 
@@ -424,7 +454,7 @@
 
             }
 
-            htmlContent += "<td class=\"cl_field_pos\"> <input class=\"cl_req_field_sel_cb\" id=\"" + id0 + fieldObj.Id + "\" type=\"checkbox\"" + disabledFlag + "/>" + fieldPosition + "</td>"
+            htmlContent += "<td class=\"cl_field_pos\"> <input class=\"cl_req_field_sel_cb\" onchange=\"fireRequestFieldSelectionChanged(" + fieldObj.Id + ")\"  id =\"" + id0 + fieldObj.Id + "\" type=\"checkbox\"" + disabledFlag + "/>" + fieldPosition + "</td>"
             htmlContent += "<td class=\"cl_field_name\" id=\"" + id1 + fieldObj.Id + "\">" + fieldObj.Name + "</td>";
 
 
@@ -927,6 +957,36 @@
                 return true;
             }
             return false;
+
+        }
+
+        function getFieldObjById(fieldId) {
+
+            for (var i = 0, j = 0; i < currentMsgFields.length; i++) {
+                var fieldObj = currentMsgFields[i];
+                //alert(fieldObj.Id);
+                if (fieldObj.Id == fieldId) {
+                    return fieldObj;
+
+                }
+                if (fieldObj.Children.length > 0) {
+                    for (var i = 0; i < fieldObj.Children.length; i++) {
+
+                        //console.log(fieldObj[i].Name+' '+fieldObj);
+
+                        if (fieldObj.Children[i].Id == fieldId) {
+                            return fieldObj.Children[i];
+
+                        }
+
+
+                    }
+
+                }
+
+                //validateField(fieldObj, errors);
+
+            }
 
         }
 
