@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type IsoHttpHandler struct {
@@ -41,23 +42,52 @@ func setRoutes() {
 	if spec.DebugEnabled {
 		log.Print("Setting default route " + homeUrl + ". Served By = " + isoHtmlFile)
 	}
+
 	//default route
 	http.HandleFunc(homeUrl, func(rw http.ResponseWriter, req *http.Request) {
-
+		pattern:=homeUrl;
+		if spec.DebugEnabled {
+			log.Printf("Pattern: %s . Requested URI = %s", pattern,req.RequestURI)
+		}
+		if spec.DebugEnabled{
+			log.Print("Serving file = "+isoHtmlFile);
+		}
 		http.ServeFile(rw, req, isoHtmlFile)
+	})
+
+	//for static resources
+	http.HandleFunc("/iso/", func(rw http.ResponseWriter, req *http.Request) {
+
+		pattern:="/iso/";
+		if spec.DebugEnabled {
+			log.Printf("Pattern: %s . Requested URI = %s", pattern,req.RequestURI)
+		}
+
+		if strings.HasSuffix(req.RequestURI, ".css") ||
+			strings.HasSuffix(req.RequestURI, ".js") {
+
+			i:=strings.LastIndex(req.RequestURI,"/");
+			fileName:=req.RequestURI[i+1:len(req.RequestURI)];
+			log.Print("Requested File = "+fileName);
+			http.ServeFile(rw, req, filepath.Join(spec.HtmlDir,fileName))
+
+		}
+
+
 	})
 
 	allSpecsHandler()
 	getSpecMessagesHandler()
 	getMessageTemplateHandler()
 	parseTraceHandler()
-	sendMsgHandler();
-	addIsoServerHandlers();
+	sendMsgHandler()
+	addIsoServerHandlers()
+	saveMsgHandler();
 }
 
 func sendError(rw http.ResponseWriter, errorMsg string) {
-	if spec.DebugEnabled{
-		log.Print("Sending error = "+errorMsg);
+	if spec.DebugEnabled {
+		log.Print("Sending error = " + errorMsg)
 	}
 	rw.WriteHeader(http.StatusBadRequest)
 	rw.Write([]byte(errorMsg))

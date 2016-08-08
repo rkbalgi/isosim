@@ -2,8 +2,11 @@
 
 <head>
 
-    <!--<link href="https://fonts.googleapis.com/css?family=Cormorant+Garamond|Gloria+Hallelujah|Lora" rel="stylesheet">-->
+    <link href="https://fonts.googleapis.com/css?family=Cormorant+Garamond|Gloria+Hallelujah|Lora" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="isosim_styles.css">
+    <script type="text/javascript" src="isosim_ajax.js"></script>
+    <script type="text/javascript" src="isosim_common.js"></script>
+
     <script language="javascript">
         //globals
 
@@ -49,7 +52,7 @@
 
         function jsLoadSpecs() {
 
-            var onSuccessFuncCall = function (jsonData) {
+            var onSuccessFuncCall = function(jsonData) {
 
                     var specsObj = JSON.parse(jsonData);
                     var htmlContent = '';
@@ -83,7 +86,7 @@
                 var specId = selectedOption.id;
 
                 var url = '/iso/v0/msgs/' + specId;
-                var onSuccessFunc = function (jsonData) {
+                var onSuccessFunc = function(jsonData) {
                         var msgsObj = JSON.parse(jsonData);
                         var htmlContent = '';
                         for (i = 0; i < msgsObj.length; i++) {
@@ -138,7 +141,7 @@
 
                     //now do the AJAX call
                     var url = '/iso/v0/template/' + specId + '/' + msgId;
-                    var onSuccessFunc = function (jsonData) {
+                    var onSuccessFunc = function(jsonData) {
 
 
                         //alert(jsonData);
@@ -160,7 +163,7 @@
 
                         var elems = document.getElementsByClassName('cl_vsmall_btn_edit');
                         for (var i = 0; i < elems.length; i++) {
-                            elems[i].addEventListener('click', function (event) {
+                            elems[i].addEventListener('click', function(event) {
 
                                 var fieldVal = "";
                                 var index = event.target.id.indexOf('_');
@@ -408,17 +411,6 @@
         }
 
 
-
-
-
-        function enableOverlay() {
-            document.getElementById('overlay').style['z-index'] = 99;
-        }
-
-        function disableOverlay() {
-            document.getElementById('overlay').style['z-index'] = 80;
-        }
-
         function jsShowTraceDialog() {
 
             if (!gPageState.layoutLoaded) {
@@ -474,8 +466,8 @@
             var y = e.pageY - e.screenY;
             if (fieldId) {
                 //var elem = getRequestFieldValElem(fieldId);
-                var divElem = document.getElementById('idJsUserInputDiv');
-                var textAreaElem = document.getElementById('idJsUserInput');
+                var divElem = document.getElementById('idJsFieldEditViewDiv');
+                var textAreaElem = document.getElementById('idJsFieldEditInput');
 
                 //global vars to indicate what was being edited
                 if (isrequest) {
@@ -536,12 +528,12 @@
 
         }
 
-        function jsProcessUserInput() {
+        function jsProcessFieldEditView() {
 
             //enableOverlay();
-            var elem = document.getElementById('idJsUserInputDiv');
+            var elem = document.getElementById('idJsFieldEditViewDiv');
 
-            var textAreaElem = document.getElementById('idJsUserInput');
+            var textAreaElem = document.getElementById('idJsFieldEditInput');
 
             if (textAreaElem.disabled) {
                 //response field being viewed, do nothing
@@ -569,8 +561,8 @@
         }
 
 
-        function jsCancelUserInputDialog() {
-            var elem = document.getElementById('idJsUserInputDiv');
+        function jsCancelFieldEditViewDialog() {
+            var elem = document.getElementById('idJsFieldEditViewDiv');
             elem.style.display = "none";
             disableOverlay();
 
@@ -599,7 +591,7 @@
 
                     var elem = document.getElementById('idJsTrace');
                     url = '/iso/v0/parse/' + specId + '/' + selectedMsgOption.id;
-                    doAjaxCall(url, function (responseText) {
+                    doAjaxCall(url, function(responseText) {
 
                         console.log('parsed msg (json)' + responseText);
                         var parsedMsgObj = JSON.parse(responseText);
@@ -683,42 +675,42 @@
 
             switch (fieldObj.DataEncoding) {
 
-            case 'ASCII':
-            case 'EBCDIC':
-                {
+                case 'ASCII':
+                case 'EBCDIC':
+                    {
 
-                    if (fieldVal.length != fieldObj.FixedSize) {
-                        errors.push(newErrObj(fieldObj, 'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = ' + fieldVal.length));
-                    }
-
-                    validateFieldContentConstraints(fieldObj, fieldVal, errors);
-
-
-                    break;
-                }
-            case 'BINARY':
-                {
-                    if (!validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors)) {
-                        var len = fieldVal.length / 2;
-                        if (len != fieldObj.FixedSize) {
-                            errors.push(newErrObj(fieldObj, 'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = ' + len));
+                        if (fieldVal.length != fieldObj.FixedSize) {
+                            errors.push(newErrObj(fieldObj, 'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = ' + fieldVal.length));
                         }
+
+                        validateFieldContentConstraints(fieldObj, fieldVal, errors);
+
+
+                        break;
                     }
-                    //validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
-                    validateBinaryFieldForContent(fieldObj, fieldVal, errors);
-                    break;
-                }
-            case 'BCD':
-                {
-                    if (!validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors)) {
-                        var len = fieldVal.length / 2;
-                        if (len != fieldObj.FixedSize) {
-                            errors.push(newErrObj(fieldObj, 'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = ' + len));
+                case 'BINARY':
+                    {
+                        if (!validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors)) {
+                            var len = fieldVal.length / 2;
+                            if (len != fieldObj.FixedSize) {
+                                errors.push(newErrObj(fieldObj, 'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = ' + len));
+                            }
                         }
+                        //validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
+                        validateBinaryFieldForContent(fieldObj, fieldVal, errors);
+                        break;
                     }
-                    validateBcdFieldForContent(fieldObj, fieldVal, errors);
-                    break;
-                }
+                case 'BCD':
+                    {
+                        if (!validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors)) {
+                            var len = fieldVal.length / 2;
+                            if (len != fieldObj.FixedSize) {
+                                errors.push(newErrObj(fieldObj, 'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = ' + len));
+                            }
+                        }
+                        validateBcdFieldForContent(fieldObj, fieldVal, errors);
+                        break;
+                    }
 
             }
 
@@ -737,27 +729,27 @@
 
             switch (fieldObj.DataEncoding) {
 
-            case 'ASCII':
-            case 'EBCDIC':
-                {
-                    validateFieldContentConstraints(fieldObj, fieldVal, errors);
-                    validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors);
+                case 'ASCII':
+                case 'EBCDIC':
+                    {
+                        validateFieldContentConstraints(fieldObj, fieldVal, errors);
+                        validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors);
 
-                    break;
-                }
-            case 'BINARY':
-                {
-                    validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
-                    validateBinaryFieldForContent(fieldObj, fieldVal, errors);
-                    validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors);
-                    break;
-                }
-            case 'BCD':
-                {
-                    validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
-                    validateBcdFieldForContent(fieldObj, fieldVal, errors);
-                    validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors);
-                }
+                        break;
+                    }
+                case 'BINARY':
+                    {
+                        validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
+                        validateBinaryFieldForContent(fieldObj, fieldVal, errors);
+                        validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors);
+                        break;
+                    }
+                case 'BCD':
+                    {
+                        validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
+                        validateBcdFieldForContent(fieldObj, fieldVal, errors);
+                        validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors);
+                    }
 
             }
 
@@ -798,38 +790,38 @@
 
 
             switch (fieldObj.ContentType) {
-            case 'Alpha':
-                {
+                case 'Alpha':
+                    {
 
-                    if (!alphaRE.exec(fieldVal)) {
-                        errors.push(newErrObj(fieldObj, 'Field content should be alphabets only.'));
-                        return true;
+                        if (!alphaRE.exec(fieldVal)) {
+                            errors.push(newErrObj(fieldObj, 'Field content should be alphabets only.'));
+                            return true;
 
-                    }
-                    break;
-
-                }
-            case 'AlphaNumeric':
-                {
-
-                    if (!alphaRE.exec(fieldVal)) {
-                        errors.push(newErrObj(fieldObj, 'Field content should be alpha-numeric only.'));
-                        return true;
+                        }
+                        break;
 
                     }
-                    break;
+                case 'AlphaNumeric':
+                    {
 
-                }
-            case 'Numeric':
-                {
+                        if (!alphaRE.exec(fieldVal)) {
+                            errors.push(newErrObj(fieldObj, 'Field content should be alpha-numeric only.'));
+                            return true;
 
-                    if (!numericRE.exec(fieldVal)) {
-                        errors.push(newErrObj(fieldObj, 'Field content should be numeric only.'));
-                        return true;
+                        }
+                        break;
 
                     }
-                    break;
-                }
+                case 'Numeric':
+                    {
+
+                        if (!numericRE.exec(fieldVal)) {
+                            errors.push(newErrObj(fieldObj, 'Field content should be numeric only.'));
+                            return true;
+
+                        }
+                        break;
+                    }
             }
 
 
@@ -946,33 +938,13 @@
 
 
 
-            var selectedObjs = document.getElementsByClassName('cl_req_field_sel_cb');
-            var resultObj = new Array();
             var dataPresent = false;
-            for (var i = 0, j = 0; i < selectedObjs.length; i++) {
-
-                var childNode = selectedObjs[i];
-                //alert(JSON.stringify(childNode));
-                if (childNode.id) {
-
-                    //alert(childNode.id)
-
-                    if (childNode.checked) {
-                        var index = childNode.id.indexOf('_');
-                        var childNodeId = childNode.id.substring(index + 1, childNode.id.length);
-
-                        var fieldValue = document.getElementById(reqFieldsPrefixId2 + childNodeId).value;
-                        var obj = new Object();
-                        obj.Id = parseInt(childNodeId);
-                        obj.Value = fieldValue;
-                        resultObj[j++] = obj;
-                        dataPresent = true;
-                    }
-
-                }
-
-
+            var resultObj = constructReqObj();
+            if (resultObj.length > 0) {
+                dataPresent = true;
             }
+
+
 
             if (!dataPresent) {
                 showErrorMessage('Please construct a message (or parse a trace) before sending to host.');
@@ -980,22 +952,25 @@
 
             }
 
-            var msg = JSON.stringify(resultObj);
-            var specsElem = document.getElementById('idJsSpec');
-            var selectedOption = specsElem.options[specsElem.selectedIndex];
-            var specId = selectedOption.id;
-            selectedOption = document.getElementById('idJsSpecMsgs');
-            var msgId = selectedOption.options[selectedOption.selectedIndex].id;
+            var specId = getCurrentSpecId();
+            var msgId = getCurrentSpecMsgId();
 
+            var msg = JSON.stringify(resultObj);
+            var mliElem = document.getElementById('idJsMli').options;
+            var mli = mliElem[mliElem.selectedIndex].value
+
+
+            //var mli;
             console.log('sending message - ' + msg);
 
             console.log('spec id = ' + specId + 'msg id = ' + msgId);
             var postData = 'host=' +
-                host + '&' + 'port=' + port + '&' + 'specId=' + specId + "&" + 'msgId=' + msgId + "&" + "msg=" + msg;
+                host + '&' + 'port=' + port + '&' + 'mli=' +
+                mli + '&' + 'specId=' + specId + "&" + 'msgId=' + msgId + "&" + "msg=" + msg;
             //var postData = 'specId=' + specId + "&" + 'msgId=' + msgId + "&" + "msg=" + msg;
 
             console.log('postData = ' + postData);
-            doAjaxCall('/iso/v0/send', function (responseText) {
+            doAjaxCall('/iso/v0/send', function(responseText) {
                 //alert(responseText);
                 var responseData = JSON.parse(responseText);
 
@@ -1025,7 +1000,7 @@
 
                 var elems = document.getElementsByClassName('cl_vsmall_btn_view');
                 for (var i = 0; i < elems.length; i++) {
-                    elems[i].addEventListener('click', function (event) {
+                    elems[i].addEventListener('click', function(event) {
 
                         var fieldVal = "";
                         var index = event.target.id.indexOf('_');
@@ -1044,6 +1019,37 @@
 
 
 
+        }
+
+        function constructReqObj() {
+
+            var selectedObjs = document.getElementsByClassName('cl_req_field_sel_cb');
+            var resultObj = new Array();
+            //var dataPresent = false;
+            for (var i = 0, j = 0; i < selectedObjs.length; i++) {
+
+                var childNode = selectedObjs[i];
+                //alert(JSON.stringify(childNode));
+                if (childNode.id) {
+
+                    //alert(childNode.id)
+
+                    if (childNode.checked) {
+                        var index = childNode.id.indexOf('_');
+                        var childNodeId = childNode.id.substring(index + 1, childNode.id.length);
+                        var fieldValue = document.getElementById(reqFieldsPrefixId2 + childNodeId).value;
+                        var obj = new Object();
+                        obj.Id = parseInt(childNodeId);
+                        obj.Value = fieldValue;
+                        resultObj[j++] = obj;
+
+                    }
+
+                }
+
+
+            }
+            return resultObj;
         }
 
         function showErrorMessage(errMsg) {
@@ -1073,9 +1079,9 @@
         function closeAboutDialog() {
             document.getElementById('idAboutIsoWebSim').style.display = "none";
         }
+
     </script>
 
-    <script type="text/javascript" src="isosim_ajax.js"></script>
 
 </head>
 
@@ -1098,13 +1104,19 @@
                 <input class="cl_small_btn" type="button" value="Load Template" onClick="jsLoadTemplate()" />
             </li>
             <li>
-                <input class="cl_small_btn" type="button" value="Parse Trace" onClick="jsShowTraceDialog()" />
+                <input class="cl_small_btn" type="button" value="Parse Message" onClick="jsShowTraceDialog()" />
             </li>
             <li>
-                <input class="cl_small_btn" type="button" value="Validate" onClick="validateFields()" />
+                <input class="cl_small_btn" type="button" value="Validate Message" onClick="validateFields()" />
             </li>
             <li>
-                <input class="cl_small_btn" type="button" value="Send To Host" onClick="jsSendMsg()" />
+                <input class="cl_small_btn" type="button" value="Send Message" onClick="jsSendMsg()" />
+            </li>
+            <li>
+                <input class="cl_small_btn" type="button" value="Save Message" onClick="jsSaveReqData()" />
+            </li>
+            <li>
+                <input class="cl_small_btn" type="button" value="Load Message" onClick="jsLoadReqData()" />
             </li>
             <li>
                 <input class="cl_small_btn" type="button" value="About" onClick="showAboutDialog()" />
@@ -1210,9 +1222,11 @@
         </table>
     </div>
 
+
+
     <div id="idJsTraceDiv" class="cl_trace_dlg">
 
-        <div class="cl_dlg_header">Hex Trace Input Dialog</div>
+        <div class="cl_dlg_header"> Hex Trace Input Dialog </div>
         <textarea class="cl_trace_value" id="idJsTrace" rows="5" cols="40" style=" resize: none; margin: 10px; margin:5px; width: 440px; height:140px;">1100....</textarea>
 
 
@@ -1223,6 +1237,7 @@
             <input type="button" class="cl_small_btn" value="Cancel " onclick="jsCancelTraceParseAction()" />
         </div>
     </div>
+
 
     <div id="idJsErrorDiv" class="cl_trace_dlg">
 
@@ -1237,19 +1252,35 @@
         </div>
     </div>
 
-    <div id="idJsUserInputDiv" class="cl_trace_dlg">
+    <div id="idJsFieldEditViewDiv" class="cl_trace_dlg">
 
-        <div class="cl_dlg_header"> User Input Dialog</div>
-        <textarea class="cl_trace_value" id="idJsUserInput" rows="5" cols="40" style=" resize: none; margin: 10px; margin:5px; width: 440px; height:140px;"></textarea>
+        <div class="cl_dlg_header"> Field Edit/View Dialog </div>
+        <textarea class="cl_trace_value" id="idJsFieldEditInput" rows="5" cols="40" style=" resize: none; margin: 10px; margin:5px; width: 440px; height:140px;"></textarea>
 
 
         <br/>
         <br/>
         <div align="center" style="align-content:center;">
+            <input type="button" class="cl_small_btn" value="OK " onclick="jsProcessFieldEditView()" />
+            <input type="button" class="cl_small_btn" value="Cancel " onclick="jsCancelFieldEditViewDialog()" />
+        </div>
+    </div>
+
+    <div id="idJsUserInputDiv" class="cl_trace_dlg" style="height: 100px;">
+
+        <div class="cl_dlg_header"> User Input Dialog</div>
+        <input class="cl_field_name" id="idJsUserInput" style="resize: none; margin: 10px; margin:5px; width: 440px; height:20px;" />
+
+
+        <br/>
+        <br/>
+        <div align="center" style="align-content:center; height: 400px;">
             <input type="button" class="cl_small_btn" value="OK " onclick="jsProcessUserInput()" />
             <input type="button" class="cl_small_btn" value="Cancel " onclick="jsCancelUserInputDialog()" />
         </div>
     </div>
+
+
     <div id="idAboutIsoWebSim" class="cl_about_dlg">
 
         <div class="cl_dlg_header"> About ISO WebSim </div>

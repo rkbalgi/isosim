@@ -11,7 +11,7 @@ import (
 	"io"
 )
 
-var isoSpec = spec.GetSpecByName("ISO8583");
+
 
 func StartIsoServer(port int) error{
 
@@ -27,6 +27,7 @@ func StartIsoServer(port int) error{
 		listener, err := net.Listen("tcp", ":" + strconv.Itoa(port));
 		if err != nil {
 			retVal<- err;
+			return;
 		}
 		for {
 			connection, err := listener.Accept();
@@ -122,7 +123,8 @@ func handleConnection(connection net.Conn) {
 
 func handleRequest(connection net.Conn, msgData []byte) {
 
-	specMsg := isoSpec.GetMessageByName("1100");
+	var isoSpec = spec.GetSpecByName("TestSpec");
+	specMsg := isoSpec.GetMessageByName("Default Message");
 
 	log.Print("Parsing incoming message. Data = "+hex.EncodeToString(msgData));
 	parsedMsg, err := specMsg.Parse(msgData);

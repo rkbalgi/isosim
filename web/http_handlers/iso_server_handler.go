@@ -13,15 +13,20 @@ import (
 
 func addIsoServerHandlers(){
 
-
+	log.Print("Adding ISO server handler .. ");
 	http.HandleFunc("/iso/v0/server", func(rw http.ResponseWriter,req *http.Request){
 
+		pattern:="/iso/v0/server";
+		if spec.DebugEnabled {
+			log.Printf("Pattern: %s . Requested URI = %s", pattern,req.RequestURI)
+		}
 
-		log.Print("Adding ISO server handler .. ");
 
-
-		isoHtmlFile = filepath.Join(spec.HtmlDir, "iso_server.html");
-		http.ServeFile(rw,req,isoHtmlFile);
+		file := filepath.Join(spec.HtmlDir, "iso_server.html");
+		if spec.DebugEnabled{
+			log.Print("Serving file = "+file);
+		}
+		http.ServeFile(rw,req,file);
 
 
 
@@ -30,9 +35,11 @@ func addIsoServerHandlers(){
 	http.HandleFunc("/iso/v0/server/start", func(rw http.ResponseWriter,req *http.Request){
 
 
-		if spec.DebugEnabled{
-			log.Print("Processing start server request ..");
+		pattern:="/iso/v0/server/start";
+		if spec.DebugEnabled {
+			log.Printf("Pattern: %s . Requested URI = %s", pattern,req.RequestURI)
 		}
+
 
 		req.ParseForm();
 		isoPort:=req.Form.Get("isoPort");
@@ -50,9 +57,6 @@ func addIsoServerHandlers(){
 			return;
 		}
 
-
-		isoHtmlFile = filepath.Join(spec.HtmlDir, "iso_server.html");
-		http.ServeFile(rw,req,isoHtmlFile);
 
 
 

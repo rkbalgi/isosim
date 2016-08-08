@@ -5,32 +5,43 @@
 
     <link rel="stylesheet" type="text/css" href="isosim_styles.css">
     <script type="text/javascript" src="isosim_ajax.js"></script>
+    <script type="text/javascript" src="isosim_common.js"></script>
 
 
     <script type="text/javascript">
         function jsDoStart() {
 
             var port = document.getElementById('idJsPort').value;
-            doAjaxCall('/iso/v0/server/start?isoPort=' + value, function (response) {
+            doAjaxCall('/iso/v0/server/start?isoPort=' + port, function(response) {
 
                 alert('started');
 
 
 
-            }, nil, 'GET');
+            }, null, 'GET');
 
         }
+
     </script>
 
 </head>
 
-<body>
+<body style="z-index: 90;">
 
+    <div id="overlay"></div>
 
-    Port =
-    <input id="idJsPort" type="text" value="7777" />
-    <input type="button" value="Start" onclick="jsDoStart()" />
+    <div id="headerDiv">
+        <div class="cl_cursive_heading"> ISO WebSim </div>
+        <div class="cl_small_text_new">Developer(s): Raghavendra Balgi (rkbalgi@gmail.com) </div>
+    </div>
 
+    <br/>
+
+    <div style="z-index: 90;position: relative; float: left;">
+        Port =
+        <input id="idJsPort" type="text" value="7777" />
+        <input type="button" value="Start" onclick="jsDoStart()" />
+    </div>
 
     <div id="idJsErrorDiv" class="cl_trace_dlg">
 

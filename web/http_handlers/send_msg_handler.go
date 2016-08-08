@@ -34,11 +34,19 @@ func sendMsgHandler() {
 			return
 		}
 
-		//log.Print(req.PostForm);
-		log.Print("?" + req.PostForm.Get("specId") + "?")
-		log.Print(req.PostForm.Get("msgId"))
-		log.Print(strconv.Atoi(req.PostForm.Get("specId")))
-		log.Print(req.PostForm.Get("msg"))
+		log.Print(req.PostForm);
+		//log.Print("?" + req.PostForm.Get("specId") + "?")
+		///log.Print(req.PostForm.Get("msgId"))
+		//log.Print(strconv.Atoi(req.PostForm.Get("specId")))
+		//log.Print(req.PostForm.Get("msg"))
+
+		sMli := req.PostForm.Get("mli");
+		var mli local_net.MliType;
+		if (sMli == "2I") {
+			mli = local_net.MLI_2I;
+		} else if (sMli == "2E") {
+			mli = local_net.MLI_2E;
+		}
 
 		var host = req.PostForm.Get("host")
 		port, err := strconv.Atoi(req.PostForm.Get("port"))
@@ -49,7 +57,7 @@ func sendMsgHandler() {
 		}
 		hostIpAddr, err := net.ResolveIPAddr("ip", host)
 		if err != nil || hostIpAddr == nil {
-			sendError(rw, "unable to resolve host "+host)
+			sendError(rw, "unable to resolve host " + host)
 			return
 
 		}
@@ -81,24 +89,24 @@ func sendMsgHandler() {
 				iso := spec.NewIso(parsedMsg)
 				msgData := iso.Assemble()
 
-				netClient := local_net.NewNetCatClient(hostIpAddr.String()+":"+req.PostForm.Get("port"), local_net.MLI_2I)
-				log.Print("connecting to -"+hostIpAddr.String()+":", port)
+				netClient := local_net.NewNetCatClient(hostIpAddr.String() + ":" + req.PostForm.Get("port"), mli)
+				log.Print("connecting to -" + hostIpAddr.String() + ":", port)
 
 				log.Print("assembled request msg = " + hex.EncodeToString(msgData))
 				if err := netClient.OpenConnection(); err != nil {
-					sendError(rw, "failed to connect -"+err.Error())
+					sendError(rw, "failed to connect -" + err.Error())
 					return
 				}
 				log.Print("opened connect to host - " + hostIpAddr.String())
 
 				if err := netClient.Write(msgData); err != nil {
-					sendError(rw, "write error -"+err.Error())
+					sendError(rw, "write error -" + err.Error())
 					return
 				}
 				log.Print("message written ok.")
 				responseData, err := netClient.ReadNextPacket()
 				if err != nil {
-					sendError(rw, "error reading response -"+err.Error())
+					sendError(rw, "error reading response -" + err.Error())
 					return
 				}
 				log.Print("Received from host =" + hex.EncodeToString(responseData))
