@@ -1,7 +1,6 @@
 package iso_server
 
 import (
-	"flag"
 	"net"
 	"strconv"
 	"log"
@@ -14,7 +13,7 @@ import (
 
 var isoSpec = spec.GetSpecByName("ISO8583");
 
-func StartIsoServer(port int) {
+func StartIsoServer(port int) error{
 
 	//port := flag.Int("port", 7777, "-port 7777");
 	//flag.Parse();
@@ -43,9 +42,12 @@ func StartIsoServer(port int) {
 	select{
 		case errVal:=<-retVal:{
 		log.Print("Error on server. Error =  ",errVal);
+			return errVal;
 
 	}
 	}
+
+	return nil;
 
 }
 
