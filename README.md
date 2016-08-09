@@ -32,3 +32,15 @@ C:\go run isosim.go -httpPort 8080 -specDefFile specs\isoSpecs.spec -htmlDir .\h
 
 And now open chrome and hit this URL [Iso WebSim](http://localhost:8080/iso/home)
 
+###Screenshots
+####Main
+![Main](./docs/images/main.png)
+####Loading Template
+![](./docs/images/load_template.png)
+####Parsing Message
+![](./docs/images/parse_message.png)
+####Validating Message
+![](./docs/images/validate_message.png)
+####Sending Message
+![](./docs/images/send_message.png)
+
