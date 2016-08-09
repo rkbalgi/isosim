@@ -15,7 +15,8 @@ __:warning: Please note that this application has been tested on chrome only (ve
 ###Usage: 
 ```
 C:>go run isosim.go -help
-Usage of C:\isosim.exe:
+  -dataDir string
+        Directory to store messages (data sets). This is a required field.
   -debugEnabled
         true if debug logging should be enabled. (default true)
   -htmlDir string
@@ -30,10 +31,10 @@ exit status 2
 ###Sample Invocation 
 C:\go run isosim.go -httpPort 8080 -specDefFile specs\isoSpecs.spec -htmlDir .\html 
 
-And now open chrome and hit this URL [Iso WebSim](http://localhost:8080/iso/home)
+And now open chrome and hit this URL [http://localhost:8080/iso/home](http://localhost:8080/iso/home)
 
 ###Screenshots
-####Main
+#####Main
 ![Main](./docs/images/main.png)
 ####Loading Template
 ![](./docs/images/load_template.png)
@@ -43,4 +44,10 @@ And now open chrome and hit this URL [Iso WebSim](http://localhost:8080/iso/home
 ![](./docs/images/validate_message.png)
 ####Sending Message
 ![](./docs/images/send_message.png)
+####Save Message
+![](./docs/images/save_message.png)
+####Load Message
+![](./docs/images/load_message.png)
+####Update Message
+![](./docs/images/update_message.png)
 
