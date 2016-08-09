@@ -1,3 +1,20 @@
+//globals
+
+var reqFieldsPrefixId0 = 'idJsReqFieldSelectedId_';
+var reqFieldsPrefixId1 = 'idJsReqFieldId_';
+var reqFieldsPrefixId2 = 'idJsReqFieldValueId_';
+var reqFieldsValErrorIdPrefix = 'idJsFieldValErr_';
+
+var respFieldsPrefixId0 = 'idJsRespFieldSelectedId_';
+var respFieldsPrefixId1 = 'idJsRespFieldId_';
+var respFieldsPrefixId2 = 'idJsRespFieldValueId_';
+
+var gPageState = {
+    layoutLoaded: false
+};
+
+//functions
+
 function enableOverlay() {
     document.getElementById('overlay').style['z-index'] = 99;
 }
@@ -5,6 +22,17 @@ function enableOverlay() {
 function disableOverlay() {
     document.getElementById('overlay').style['z-index'] = 80;
 }
+
+function getRequestFieldValElem(fieldId) {
+    //alert(document.getElementById(reqFieldsPrefixId2 + fieldId));
+    return document.getElementById(reqFieldsPrefixId2 + fieldId);
+}
+
+function getResponseFieldValElem(fieldId) {
+    return document.getElementById(respFieldsPrefixId2 + fieldId);
+}
+
+//functions related to dealing with user input - 
 
 
 function jsSaveReqData() {
@@ -43,13 +71,11 @@ function jsProcessUserInput() {
                 return;
             }
 
-            postData += 'msg=' + JSON.stringify();
-            alert(postData);
+            postData += 'msg=' + JSON.stringify(reqObj);
+            //alert(postData);
 
             doAjaxCall('/iso/v0/save', function (response) {
-
-                alert('data set saved successfully.');
-
+                jsShowUserMsg('Message [' + dataSetName + '] has been saved.');
             }, postData, 'POST', 'application/x-www-form-urlencoded');
 
         }
@@ -101,7 +127,7 @@ function jsLoadReqData() {
 
     doAjaxCall('/iso/v0/loadmsg?specId=' + getCurrentSpecId() + '&msgId=' + getCurrentSpecMsgId(), function (response) {
 
-        alert(response);
+        //alert(response);
 
         var dataSets = JSON.parse(response);
         var htmlContent = '';
@@ -128,20 +154,47 @@ function jsLoadReqData() {
 
 }
 
+
+function getCurrentDs() {
+    return document.getElementById('idJsCurrentDs').value;
+}
+
+function updateCurrentDs(dsName) {
+
+    if (dsName) {
+        gPageState.currentDataSet = dsName;
+        document.getElementById('idJsCurrentDs').value = dsName;
+        document.getElementById('idJsUpdateMsgBtn').disabled = false;
+        document.getElementById('idJsUpdateMsgBtn').className = 'cl_small_btn';
+
+    } else {
+        document.getElementById('idJsCurrentDs').value = "";
+        document.getElementById('idJsUpdateMsgBtn').disabled = true;
+        document.getElementById('idJsUpdateMsgBtn').className = 'cl_small_btn_disabled';
+    }
+
+}
+
 function jsProcessUserSelection() {
 
     var selectElem = document.getElementById('idJsUserSelection');
     var dsName = selectElem.options[selectElem.selectedIndex].value;
 
-    alert('Fetching ds - ' + dsName);
+    //alert('Fetching ds - ' + dsName);
 
     doAjaxCall('/iso/v0/loadmsg?specId=' + getCurrentSpecId() + '&msgId=' + getCurrentSpecMsgId() + '&dsName=' + dsName, function (response) {
 
-        alert(response);
-
+        //alert(response);
         var dataSet = JSON.parse(response);
+        updateCurrentDs(dsName);
 
-        jsCancelUserSelectionDialog();
+
+        jsLoadTemplate(dataSet, function () {
+            jsCancelUserSelectionDialog();
+        });
+
+
+
     }, 'GET');
 
 
@@ -152,4 +205,53 @@ function jsProcessUserSelection() {
 function jsCancelUserSelectionDialog() {
     document.getElementById('idJsUserSelectionDiv').style.display = "none";
     disableOverlay();
+}
+
+
+
+function jsShowUserMsg(msg) {
+
+
+    enableOverlay();
+    document.getElementById('idJsUserMsg').innerHTML = msg;
+
+    var elem = document.getElementById('idJsUserMsgDiv');
+    elem.style.display = "block";
+    elem.style.position = "fixed";
+    elem.style.left = "35%";
+    elem.style.top = "50%";
+}
+
+function jsCloseUserMsgDialog() {
+    document.getElementById('idJsUserMsgDiv').style.display = "none";
+    disableOverlay();
+}
+
+
+
+function jsUpdateMessage() {
+
+    var postData = '';
+    postData += 'specId=' + getCurrentSpecId() + '&';
+    postData += 'msgId=' + getCurrentSpecMsgId() + '&';
+    postData += 'updateMsg=' + 'true' + '&';
+    var ds = getCurrentDs();
+    postData += 'dataSetName=' + ds + '&';
+
+    var reqObj = constructReqObj();
+    if (reqObj.length == 0) {
+        //document.getElementById('idJsUserInputDiv').style.display = "none";
+        showErrorMessage('There is no data to save, please construct a message.');
+
+        return;
+    }
+
+    postData += 'msg=' + JSON.stringify(reqObj);
+    //alert(postData);
+
+    doAjaxCall('/iso/v0/save', function (response) {
+        jsShowUserMsg('Message [' + ds + '] has been updated.');
+    }, postData, 'POST', 'application/x-www-form-urlencoded');
+
+
 }

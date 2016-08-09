@@ -2,7 +2,7 @@ package spec
 
 import "bytes"
 
-var HtmlDir string;
+var HtmlDir string
 
 type Iso struct {
 	parsedMsg *ParsedMsg

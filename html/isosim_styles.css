@@ -58,6 +58,13 @@
     background: #33d6ff;
     width: 120px;
 }
+.cl_small_btn_disabled {
+    font-family: 'Lora', serif;
+    font-size: 10pt;
+    color: black;
+    background: #f0dbdb;
+    width: 120px;
+}
 .cl_vsmall_btn_edit {
     font-family: Lora;
     font-size: 10pt;
@@ -78,8 +85,8 @@
     color: black;
 }
 .cl_field_name {
-    font-family: 'Cormorant Garamond', 'Lora', 'Times', serif;
-    font-size: 18px;
+    font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
+    font-size: 15px;
     color: #25235a;
 }
 .cl_user_input_text {

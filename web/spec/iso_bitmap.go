@@ -89,7 +89,7 @@ func (bmp *Bitmap) BinaryString() string {
 	buf := bytes.NewBufferString("")
 	for _, b := range bmp.bmpData {
 		if b != 0 {
-			buf.WriteString(fmt.Sprintf("%064b", b));
+			buf.WriteString(fmt.Sprintf("%064b", b))
 		}
 	}
 	return buf.String()

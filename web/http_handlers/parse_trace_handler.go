@@ -66,7 +66,7 @@ func parseTraceHandler() {
 				msgData, err := hex.DecodeString(string(reqData))
 				//log.Print("decoded ...", err, msgData)
 				if err != nil {
-					sendError(rw, "Invalid trace. Trace should only contain hex characters and should be multiple of 2.");
+					sendError(rw, "Invalid trace. Trace should only contain hex characters and should be multiple of 2.")
 					return
 				} else {
 					parsedMsg, err := msg.Parse(msgData)

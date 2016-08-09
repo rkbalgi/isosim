@@ -2,10 +2,11 @@
 
 <head>
 
-    <link href="https://fonts.googleapis.com/css?family=Cormorant+Garamond|Gloria+Hallelujah|Lora" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Crimson+Text|Reem+Kufi|Cormorant+Garamond|Gloria+Hallelujah|Lora" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="isosim_styles.css">
-    <script type="text/javascript" src="isosim_ajax.js"></script>
     <script type="text/javascript" src="isosim_common.js"></script>
+    <script type="text/javascript" src="isosim_ajax.js"></script>
+
 
     <script language="javascript">
         //globals
@@ -14,21 +15,11 @@
         var alphaNumericRE = /^[0-9a-zA-Z]+$/;
         var numericRE = /^[0-9]+$/;
 
-        var reqFieldsPrefixId0 = 'idJsReqFieldSelectedId_';
-        var reqFieldsPrefixId1 = 'idJsReqFieldId_';
-        var reqFieldsPrefixId2 = 'idJsReqFieldValueId_';
-        var reqFieldsValErrorIdPrefix = 'idJsFieldValErr_';
-
-        var respFieldsPrefixId0 = 'idJsRespFieldSelectedId_';
-        var respFieldsPrefixId1 = 'idJsRespFieldId_';
-        var respFieldsPrefixId2 = 'idJsRespFieldValueId_';
 
         var emptyBitmap = '0000000000000000000000000000000000000000000000000000000000000000';
-        var gPageState = {
-            layoutLoaded: false
-        };
 
-        gFieldEdited = {
+
+        var gFieldEdited = {
             fieldId: "",
             fieldSegment: 'request'
         };
@@ -126,7 +117,7 @@
         displays it.
         
         */
-        function jsLoadTemplate() {
+        function jsLoadTemplate(dataSet, callback) {
 
             var specsElem = document.getElementById('idJsSpec');
             var selectedSpecOption = specsElem.options[specsElem.selectedIndex];
@@ -176,7 +167,30 @@
                             }, true);
                         }
 
+
                         gPageState.layoutLoaded = true;
+
+                        if (dataSet) {
+
+                            for (var i = 0; i < dataSet.length; i++) {
+
+                                var fieldDataObj = dataSet[i];
+                                //alert(fieldDataObj.Id + ' ' + fieldDataObj.Value);
+                                var elem = getRequestFieldValElem(fieldDataObj.Id);
+                                elem.value = fieldDataObj.Value;
+
+                                document.getElementById(reqFieldsPrefixId0 + fieldDataObj.Id).checked = true;
+
+                            }
+
+                            if (callback) {
+                                callback();
+                            }
+
+
+                        } else {
+                            updateCurrentDs();
+                        }
 
 
 
@@ -218,7 +232,6 @@
             var id2 = reqFieldsPrefixId2;
 
             if (isRequest == false) {
-                console.log('madness');
                 id0 = respFieldsPrefixId0;
                 id1 = respFieldsPrefixId1;
                 id2 = respFieldsPrefixId2;
@@ -440,15 +453,7 @@
 
         }
 
-        function getRequestFieldValElem(fieldId) {
-            return document.getElementById(reqFieldsPrefixId2 + fieldId);
-        }
 
-        function getResponseFieldValElem(fieldId) {
-            return document.getElementById(respFieldsPrefixId2 + fieldId);
-        }
-
-        //functions related to dealing with user input - 
 
 
         function editRequestField(fieldId) {
@@ -605,6 +610,7 @@
                             document.getElementById(reqFieldsPrefixId0 + fieldDataObj.Id).checked = true;
 
                         }
+                        updateCurrentDs();
                         jsCancelTraceParseAction();
                     }, elem.value, 'POST');
 
@@ -990,7 +996,7 @@
 
                 for (var i = 0; i < responseData.length; i++) {
 
-                    console.log('setting ' + responseData[i].Id + ' ' + responseData[i].Value);
+                    //console.log('setting ' + responseData[i].Id + ' ' + responseData[i].Value);
 
                     var id = respFieldsPrefixId0 + responseData[i].Id;
                     var fieldId = respFieldsPrefixId2 + responseData[i].Id;
@@ -1196,6 +1202,18 @@
                         <td></td>
                     </tr>
 
+                    <tr>
+                        <td align="center">
+                            <div class="cl_text_label">Message Name</div>
+                        </td>
+                        <td>
+                            <input class="cl_std_text_box" id="idJsCurrentDs" type="text" value="" disabled/>
+                        </td>
+                        <td>
+                            <input id="idJsUpdateMsgBtn" class="cl_small_btn_disabled" type="button" value="Update Message" onClick="jsUpdateMessage()" disabled/>
+                        </td>
+                    </tr>
+
 
                 </table>
             </tr>
@@ -1288,15 +1306,7 @@
 
         <div class="cl_dlg_header"> ISO Websim - User Selection Dialog</div>
         <select class="cl_user_input_text" id="idJsUserSelection" size="5" style="resize:none; margin: 10px; margin:5px; width: 440px;">
-            <option>1</option>
-            <option>11</option>
-            <option>12</option>
-            <option>13</option>
-            <option>14</option>
-            <option>15</option>
-            <option>12</option>
-            <option>16</option>
-            <option>17</option>
+
 
         </select>
 
@@ -1335,6 +1345,20 @@
             <input type="button" class="cl_small_btn" value="OK" onclick="closeAboutDialog()" />
         </div>
     </div>
+
+    <div id="idJsUserMsgDiv" class="cl_trace_dlg">
+
+        <div class="cl_dlg_header"> WebSim Message</div>
+        <div id="idJsUserMsg" class="cl_small_text " style="overflow:auto; margin: 5px; margin:5px; width: 440px; height:140px; color: #2a2a7e;"></div>
+
+        <br/>
+        <br/>
+        <div align="center" style="align-content:center; ">
+            <input type="button" class="cl_small_btn" value="OK" onclick="jsCloseUserMsgDialog()" />
+
+        </div>
+    </div>
+
 
 
 </body>

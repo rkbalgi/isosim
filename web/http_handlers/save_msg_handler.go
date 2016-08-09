@@ -1,18 +1,18 @@
 package http_handlers
 
 import (
+	"github.com/rkbalgi/isosim/data"
 	"github.com/rkbalgi/isosim/web/spec"
 	"log"
 	"net/http"
 	"strconv"
-	"github.com/rkbalgi/isosim/data"
 )
 
 func saveMsgHandler() {
 
 	http.HandleFunc(SaveMsgUrl, func(rw http.ResponseWriter, req *http.Request) {
 
-		log.Print("Handling - "+SaveMsgUrl)
+		log.Print("Handling - " + SaveMsgUrl)
 
 		err := req.ParseForm()
 		if err != nil {
@@ -21,14 +21,11 @@ func saveMsgHandler() {
 			return
 		}
 
-		log.Print(req.PostForm);
+		log.Print(req.PostForm)
 		//log.Print("?" + req.PostForm.Get("specId") + "?")
 		///log.Print(req.PostForm.Get("msgId"))
 		//log.Print(strconv.Atoi(req.PostForm.Get("specId")))
 		//log.Print(req.PostForm.Get("msg"))
-
-
-
 
 		if specId, err := strconv.Atoi(req.PostForm.Get("specId")); err == nil {
 			log.Print("Spec Id =" + strconv.Itoa(specId))
@@ -44,20 +41,26 @@ func saveMsgHandler() {
 					sendError(rw, InvalidMsgIdError.Error())
 					return
 				}
-				log.Print("Spec Msg = " + msg.Name)
-				err=data.DataSetManager().Add(req.PostForm.Get("specId"),
-					req.PostForm.Get("msgId"),
-					req.PostForm.Get("dataSetName"),req.PostForm.Get("msg"));
+				//log.Print("Spec Msg = " + msg.Name)
 
-				if(err!=nil){
+				if req.Form.Get("updateMsg") == "true" {
+					err = data.DataSetManager().Update(req.PostForm.Get("specId"),
+						req.PostForm.Get("msgId"),
+						req.PostForm.Get("dataSetName"), req.PostForm.Get("msg"))
+				} else {
 
-					if(err==data.DataSetExistsError){
-						sendError(rw,"Data set exists. Please choose a different name.");
-						return;
+					err = data.DataSetManager().Add(req.PostForm.Get("specId"),
+						req.PostForm.Get("msgId"),
+						req.PostForm.Get("dataSetName"), req.PostForm.Get("msg"))
+				}
+				if err != nil {
+					if err == data.DataSetExistsError {
+						sendError(rw, "Data set exists. Please choose a different name.")
+						return
 					}
 
-					sendError(rw,"Failed to add data set. Error ="+err.Error());
-					return;
+					sendError(rw, "Failed to add data set. Error ="+err.Error())
+					return
 
 				}
 

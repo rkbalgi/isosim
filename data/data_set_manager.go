@@ -13,7 +13,17 @@ import (
 type dataSetManager struct{}
 
 var instance *dataSetManager
-var dataDir = filepath.Join("d:\\","isosim_data");
+var dataDir string
+
+func Init(dirname string) error {
+	dir, err := os.Open(dirname)
+	if err != nil {
+		return err
+	}
+	dir.Close()
+	dataDir = dirname
+	return nil
+}
 
 func DataSetManager() *dataSetManager {
 
@@ -22,7 +32,7 @@ func DataSetManager() *dataSetManager {
 		instance = new(dataSetManager)
 
 	})
-	return instance;
+	return instance
 }
 
 var DataSetExistsError = errors.New("Data Set Exists.")
@@ -32,15 +42,15 @@ func checkIfExists(specId string, msgId string, name string) (bool, error) {
 	//check if the dir exists for this spec and msg
 	//and if not create one first
 
-	dir, err := os.Open(filepath.Join(dataDir, specId, msgId));
-	if (err != nil && os.IsNotExist(err)) {
-		err = os.MkdirAll(filepath.Join(dataDir, specId, msgId),os.ModeDir);
-		if (err != nil) {
-			return false, err;
+	dir, err := os.Open(filepath.Join(dataDir, specId, msgId))
+	if err != nil && os.IsNotExist(err) {
+		err = os.MkdirAll(filepath.Join(dataDir, specId, msgId), os.ModeDir)
+		if err != nil {
+			return false, err
 		}
-		dir,err=os.Open(filepath.Join(dataDir, specId, msgId));
-		if (err != nil) {
-			return false, err;
+		dir, err = os.Open(filepath.Join(dataDir, specId, msgId))
+		if err != nil {
+			return false, err
 		}
 
 	}
@@ -51,46 +61,58 @@ func checkIfExists(specId string, msgId string, name string) (bool, error) {
 	}
 	for _, fi := range fiSlice {
 		if fi.Name() == name {
-			return true, nil;
+			return true, nil
 		}
 	}
 
-	return false,nil;
+	return false, nil
 
 }
 
 //Returns a list of all data sets (names only) for the given specId
 //and msgId
-func (dsm *dataSetManager) Get(specId string, msgId string) ([]string,error) {
+func (dsm *dataSetManager) GetAll(specId string, msgId string) ([]string, error) {
 
-
-	dir,err:=os.Open(filepath.Join(dataDir,specId,msgId));
-	if err!=nil{
-        return nil,err;
+	dir, err := os.Open(filepath.Join(dataDir, specId, msgId))
+	if err != nil {
+		return nil, err
 
 	}
 
-	log.Print("dir names = ",dir.Name())
-	fi,err:=dir.Readdir(-1);
-	log.Print(fi,len(fi));
-	if err!=nil{
-		return nil,err;
+	fi, err := dir.Readdir(-1)
+
+	if err != nil {
+		return nil, err
 	}
 
-	var dataSets=make([]string,0,10);
-	for  _,ds:=range(fi){
-		log.Print("? "+ds.Name())
-		if(!ds.IsDir()){
-			dataSets=append(dataSets,ds.Name());
+	var dataSets = make([]string, 0, 10)
+	for _, ds := range fi {
+
+		if !ds.IsDir() {
+			dataSets = append(dataSets, ds.Name())
 		}
 	}
 
-	return dataSets,nil;
-
-
+	return dataSets, nil
 
 }
 
+//Returns the content of a specific data set
+func (dsm *dataSetManager) Get(specId string, msgId string, dsName string) ([]byte, error) {
+
+	//file,err:=os.Open(filepath.Join(dataDir,specId,msgId,dsName));
+	//if err!=nil{
+	//	//	return nil,err;
+
+	//	}
+	data, err := ioutil.ReadFile(filepath.Join(dataDir, specId, msgId, dsName))
+	if err != nil {
+		return nil, err
+
+	}
+	return data, nil
+
+}
 
 func (dsm *dataSetManager) Add(specId string, msgId string, name string, data string) error {
 
@@ -98,15 +120,28 @@ func (dsm *dataSetManager) Add(specId string, msgId string, name string, data st
 		log.Print("Adding data set - " + name + " data = " + data)
 	}
 
-	exists, err := checkIfExists(specId, msgId, name);
-	if (err != nil) {
-		return err;
+	exists, err := checkIfExists(specId, msgId, name)
+	if err != nil {
+		return err
 	}
-	if (exists) {
-		return DataSetExistsError;
+	if exists {
+		return DataSetExistsError
 	}
 
-	err = ioutil.WriteFile(filepath.Join(dataDir, specId,msgId,name), []byte(data), os.FileMode(os.O_CREATE))
+	err = ioutil.WriteFile(filepath.Join(dataDir, specId, msgId, name), []byte(data), os.FileMode(os.O_CREATE))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (dsm *dataSetManager) Update(specId string, msgId string, name string, data string) error {
+
+	if spec.DebugEnabled {
+		log.Print("Updating data set - " + name + " data = " + data)
+	}
+
+	err := ioutil.WriteFile(filepath.Join(dataDir, specId, msgId, name), []byte(data), os.FileMode(os.O_TRUNC))
 	if err != nil {
 		return err
 	}
