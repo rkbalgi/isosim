@@ -6,13 +6,14 @@ import (
 	"net/http"
 	"strconv"
 	"github.com/rkbalgi/isosim/data"
+	"encoding/json"
 )
 
-func saveMsgHandler() {
+func loadMsgHandler() {
 
-	http.HandleFunc(SaveMsgUrl, func(rw http.ResponseWriter, req *http.Request) {
+	http.HandleFunc(LoadMsgUrl, func(rw http.ResponseWriter, req *http.Request) {
 
-		log.Print("Handling - "+SaveMsgUrl)
+		log.Print("Handling - "+LoadMsgUrl)
 
 		err := req.ParseForm()
 		if err != nil {
@@ -21,7 +22,7 @@ func saveMsgHandler() {
 			return
 		}
 
-		log.Print(req.PostForm);
+		log.Print(req.Form);
 		//log.Print("?" + req.PostForm.Get("specId") + "?")
 		///log.Print(req.PostForm.Get("msgId"))
 		//log.Print(strconv.Atoi(req.PostForm.Get("specId")))
@@ -30,7 +31,7 @@ func saveMsgHandler() {
 
 
 
-		if specId, err := strconv.Atoi(req.PostForm.Get("specId")); err == nil {
+		if specId, err := strconv.Atoi(req.Form.Get("specId")); err == nil {
 			log.Print("Spec Id =" + strconv.Itoa(specId))
 			isoSpec := spec.GetSpec(specId)
 			if isoSpec == nil {
@@ -38,28 +39,27 @@ func saveMsgHandler() {
 				return
 			}
 			log.Print("Spec = " + isoSpec.Name)
-			if msgId, err := strconv.Atoi(req.PostForm.Get("msgId")); err == nil {
+			if msgId, err := strconv.Atoi(req.Form.Get("msgId")); err == nil {
 				msg := isoSpec.GetMessageById(msgId)
 				if msg == nil {
 					sendError(rw, InvalidMsgIdError.Error())
 					return
 				}
 				log.Print("Spec Msg = " + msg.Name)
-				err=data.DataSetManager().Add(req.PostForm.Get("specId"),
-					req.PostForm.Get("msgId"),
-					req.PostForm.Get("dataSetName"),req.PostForm.Get("msg"));
-
+				ds,err:=data.DataSetManager().Get(req.Form.Get("specId"),
+					req.Form.Get("msgId"));
 				if(err!=nil){
-
-					if(err==data.DataSetExistsError){
-						sendError(rw,"Data set exists. Please choose a different name.");
-						return;
-					}
-
-					sendError(rw,"Failed to add data set. Error ="+err.Error());
+					sendError(rw,"Failed to read data set. Error ="+err.Error());
 					return;
 
 				}
+
+				if(len(ds)==0){
+					sendError(rw,"No datasets exists for the spec/msg.");
+					return;
+				}
+				log.Print("Data sets = ",ds)
+				json.NewEncoder(rw).Encode(ds);
 
 			} else {
 				sendError(rw, InvalidMsgIdError.Error())

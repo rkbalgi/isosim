@@ -1072,7 +1072,10 @@
         }
 
         function showAboutDialog() {
-            document.getElementById('idAboutIsoWebSim').style.display = "block";
+            var elem = document.getElementById('idAboutIsoWebSim');
+            elem.style.display = "block";
+            elem.style.left = "35%";
+            elem.style.top = "50%";
         }
 
 
@@ -1091,7 +1094,7 @@
 
     <div id="headerDiv">
         <div class="cl_cursive_heading"> ISO WebSim </div>
-        <div class="cl_small_text_new">Developer(s): Raghavendra Balgi (rkbalgi@gmail.com) </div>
+
     </div>
 
 
@@ -1269,7 +1272,7 @@
     <div id="idJsUserInputDiv" class="cl_trace_dlg" style="height: 100px;">
 
         <div class="cl_dlg_header"> User Input Dialog</div>
-        <input class="cl_field_name" id="idJsUserInput" style="resize: none; margin: 10px; margin:5px; width: 440px; height:20px;" />
+        <input class="cl_user_input_text" id="idJsUserInput" style="resize: none; margin: 10px; margin:5px; width: 440px; height:20px;" />
 
 
         <br/>
@@ -1281,10 +1284,36 @@
     </div>
 
 
-    <div id="idAboutIsoWebSim" class="cl_about_dlg">
+    <div id="idJsUserSelectionDiv" class="cl_trace_dlg" style="height:200px;">
+
+        <div class="cl_dlg_header"> ISO Websim - User Selection Dialog</div>
+        <select class="cl_user_input_text" id="idJsUserSelection" size="5" style="resize:none; margin: 10px; margin:5px; width: 440px;">
+            <option>1</option>
+            <option>11</option>
+            <option>12</option>
+            <option>13</option>
+            <option>14</option>
+            <option>15</option>
+            <option>12</option>
+            <option>16</option>
+            <option>17</option>
+
+        </select>
+
+
+        <br/>
+        <br/>
+        <div align="center" style="align-content:center; height: 200px;">
+            <input type="button" class="cl_small_btn" value="OK " onclick="jsProcessUserSelection()" />
+            <input type="button" class="cl_small_btn" value="Cancel " onclick="jsCancelUserSelectionDialog()" />
+        </div>
+    </div>
+
+
+    <div id="idAboutIsoWebSim" class="cl_about_dlg" style="width: 490px; height:350px;">
 
         <div class="cl_dlg_header"> About ISO WebSim </div>
-        <div class="cl_small_text" style=" resize: none; margin: 10px; margin:5px; width: 440px; height:200px;">
+        <div class="cl_small_text" style=" resize: none; margin: 10px; margin:5px; width: 480px; height:200px;">
             <p>
                 Iso Websim is a ISO8583 simulator built using golang (http://golang.org). It provides a simple interface to load ISO specifications. The specifications themselves are defined in text file (more information on developing your own specs can be found here - <a href="https://github.com/rkbalgi/isosim/blob/master/specs/isoSpecs.spec">https://github.com/rkbalgi/isosim/blob/master/specs/isoSpecs.spec</a>.
                 <br/>
@@ -1293,11 +1322,13 @@
                 <br/> Note: Please note that this application has been tested on chrome browser only.
 
                 <br/>
+
                 <br/> For more information please visit <a href="https://github.com/rkbalgi/isosim">https://github.com/rkbalgi/isosim</a>
             </p>
         </div>
 
 
+        <br/>
         <br/>
         <br/>
         <div align="center" style="align-content:center;">

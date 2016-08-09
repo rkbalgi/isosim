@@ -82,6 +82,11 @@
     font-size: 18px;
     color: #25235a;
 }
+.cl_user_input_text {
+    font-family: 'Lora', 'Times', serif;
+    font-size: 14px;
+    color: #25235a;
+}
 .cl_table_heading {
     font-family: 'Cormorant Garamond', 'Lora', serif;
     font-size: 19px;
