@@ -4,24 +4,8 @@
 <head>
 
     <link rel="stylesheet" type="text/css" href="isosim_styles.css">
+    <script type="text/javascript" src="jquery-3.1.0.js"></script>
     <script type="text/javascript" src="angular.min.js"></script>
-
-
-    <script type="text/javascript">
-        function jsDoStart() {
-
-            var port = document.getElementById('idJsPort').value;
-            doAjaxCall('/iso/v0/server/start?isoPort=' + port, function (response) {
-
-                alert('started');
-
-
-
-            }, null, 'GET');
-
-        }
-    </script>
-
 </head>
 
 <body ng-controller="MainCtrl as mainCtrl">
@@ -31,48 +15,96 @@
         <tr>
             <td> Server Name</td>
             <td>
-                <input type="text" ng-model="serverName" />
+                <input type="text" ng-model="mainCtrl.serverName" />
             </td>
         </tr>
         <tr>
             <td> Server Port</td>
             <td>
-                <input type="text" ng-model="serverPort" />
+                <input type="text" ng-model="mainCtrl.serverPort" />
             </td>
         </tr>
         <tr>
+            <td> Spec </td>
+            <td>
+                <select ng-model="mainCtrl.spec" ng-options="spec.Name for spec in mainCtrl.specs track by spec.Id">
+                </select>
+            </td>
+        </tr>
+
+        <tr>
             <td>MLI Type</td>
             <td>
-                <select ng-model="mliType" ng-model="mliType">
+                <select ng-model="mainCtrl.mliType">
                     <option value="2I">2I</option>
                     <option value="2E">2E</option>
-
-
                 </select>
             </td>
         </tr>
     </table>
+    <button ng-click="mainCtrl.addNewMsgSelector()" class="cl_small_btn" style="width:150px;"> Add Message Selector </button>
+    <div id="serverDef">
+
+
+    </div>
 
 
 
 
+    <br/>
 
-    <button ng-click="mainCtrl.sayHi()">Save</button>
+    <button ng-click="mainCtrl.saveServer()" class="cl_small_btn">Save</button>
 
 
 
 
     <script type="text/javascript">
-        angular.module('isoApp', []).controller('MainCtrl', [function () {
+        angular.module('isoApp', []).controller('MainCtrl', [function($http, $compile) {
 
             var self = this;
 
+
+            self.spec = "";
+
+            self.specs = [{
+                Id: 1,
+                Name: "Iso1"
+            }, {
+                Id: 3,
+                Name: "Iso2"
+            }, {
+                Id: 3,
+                Name: "Iso3"
+            }];
+
             self.serverPort = "";
             self.serverName = "";
-            self.mliType = "";
+            self.mliType = "2I";
+            self.msgSelectorId = 0;
 
-            self.saveServer = function () {
-                alert('Hi');
+            self.saveServer = function() {
+
+            }
+
+            self.addMsgSelectionCondition = function(msgSelectorId) {
+                alert(msgSelectorId);
+                console.log('adding ...');
+
+
+            }
+
+
+            self.addNewMsgSelector = function() {
+
+
+                var msgSelectorTemplate = ' <div id="msgSelectorDiv_' + self.msgSelectorId + '"> Use message = <select></select> When - ';
+                msgSelectorTemplate += '<button ng-click="mainCtrl.addMsgSelectionCondition()" class="cl_small_btn" style="width: 180px;"> Add Selection Condition </button> </div>';
+                self.msgSelectorId++;
+
+                var compiled = $compile(angular.element(msgSelectorTemplate));
+                var elem = compiled();
+                $("#serverDef").append(elem);
+                //' + self.msgSelectorId + '
             }
 
 
@@ -80,6 +112,7 @@
 
 
         }]);
+
     </script>
 
 </body>
