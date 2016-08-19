@@ -83,6 +83,7 @@ func setRoutes() {
 	addIsoServerHandlers()
 	saveMsgHandler()
 	loadMsgHandler()
+	addIsoServerSaveDefHandler();
 }
 
 func sendError(rw http.ResponseWriter, errorMsg string) {

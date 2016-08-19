@@ -200,3 +200,51 @@
     width: 455px;
     background: gainsboro;
 }
+.cl_msg_selector {
+    font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
+    font-size: 15px;
+    color: #25235a;
+}
+.cl_spec_msg {
+    font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
+    font-size: 15px;
+    color: #25235a;
+}
+.cl_bytes_value {
+    font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
+    font-size: 15px;
+    color: #25235a;
+}
+.cl_field_match_condition{
+    font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
+    font-size: 15px;
+    color: #25235a;
+}
+
+.cl_proc_condition{
+    font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
+    font-size: 15px;
+    color: #25235a;
+}
+.cl_bytes_from{
+    font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
+    font-size: 15px;
+    color: #25235a;
+    width:40px;
+}
+.cl_bytes_to{
+    font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
+    font-size: 15px;
+    color: #25235a;
+    width:40px;
+}
+.cl_field_val{
+    font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
+    font-size: 15px;
+    color: #25235a;
+}
+.cl_field_off{
+    font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
+    font-size: 15px;
+    color: #25235a;
+}

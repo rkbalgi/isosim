@@ -17,6 +17,7 @@ func getMessageTemplateHandler() {
 
 		reqUri := req.RequestURI
 		scanner := bufio.NewScanner(bytes.NewBufferString(reqUri))
+
 		scanner.Split(splitByFwdSlash)
 		urlComponents := make([]string, 0, 10)
 		for scanner.Scan() {
@@ -33,6 +34,7 @@ func getMessageTemplateHandler() {
 			return
 		}
 
+		rw.Header().Add("Access-Control-Allow-Origin","http://localhost:3000");
 		rw.WriteHeader(200)
 		paramSpecId := urlComponents[3]
 		paramMsgId := urlComponents[4]

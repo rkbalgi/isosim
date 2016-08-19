@@ -25,6 +25,7 @@ func getSpecMessagesHandler() {
 			log.Print("Getting messages for Spec Id ", specId)
 			spec := spec.GetSpec(int(specId))
 			if spec != nil {
+				rw.Header().Add("Access-Control-Allow-Origin","http://localhost:3000");
 				json.NewEncoder(rw).Encode(spec.GetMessages())
 			} else {
 				sendError(rw, "no such spec id ")

@@ -1,33 +1,36 @@
-<html ng-app="isoApp">
+<html>
 
 
 <head>
 
+    <!--<link href="https://fonts.googleapis.com/css?family=Lora" rel="stylesheet">-->
+
     <link rel="stylesheet" type="text/css" href="isosim_styles.css">
     <script type="text/javascript" src="jquery-3.1.0.js"></script>
-    <script type="text/javascript" src="angular.min.js"></script>
+    <script type="text/javascript" src="isosim_common.js"></script>
+    
 </head>
 
-<body ng-controller="MainCtrl as mainCtrl">
+<body>
 
-    <table>
+    <table class="cl_field_name">
 
         <tr>
             <td> Server Name</td>
             <td>
-                <input type="text" ng-model="mainCtrl.serverName" />
+                <input type="text" id="idServerName" value="IsoTestSpec_Server_01"/>
             </td>
         </tr>
         <tr>
             <td> Server Port</td>
             <td>
-                <input type="text" ng-model="mainCtrl.serverPort" />
+                <input type="text" id="idServerPort" value="6666"/>
             </td>
         </tr>
         <tr>
             <td> Spec </td>
             <td>
-                <select ng-model="mainCtrl.spec" ng-options="spec.Name for spec in mainCtrl.specs track by spec.Id">
+                <select class="cl_field_name" id="idSpecs">
                 </select>
             </td>
         </tr>
@@ -35,14 +38,14 @@
         <tr>
             <td>MLI Type</td>
             <td>
-                <select ng-model="mainCtrl.mliType">
+                <select id="idMliType" class="cl_field_name">
                     <option value="2I">2I</option>
                     <option value="2E">2E</option>
                 </select>
             </td>
         </tr>
     </table>
-    <button ng-click="mainCtrl.addNewMsgSelector()" class="cl_small_btn" style="width:150px;"> Add Message Selector </button>
+    <button onclick="addNewMsgSelector()" class="cl_small_btn" style="width:180px;"> Add Message Selector </button>
     <div id="serverDef">
 
 
@@ -53,65 +56,320 @@
 
     <br/>
 
-    <button ng-click="mainCtrl.saveServer()" class="cl_small_btn">Save</button>
+    <button onclick="saveServer()" class="cl_small_btn">Save</button>
+
 
 
 
 
     <script type="text/javascript">
-        angular.module('isoApp', []).controller('MainCtrl', [function($http, $compile) {
+        var msgSelectorId = 0;
+        var msgSelectionConditionId = 0;
+        var specMessages, selectedSpec;
+        var specMsgFields;
+        var fieldSelectorId=0;
 
-            var self = this;
+        //get all specs and add them to the combo
+        $.getJSON('http://localhost:8080/iso/v0/specs', function(data) {
+
+            $.each(data, function(i, spec) {
+
+                $('#idSpecs').append('<option value="' + spec.Id + '">' + spec.Name + '</option>');
+            });
+            $('#idSpecs').selectedIndex = 0;
+
+            selectedSpec = $('#idSpecs').val();
+
+            //alert(selectedSpec);
+            $.getJSON('/iso/v0/msgs/' + selectedSpec, function(data) {
+
+                specMessages = data;
+                //alert(specMessages);
 
 
-            self.spec = "";
+            }).fail(function() {
+                alert('failed to load spec messages!. please check if the server is running..');
+            });
 
-            self.specs = [{
-                Id: 1,
-                Name: "Iso1"
-            }, {
-                Id: 3,
-                Name: "Iso2"
-            }, {
-                Id: 3,
-                Name: "Iso3"
-            }];
 
-            self.serverPort = "";
-            self.serverName = "";
-            self.mliType = "2I";
-            self.msgSelectorId = 0;
+        }).fail(function() {
+            alert('failed to load specs!. please check if the server is running..');
+        });
 
-            self.saveServer = function() {
+
+
+
+
+        $('#idSpecs').change(function() {
+
+            $("#serverDef").html('');
+            
+            selectedSpec = $('#idSpecs').val();
+            //alert(selectedSpec);
+            $.getJSON('/iso/v0/msgs/' + selectedSpec, function(data) {
+
+                specMessages = data;
+                //alert(specMessages);
+
+
+            }).fail(function() {
+                alert('failed to load spec messages!. please check if the server is running..');
+            });
+        });
+
+        function getCurrentSpecMsgs() {
+            var htmlContent = '';
+            //alert(specMessages);
+            specMessages.forEach(function(arg) {
+                htmlContent += '<option value="' + arg.Id + '">' + arg.Name + '</option>';
+            });
+
+            return htmlContent;
+        }
+
+
+
+
+        function setFieldValue(event, id) {
+            var fieldValTemplate = '<div style="margin-left:20px;padding-left:10px;" class="cl_field_val"> \
+            Set field <select class="cl_field_name" id="idFieldSelect_'+fieldSelectorId+'"></select> Value = <input type="text" class="cl_field_value"/>\
+            <button onclick="remove(event)" class="cl_small_btn">Remove</button> \
+            </div>';
+            $('#msgConditionDiv_' + id).append(fieldValTemplate);
+            //$('#msgConditionDiv_' + id + ' select').html(getCurrentSpecMsgs());
+            $('#idFieldSelect_'+fieldSelectorId).html(getFields());
+            fieldSelectorId++;
+
+
+        }
+
+        function setFieldOff(event, id) {
+            //alert(event)
+            var fieldOffTemplate = '<div style="margin-left:20px;padding-left:10px;" class="cl_field_off"> \
+            Turn off field <select class="cl_field_name" id="idFieldSelect_'+fieldSelectorId+'"></select>  <button onclick="remove(event)" class="cl_small_btn" > Remove </button> </div>';
+            $('#msgConditionDiv_' + id).append(fieldOffTemplate);
+            //$('#msgConditionDiv_' + id + ' select').html(getCurrentSpecMsgs());
+            //var divParent = ($(event.target).closest('.cl_msg_selector'));
+            //var selectElem = $(divParent).children('.cl_spec_msg')[0];
+            //var msgId = $(selectElem).val();
+            $('#idFieldSelect_'+fieldSelectorId).html(getFields());
+            fieldSelectorId++;
+
+
+
+
+        }
+
+        function remove(el) {
+            $(el.target.parentNode).remove();
+
+        }
+        
+        function validateNotEmpty(elem,childIds){
+            
+            retval=false;
+            childIds.forEach(function(childId,i){
+                
+                if (!$(elem).children(childId).val()){
+                    $(elem).children(childId).css('background-color','red');
+                    retval=true;
+                }else{
+                    $(elem).children(childId).css('background-color','white');
+                }
+                
+            });
+            
+            //alert(retval);
+            
+            return retval;
+            
+        }
+
+        function saveServer() {
+
+            var serverName=$('#idServerName').val();
+            var serverPort=$('#idServerPort').val();
+            
+            
+            if(!serverName || !serverPort){
+                alert('Please provide a valid server name and port.');
+                return;            
+            }
+            
+            if(!numericRE.exec(serverPort)){
+                alert('Please provide a valid listen port.');
+                return;  
+            }
+            
+            var serverDef={};
+            serverDef.SpecId=$('#idSpecs').val();
+            serverDef.ServerName=serverName;
+            serverDef.ServerPort=serverPort;
+            serverDef.MliType=$('#idMliType').val();
+            serverDef.MsgSelectionConfigs=[];
+            var validationFailed=false;
+            
+            $('#serverDef').children('div.cl_msg_selector').each(function(i,elem){
+            
+                var msg={};
+                msg.ProcessingConditions=[];
+                msg.SpecId=$(elem).children('select.cl_spec_msg').val();
+                
+                if(validateNotEmpty(elem,['input.cl_bytes_from','input.cl_bytes_to','input.cl_bytes_value'])){
+                    //alert('Please fix all the errors.');
+                    //return;
+                    validationFailed=true;
+                    
+                }
+                
+                msg.BytesFrom=$(elem).children('input.cl_bytes_from').val();
+                msg.BytesTo=$(elem).children('input.cl_bytes_to').val();
+                msg.BytesValue=$(elem).children('input.cl_bytes_value').val();
+                serverDef.MsgSelectionConfigs.push(msg);
+                
+                $(elem).children('div.cl_proc_condition').each(function(i,elem){
+                    
+                    var procCondition={};
+                    procCondition.OffFields=[];
+                    procCondition.ValFields=[];
+                    procCondition.FieldId=$(elem).children('select.cl_field_name').val();
+                    procCondition.MatchConditionType=$(elem).children('select.cl_field_match_condition').val();
+                    
+                      if(validateNotEmpty(elem,['input[name="fieldValue"]'])){
+                          validationFailed=true;
+                    }
+                    
+                    
+                    procCondition.FieldValue=$(elem).children('input[name="fieldValue"]').val();
+                    msg.ProcessingConditions.push(procCondition);
+                    
+                    $(elem).children('div.cl_field_off').each(function(i,elem){
+                        procCondition.OffFields.push($(elem).children('select.cl_field_name').val());
+                    });
+                    
+                    $(elem).children('div.cl_field_val').each(function(i,elem){
+                        var fieldValCond={};
+                        
+                        if(validateNotEmpty(elem,['input.cl_field_value'])){
+                           validationFailed=true;
+                           }
+                        
+                        fieldValCond.FieldId=$(elem).children('select.cl_field_name').val();
+                        fieldValCond.FieldValue=$(elem).children('input.cl_field_value').val();
+                        procCondition.ValFields.push(fieldValCond);
+                    });
+                    
+                    
+                });
+                
+                
+            });
+            
+            if(validationFailed){
+            alert('Please fix all the errors.');
+                    return;
+            }
+            
+            var jqXhr=$.post('/iso/vo/server/defs/save',JSON.stringify(serverDef),function(){
+                alert('Server definition saved succesfully.');
+                
+            },'text').fail(function(){            
+                alert('server definition could not be saved. Error = '+jqXhr.statusText);
+                
+            });
+            
+    
+            
+            
+            
+
+
+
+        }
+
+
+        function addMsgProcessingCondition(id) {
+            // alert(msgSelectorId);
+            console.log('adding ...');
+            var msgConditionTemplate = '<div class="cl_proc_condition" style="margin-left:20px;padding-left:5px;" id="msgConditionDiv_' + msgSelectionConditionId + '"> When field = <select class="cl_field_name"></select> value \
+            <select class="cl_field_match_condition"><option value="Equals">Equals</option></select> - <input type="text" name="fieldValue"/> Do - \
+            <button onclick="setFieldValue(event,' + msgSelectionConditionId + ')" class="cl_small_btn">Set Field Value</button> \
+            <button onclick="setFieldOff(event,' + msgSelectionConditionId + ')" class="cl_small_btn"> Set Field Off </button> \
+            </div>';
+
+            $('#msgSelectorDiv_' + id).append(msgConditionTemplate);
+            $('#msgConditionDiv_' + msgSelectionConditionId).find('.cl_field_name').html(getFields());
+
+            msgSelectionConditionId++;
+        }
+
+        function getFields() {
+
+            var htmlContent = '';
+            $.each(specMsgFields, function(i, v) {
+                htmlContent += '<option value="' + v.Id + '">' + v.Name + '</option>';
+            });
+
+            //alert(htmlContent);
+            return htmlContent;
+        }
+
+        function loadSpecMessageFields(msgId) {
+
+            //alert(selectedSpec);
+
+            $.getJSON('http://localhost:8080/iso/v0/template/' + selectedSpec + '/' + msgId, function(data) {
+                //alert(JSON.stringify(data));
+                var fieldList = [];
+
+                $.each(data.Fields, function(i, field) {
+                    addFieldToList(field, fieldList);
+                });
+
+                specMsgFields = fieldList;
+                //alert(fieldList.length)
+
+            });
+
+        }
+
+        function addFieldToList(field, fieldList) {
+            fieldList.push(field);
+            //alert(field.Name + ' ' + field.Children.length);
+            if (field.Children.length > 0) {
+
+                $.each(field.Children, function(i, f) {
+                    fieldList.push(f);
+                    addFieldToList(f, fieldList);
+                });
 
             }
-
-            self.addMsgSelectionCondition = function(msgSelectorId) {
-                alert(msgSelectorId);
-                console.log('adding ...');
-
-
-            }
-
-
-            self.addNewMsgSelector = function() {
+        }
+        
+        function removeDiv(divId){
+            //alert(divId);
+            $(divId).remove();
+        }
 
 
-                var msgSelectorTemplate = ' <div id="msgSelectorDiv_' + self.msgSelectorId + '"> Use message = <select></select> When - ';
-                msgSelectorTemplate += '<button ng-click="mainCtrl.addMsgSelectionCondition()" class="cl_small_btn" style="width: 180px;"> Add Selection Condition </button> </div>';
-                self.msgSelectorId++;
-
-                var compiled = $compile(angular.element(msgSelectorTemplate));
-                var elem = compiled();
-                $("#serverDef").append(elem);
-                //' + self.msgSelectorId + '
-            }
+        function addNewMsgSelector() {
 
 
+            var msgSelectorTemplate = '<br/><br/><div class="cl_msg_selector" style="background:#ead4d4;" id="msgSelectorDiv_' + msgSelectorId + '"> Use message = <select class="cl_spec_msg"></select> When bytes <input type="text" class="cl_bytes_from"/> To <input type="text" class="cl_bytes_to"/>  = <input class="cl_bytes_value" type="text"/>';
+            msgSelectorTemplate += '<button onclick="addMsgProcessingCondition(' + msgSelectorId + ')\" class="cl_small_btn" style="width: 180px;"> Add Processing Condition  </button><button onclick="removeDiv(msgSelectorDiv_' + msgSelectorId + ')\" class="cl_small_btn"> Remove </button> </div>';
+            //alert(msgSelectorTemplate);
 
 
+            $("#serverDef").append(msgSelectorTemplate);
+            var elem = $('#msgSelectorDiv_' + msgSelectorId + ' select');
+            elem.html(getCurrentSpecMsgs());
+            loadSpecMessageFields($(elem).val());
+            elem.change(function() {
+                loadSpecMessageFields($(elem).val());
 
-        }]);
+            });
+            msgSelectorId++;
+        }
 
     </script>
 

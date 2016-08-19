@@ -9,6 +9,11 @@ var respFieldsPrefixId0 = 'idJsRespFieldSelectedId_';
 var respFieldsPrefixId1 = 'idJsRespFieldId_';
 var respFieldsPrefixId2 = 'idJsRespFieldValueId_';
 
+var alphaRE = /^[a-zA-Z]+$/;
+var alphaNumericRE = /^[0-9a-zA-Z]+$/;
+var numericRE = /^[0-9]+$/;
+
+
 var gPageState = {
     layoutLoaded: false
 };

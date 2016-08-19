@@ -8,6 +8,10 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"encoding/json"
+	"bytes"
+	"github.com/rkbalgi/isosim/web/ui_data"
+	"strconv"
 )
 
 type dataSetManager struct{}
@@ -129,6 +133,37 @@ func (dsm *dataSetManager) Add(specId string, msgId string, name string, data st
 	}
 
 	err = ioutil.WriteFile(filepath.Join(dataDir, specId, msgId, name), []byte(data), os.FileMode(os.O_CREATE))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (dsm *dataSetManager) AddServerDef(defString string) error {
+
+	if spec.DebugEnabled {
+		log.Print("Adding server definition -.. ");
+	}
+
+	serverDef:=&ui_data.ServerDef{};
+	err:=json.NewDecoder(bytes.NewBufferString(defString)).Decode(serverDef);
+	if(err!=nil){
+		return err;
+	}
+
+
+	dir,err:=os.Open(filepath.Join(dataDir,strconv.Itoa(serverDef.SpecId)));
+	if err!=nil && os.IsNotExist(err){
+		//create dir if one doesn't exist
+		os.Mkdir(filepath.Join(dataDir,strconv.Itoa(serverDef.SpecId)),os.ModeDir)
+	}else{
+		if err!=nil{
+			return err;
+		}
+	}
+	dir.Close();
+
+	err = ioutil.WriteFile(filepath.Join(dataDir, strconv.Itoa(serverDef.SpecId),"123.srvdef.json"), []byte(defString), os.FileMode(os.O_CREATE))
 	if err != nil {
 		return err
 	}

@@ -24,3 +24,19 @@ spec.TestSpec.Default Message.Bitmap.60.Var EBCDIC/BINARY=variable.ebcdic.binary
 spec.TestSpec.Default Message.Bitmap.91.Var ASCII/EBCDIC=variable.ascii.ebcdic.size:2.constraints{minSize:5;maxSize:15;content:Alpha;}
 #
 ####
+spec.Iso8583-MiniSpec.1100.Message Type=fixed.ascii.size:4
+spec.Iso8583-MiniSpec.1100.Bitmap=bitmap.binary
+spec.Iso8583-MiniSpec.1100.Bitmap.2.PAN=variable.ebcdic.ebcdic.size:2.constraints{content:Numeric;}
+spec.Iso8583-MiniSpec.1100.Bitmap.3.Processing Code=fixed.ebcdic.size:6.constraints{content:Alpha;}
+spec.Iso8583-MiniSpec.1100.Bitmap.4.Amount=fixed.ascii.size:12
+spec.Iso8583-MiniSpec.1100.Bitmap.38.Approval Code=fixed.ebcdic.size:6
+spec.Iso8583-MiniSpec.1100.Bitmap.39.Action Code=fixed.ascii.size:3.constraints{content:Numeric;}
+#
+spec.Iso8583-MiniSpec.1420.Message Type=fixed.ascii.size:4
+spec.Iso8583-MiniSpec.1420.Bitmap=bitmap.binary
+spec.Iso8583-MiniSpec.1420.Bitmap.2.PAN=variable.ebcdic.ebcdic.size:2.constraints{content:Numeric;}
+spec.Iso8583-MiniSpec.1420.Bitmap.3.Processing Code=fixed.ebcdic.size:6.constraints{content:Alpha;}
+spec.Iso8583-MiniSpec.1420.Bitmap.4.Amount=fixed.ascii.size:12
+spec.Iso8583-MiniSpec.1420.Bitmap.38.Approval Code=fixed.ebcdic.size:6
+spec.Iso8583-MiniSpec.1420.Bitmap.39.Action Code=fixed.ascii.size:3.constraints{content:Numeric;}
+#
