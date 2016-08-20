@@ -67,6 +67,7 @@
         <button onclick="addMsgSelector()" class="cl_small_btn" style="width:180px;"> Add Message Selector </button>
         <button onclick="loadDef()" id="idLoadDefBtn" class="cl_small_btn" disabled>Load Definition</button>
         <button onclick="saveServer()" class="cl_small_btn">Save</button>
+        <button onclick="startServer()" class="cl_small_btn">Start</button>
         <div id="serverDef">
         </div>
 
@@ -155,8 +156,9 @@
             var specId = $("#idSpecs").val();
             $.get('/iso/v0/server/defs/get?specId=' + specId + '&name=' + serverDefName, function (response) {
                 alert(response);
+                $("#serverDef").html('');
                 var serverDef = JSON.parse(response);
-                alert(serverDef.ServerName)
+                //alert(serverDef.ServerName)
                 $('#idServerName').val(serverDef.ServerName);
                 $('#idServerPort').val(serverDef.ServerPort);
                 $('#idMliType').val(serverDef.MliType);
@@ -189,26 +191,42 @@
             return htmlContent;
         }
 
-        function setFieldValue(event, id) {
-            var fieldValTemplate = '<div style="margin-left:20px;padding-left:10px;" class="cl_field_val"> \
-            Set field <select class="cl_field_name" id="idFieldSelect_' + fieldSelectorId + '"></select> Value = <input type="text" class="cl_field_value"/>\
-            <button onclick="remove(event)" class="cl_small_btn">Remove</button> \
+        function setFieldValue(id, fieldId, fieldValue, fieldsHtml) {
+            var lId = 'idFieldVal_' + fieldSelectorId;
+            var fieldValTemplate = '<div id="' + lId + '" style="margin-left:20px;padding-left:10px;" class="cl_field_val"> \
+            Set field <select class="cl_field_name"></select> Value = <input type="text" class="cl_field_value"/>\
+            <button  class="cl_small_btn" onclick="removeDiv(\'' + lId + '\')">Remove</button> \
             </div>';
             $('#msgConditionDiv_' + id).append(fieldValTemplate);
             //$('#msgConditionDiv_' + id + ' select').html(getCurrentSpecMsgs());
-            $('#idFieldSelect_' + fieldSelectorId).html(getFields());
+
+            if (!fieldsHtml) {
+                fieldsHtml = $('#msgConditionDiv_' + id).children('select.cl_field_name').html();
+            }
+
+            $('#' + lId).children('select.cl_field_name').html(fieldsHtml);
+            //alert("field id =" + fieldId);
+            $('#' + lId).children('select.cl_field_name').val(fieldId);
+            $('#' + lId).children('input.cl_field_value').val(fieldValue);
             fieldSelectorId++;
 
 
         }
 
-        function setFieldOff(event, id) {
+        function setFieldOff(id, fieldId, fieldsHtml) {
             //alert(event)
-            var fieldOffTemplate = '<div style="margin-left:20px;padding-left:10px;" class="cl_field_off"> \
-            Turn off field <select class="cl_field_name" id="idFieldSelect_' + fieldSelectorId + '"></select>  <button onclick="remove(event)" class="cl_small_btn" > Remove </button> </div>';
+            var lId = 'idFieldSelect_' + fieldSelectorId;
+            var fieldOffTemplate = '<div id="' + lId + '" style="margin-left:20px;padding-left:10px;" class="cl_field_off"> \
+            Turn off field <select class="cl_field_name"></select>  <button class="cl_small_btn" onclick="removeDiv(\'' + lId + '\')"> Remove </button> </div>';
             $('#msgConditionDiv_' + id).append(fieldOffTemplate);
 
-            $('#idFieldSelect_' + fieldSelectorId).html(getFields());
+            if (!fieldsHtml) {
+                fieldsHtml = $('#msgConditionDiv_' + id).children('select.cl_field_name').html();
+            }
+
+            $('#' + lId).children('select.cl_field_name').html(fieldsHtml);
+            alert("field id =" + fieldId);
+            $('#' + lId).children('select.cl_field_name').val(fieldId);
             fieldSelectorId++;
 
         }
@@ -335,35 +353,68 @@
 
         function addMsgProcessingCondition(id, pc) {
 
-            console.log('adding ...');
+            //console.log('adding ...');
             var msgConditionTemplate = '<div class="cl_proc_condition" style="margin-left:20px;padding-left:5px;" id="msgConditionDiv_' + msgSelectionConditionId + '"> When field = <select class="cl_field_name"></select> value \
-            <select class="cl_field_match_condition"><option value="Equals">Equals</option></select> - <input type="text" name="fieldValue"/> Do - \
-            <button onclick="setFieldValue(event,' + msgSelectionConditionId + ')" class="cl_small_btn">Set Field Value</button> \
-            <button onclick="setFieldOff(event,' + msgSelectionConditionId + ')" class="cl_small_btn"> Set Field Off </button> \
+            <select class="cl_field_match_condition"><option value="Equals">Equals</option></select> - <input class="cl_bytes_value" type="text" name="fieldValue"/> Do - \
+            <button onclick="setFieldValue(' + msgSelectionConditionId + ')" class="cl_small_btn">Set Field Value</button> \
+            <button onclick="setFieldOff(' + msgSelectionConditionId + ')" class="cl_small_btn"> Set Field Off </button> \
             </div>';
 
             $('#msgSelectorDiv_' + id).append(msgConditionTemplate);
-            alert("setting .." + getFields());
-            $('#msgConditionDiv_' + msgSelectionConditionId).children('select.cl_field_name').html(getFields());
-            alert('current val =' + $('#msgConditionDiv_' + msgSelectionConditionId).find('select.cl_field_name').val());
-            //$('#msgConditionDiv_' + msgSelectionConditionId).find('.cl_field_name').selectedIndex = 0;
+
+            //get fields for message selected in the parent div
+            var msgId = $('#msgSelectorDiv_' + id).children('select.cl_spec_msg').val();
+
+            $('#msgSelectorDiv_' + id).children('select.cl_spec_msg').change({
+                id: msgSelectionConditionId
+            }, function (event) {
+                var msgId = $('#msgSelectorDiv_' + id).children('select.cl_spec_msg').val();
+                //var msgSelCondId = msgSelectionConditionId;
+                //alert('changed to..' + msgId);
+                //alert('cond =' + msgSelectionConditionId);
+                $('#msgConditionDiv_' + event.data.id).children('select.cl_field_name').html(getFields(msgId));
+
+            });
+
+
+            var fieldsHtml = getFields(msgId);
+            $('#msgConditionDiv_' + msgSelectionConditionId).children('select.cl_field_name').html(fieldsHtml);
 
             if (pc) {
 
-                alert(pc.FieldId + pc.MatchConditionType + pc.FieldValue);
+                //alert(pc.FieldId + pc.MatchConditionType + pc.FieldValue);
 
-                $('#msgConditionDiv_' + msgSelectionConditionId).find('select.cl_field_name').val(pc.FieldId);
+                //alert(pc.FieldId)
+                $('#msgConditionDiv_' + msgSelectionConditionId).children('select.cl_field_name').val(pc.FieldId);
                 $('#msgConditionDiv_' + msgSelectionConditionId).children('select.cl_field_match_condition').val(pc.MatchConditionType);
                 $('#msgConditionDiv_' + msgSelectionConditionId).children('input[name="fieldValue"]').val(pc.FieldValue);
+
+                if (pc.OffFields.length > 0) {
+                    pc.OffFields.forEach(function (obj, i) {
+                        //alert(obj.FieldId);
+                        setFieldOff(msgSelectionConditionId, obj, fieldsHtml);
+                    });
+
+                }
+                if (pc.ValFields.length > 0) {
+                    pc.ValFields.forEach(function (obj, i) {
+                        //alert(obj.FieldId, obj.FieldValue);
+                        setFieldValue(msgSelectionConditionId, obj.FieldId, obj.FieldValue, fieldsHtml);
+                    });
+
+                }
+
 
             }
 
             msgSelectionConditionId++;
         }
 
-        function getFields() {
+        function getFields(msgId) {
 
+            loadSpecMessageFields(msgId, false);
             var htmlContent = '';
+
             $.each(specMsgFields, function (i, v) {
                 htmlContent += '<option value="' + v.Id + '">' + v.Name + '</option>';
             });
@@ -372,16 +423,23 @@
             return htmlContent;
         }
 
-        function loadSpecMessageFields(msgId) {
-            $.getJSON('http://localhost:8080/iso/v0/template/' + selectedSpec + '/' + msgId, function (data) {
-                var fieldList = [];
+        function loadSpecMessageFields(msgId, pasync = true) {
+            $.get({
+                url: 'http://localhost:8080/iso/v0/template/' + selectedSpec + '/' + msgId,
+                success: function (response) {
+                    var data = JSON.parse(response);
+                    var fieldList = [];
 
-                $.each(data.Fields, function (i, field) {
-                    fieldList.push(field);
-                    addFieldToList(field, fieldList);
-                });
+                    $.each(data.Fields, function (i, field) {
+                        fieldList.push(field);
+                        addFieldToList(field, fieldList);
+                    });
 
-                specMsgFields = fieldList;
+                    //alert('initializing specMsgfields..' + fieldList.length);
+                    specMsgFields = fieldList;
+                },
+                async: pasync,
+                dataType: "text"
             });
 
         }
@@ -399,7 +457,7 @@
         }
 
         function removeDiv(divId) {
-            $(divId).remove();
+            $('#' + divId).remove();
         }
 
 
@@ -408,18 +466,19 @@
 
             var msgSelectorTemplate = '<br/><br/><div class="cl_msg_selector" style="background:#ead4d4;" id="msgSelectorDiv_' + msgSelectorId + '"> Use message = <select class="cl_spec_msg"></select> When bytes <input type="text" class="cl_bytes_from"/> To <input type="text" class="cl_bytes_to"/>  = <input class="cl_bytes_value" type="text"/>';
 
-            msgSelectorTemplate += '<button onclick="addMsgProcessingCondition(' + msgSelectorId + ')\" class="cl_small_btn" style="width: 180px;"> Add Processing Condition  </button><button onclick="removeDiv(msgSelectorDiv_' + msgSelectorId + ')\" class="cl_small_btn"> Remove </button> </div>';
+            msgSelectorTemplate += '<button onclick="addMsgProcessingCondition(' + msgSelectorId + ')\" class="cl_small_btn" style="width: 180px;"> Add Processing Condition  </button><button onclick="removeDiv(\'msgSelectorDiv_' + msgSelectorId + '\')\" class="cl_small_btn"> Remove </button> </div>';
 
 
             $("#serverDef").append(msgSelectorTemplate);
             var elem = $('#msgSelectorDiv_' + msgSelectorId + ' select');
             elem.html(getCurrentSpecMsgs());
 
-            loadSpecMessageFields($(elem).val());
-            elem.change(function () {
-                loadSpecMessageFields($(elem).val());
+            //alert("debug  -" + selectedSpec + " msg = " + $(elem).val())
+            //loadSpecMessageFields($(elem).val(), false);
+            //elem.change(function () {
+            //    loadSpecMessageFields($(elem).val());
 
-            });
+            //});
 
             if (msc) {
                 $('#msgSelectorDiv_' + msgSelectorId + ' select').val(msc.Msg);
