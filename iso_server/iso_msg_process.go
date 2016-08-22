@@ -23,6 +23,7 @@ func process0(data []byte, pServerDef *ui_data.ServerDef, msgSelConfig ui_data.M
 	}
 
 	iso:=spec.NewIso(parsedMsg)
+	iso.Bitmap();
 
 	for _, pc := range msgSelConfig.ProcessingConditions {
 
@@ -64,13 +65,28 @@ func process0(data []byte, pServerDef *ui_data.ServerDef, msgSelConfig ui_data.M
 
 					for _, vf := range pc.ValFields {
 
-						log.Print("Setting field value ..", fieldData.Field.Name, " to ", vf.FieldValue)
+						field:=parsedMsg.Msg.GetFieldById(vf.FieldId)
 						fieldData:=parsedMsg.GetById(vf.FieldId);
+						log.Print("Setting field value ..", field.Name, " to ", vf.FieldValue)
+
+						if field.Position > 0 {
+							if field.ParentId > 0 {
+								pFieldData := parsedMsg.FieldDataMap[field.ParentId]
+								if pFieldData.Bitmap != nil {
+									pFieldData.Bitmap.Set(field.Position,vf.FieldValue)
+								}
+							}
+
+						}else{
+
 						fieldData.Set(vf.FieldValue);
+						}
 
 					}
 
 					return iso.Assemble(),true,nil;
+
+
 
 				}
 
@@ -79,6 +95,7 @@ func process0(data []byte, pServerDef *ui_data.ServerDef, msgSelConfig ui_data.M
 		}
 
 	}
+
 
 	return nil,false,NoProcessingConditionMatchError
 
@@ -92,9 +109,11 @@ func processMsg(data []byte, pServerDef *ui_data.ServerDef) ([]byte, error) {
 
 		msgSelectorData := data[msgSelectionConfig.BytesFrom:msgSelectionConfig.BytesTo]
 		msgSelector := strings.ToUpper(hex.EncodeToString(msgSelectorData))
-		if msgSelector == strings.ToUpper(msgSelectionConfig.BytesValue) {
+		expectedVal:=strings.ToUpper(msgSelectionConfig.BytesValue)
+		log.Print("MsgSelector: Comparing ",msgSelector," to ",expectedVal);
+		if msgSelector == expectedVal {
 			responseData,processed,err:=process0(data, pServerDef, msgSelectionConfig)
-			if processed && err!=nil{
+			if processed && err==nil{
 				return responseData,nil
 			}
 			if err!=nil{
@@ -106,56 +125,5 @@ func processMsg(data []byte, pServerDef *ui_data.ServerDef) ([]byte, error) {
 
 	return nil, NoMessageSelectedError
 
-	/*if !processed{
-		log.Print("No selectors matched message.");
-		return;
-	}
-
-	specMsg := isoSpec.GetMessageByName("Default Message")
-
-	log.Print("Parsing incoming message. Data = " + hex.EncodeToString(msgData))
-	parsedMsg, err := specMsg.Parse(msgData)
-	if err != nil {
-		log.Print("Parsing failed. Error =" + err.Error())
-		return
-	}
-
-	iso := spec.NewIso(parsedMsg)
-	iso.Get("Message Type").Set("1110")
-	isoBitmap := iso.Bitmap()
-	if isoBitmap.IsOn(2) {
-
-		if isoBitmap.Get(2).Value() == "000" {
-			isoBitmap.Set(56, "XY")
-			isoBitmap.Set(56, "ZA")
-			isoBitmap.Set(57, "BC")
-			isoBitmap.Set(2, "K*&")
-		} else {
-			isoBitmap.Set(56, "??")
-			isoBitmap.Set(56, "??")
-			isoBitmap.Set(57, "??")
-			isoBitmap.Set(2, "###")
-		}
-	} else {
-
-		isoBitmap.Set(56, "^^")
-		isoBitmap.Set(56, "<<")
-		isoBitmap.Set(57, ">>")
-		isoBitmap.Set(2, "999")
-	}
-
-	responseMsgData := iso.Assemble()
-	var respLen uint16 = 2 + uint16(len(responseMsgData))
-	buf := new(bytes.Buffer)
-	err = binary.Write(buf, binary.BigEndian, respLen)
-	if err != nil {
-		log.Print("Failed to construct response . Error = " + err.Error())
-		return
-	}
-	buf.Write(responseMsgData)
-
-	log.Print("Writing Response. Data = " + hex.EncodeToString(buf.Bytes()))
-	connection.Write(buf.Bytes())
-	*/
 
 }

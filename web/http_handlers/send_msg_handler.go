@@ -92,7 +92,7 @@ func sendMsgHandler() {
 				netClient := local_net.NewNetCatClient(hostIpAddr.String()+":"+req.PostForm.Get("port"), mli)
 				log.Print("connecting to -"+hostIpAddr.String()+":", port)
 
-				log.Print("assembled request msg = " + hex.EncodeToString(msgData))
+				log.Print("assembled request msg = " + hex.EncodeToString(msgData), "MliType = "+mli)
 				if err := netClient.OpenConnection(); err != nil {
 					sendError(rw, "failed to connect -"+err.Error())
 					return

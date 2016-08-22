@@ -3,7 +3,7 @@
 
 <head>
 
-    <!--<link href="https://fonts.googleapis.com/css?family=Lora" rel="stylesheet">-->
+    <link href="https://fonts.googleapis.com/css?family=Lora" rel="stylesheet">
 
     <link rel="stylesheet" type="text/css" href="isosim_styles.css">
     <script type="text/javascript" src="jquery-3.1.0.js"></script>
@@ -266,7 +266,7 @@
                 return;
             }
 
-            $.post('/iso/v0/server/start?specId=' + $('idSpecs').val() + '&def=' + loadedServerDef + '&port=' + $('idServerPort'), function (response) {
+            $.post('/iso/v0/server/start?specId=' + $('#idSpecs').val() + '&def=' + loadedServerDef + '&port=' + $('#idServerPort').val(), function (response) {
 
                 alert('Server started.');
 

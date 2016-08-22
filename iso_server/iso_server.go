@@ -138,7 +138,7 @@ func handleConnection(connection net.Conn,pServerDef *ui_data.ServerDef) {
 					if uint16(len(buf.Bytes())) == msgLen {
 						//we have a complete msg
 						complete = true
-						var msgData = make([]byte, msgLen-2)
+						var msgData = make([]byte, msgLen)
 						copy(msgData, buf.Bytes())
 
 						go handleRequest(connection, msgData,pServerDef)

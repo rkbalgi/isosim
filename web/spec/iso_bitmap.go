@@ -41,7 +41,7 @@ func (bmp *Bitmap) Set(pos int, val string) {
 	//log.Print("Bmp = ",bmp.field);
 	childField := bmp.field.fieldsByPosition[pos]
 	if childField == nil {
-		log.Fatal("No  field at position -", pos)
+		log.Fatal("No field at position -", pos)
 	}
 
 	var fieldData *FieldData
