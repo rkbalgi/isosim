@@ -1,5 +1,7 @@
 # ISO WebSim
 
+**Update: 22nd August 2016 - Included ability to define servers (see last bottom image)**
+
 Iso Websim is a ISO8583 simulator built using golang (http://golang.org). It provides a simple interface to load ISO specifications. 
 The specifications themselves are defined in text file (more information on developing your own specs can be found in the [this] (./specs/isoSpec.spec?raw=true) file which you can use as a  sample to start with.
 
@@ -51,4 +53,9 @@ And now open chrome and hit this URL [http://localhost:8080/iso/home](http://loc
 ![](./docs/images/load_message.png)
 ####Update Message
 ![](./docs/images/update_message.png)
+
+#### Define Servers (Experimental)
+Define servers with predefined condition to respond to (Example - If amount==10, Then action code=ABC etc)
+![](./docs/images/server-exp0.png)
+
 
