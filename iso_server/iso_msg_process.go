@@ -6,7 +6,6 @@ import (
 	"github.com/rkbalgi/isosim/web/ui_data"
 	"log"
 	"strings"
-	"github.com/rkbalgi/go/paysim/log"
 	"errors"
 )
 
@@ -66,7 +65,7 @@ func process0(data []byte, pServerDef *ui_data.ServerDef, msgSelConfig ui_data.M
 					for _, vf := range pc.ValFields {
 
 						log.Print("Setting field value ..", fieldData.Field.Name, " to ", vf.FieldValue)
-						fieldData:=parsedMsg.GetById(vf);
+						fieldData:=parsedMsg.GetById(vf.FieldId);
 						fieldData.Set(vf.FieldValue);
 
 					}
@@ -88,7 +87,7 @@ func process0(data []byte, pServerDef *ui_data.ServerDef, msgSelConfig ui_data.M
 //Process the incoming message using server definition
 func processMsg(data []byte, pServerDef *ui_data.ServerDef) ([]byte, error) {
 
-	processed := false
+	//var processed bool= false
 	for _, msgSelectionConfig := range pServerDef.MsgSelectionConfigs {
 
 		msgSelectorData := data[msgSelectionConfig.BytesFrom:msgSelectionConfig.BytesTo]

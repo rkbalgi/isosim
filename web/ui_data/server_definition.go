@@ -10,7 +10,7 @@ type MsgSelectionConfig struct{
 
 type ProcessingCondition struct{
 	FieldId int
-	FieldValue int
+	FieldValue string
 	MatchConditionType string
 
 	OffFields []int;
