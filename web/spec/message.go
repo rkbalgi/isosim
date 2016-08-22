@@ -34,6 +34,11 @@ func (msg *Message) AddField(fieldName string, fieldInfo *FieldInfo) {
 
 }
 
+func (msg *Message) GetFieldById(id int) *Field {
+
+  return msg.fieldByIdMap[id]
+}
+
 func (msg *Message) GetField(fieldName string) *Field {
 
 	//TODO:: implement a map to access fields by name, or id or position

@@ -13,7 +13,9 @@ import (
 )
 
 
+//The list of servers that are currently running
 var activeServers map[string]*serverInstance
+//The lock to protect concurrent access to activeServers map
 var activeServersLock sync.Mutex
 type serverInstance struct{
 	name string
@@ -26,6 +28,7 @@ func init(){
 
 }
 
+//Adds a server to the list of active servers
 func addServer(serverName string, listener net.Listener){
 
 	activeServersLock.Lock();
@@ -36,8 +39,6 @@ func addServer(serverName string, listener net.Listener){
 
 func StartIsoServer(specId string, serverDefName string,port int) error {
 
-	//port := flag.Int("port", 7777, "-port 7777");
-	//flag.Parse();
 	retVal := make(chan error)
 
 	go func() {
@@ -156,7 +157,19 @@ func handleConnection(connection net.Conn,pServerDef *ui_data.ServerDef) {
 func handleRequest(connection net.Conn, msgData []byte,pServerDef *ui_data.ServerDef) {
 
 	responseData,err:=processMsg(msgData,pServerDef);
-	var respLen uint16 = 2 + uint16(len(responseData))
+	if err != nil {
+		log.Print("Failed to process message . Error = " + err.Error())
+		return
+	}
+	var respLen uint16 = 0;
+
+	if pServerDef.MliType=="2I"{
+		respLen=2 + uint16(len(responseData));
+	}else{
+		respLen=uint16(len(responseData))
+	}
+
+
 	buf := new(bytes.Buffer)
 	err = binary.Write(buf, binary.BigEndian, respLen)
 	if err != nil {
@@ -164,7 +177,6 @@ func handleRequest(connection net.Conn, msgData []byte,pServerDef *ui_data.Serve
 		return
 	}
 	buf.Write(responseData)
-
 	log.Print("Writing Response. Data = " + hex.EncodeToString(buf.Bytes()))
 	connection.Write(buf.Bytes())
 

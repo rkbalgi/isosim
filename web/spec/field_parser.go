@@ -33,6 +33,12 @@ func (pMsg *ParsedMsg) Get(name string) *FieldData {
 
 }
 
+
+func (pMsg *ParsedMsg) GetById(id int) *FieldData {
+
+	return pMsg.FieldDataMap[id];
+}
+
 //Returns a deep copy of the ParsedMsg
 func (pMsg *ParsedMsg) Copy() *ParsedMsg {
 

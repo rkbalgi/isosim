@@ -1,55 +1,111 @@
 package iso_server
 
 import (
+	"encoding/hex"
+	"github.com/rkbalgi/isosim/web/spec"
 	"github.com/rkbalgi/isosim/web/ui_data"
 	"log"
-	"github.com/rkbalgi/isosim/web/spec"
-	"encoding/hex"
 	"strings"
+	"github.com/rkbalgi/go/paysim/log"
+	"errors"
 )
 
+var NoMessageSelectedError=errors.New("No message selected.")
+var NoProcessingConditionMatchError = errors.New("No processing conditions matched.")
 
-func process0(data []byte, pServerDef *ui_data.ServerDef,msgSelConfig ui_data.MsgSelectionConfig){
+func process0(data []byte, pServerDef *ui_data.ServerDef, msgSelConfig ui_data.MsgSelectionConfig) ([]byte,bool,error) {
 
-	var isoSpec = spec.GetSpec(pServerDef.SpecId);
-	msg:=isoSpec.GetMessageById(msgSelConfig.Msg);
-	_,err:=msg.Parse(data);
-	if err!=nil{
-		log.Print("Parsing error. ",err.Error());
-		return;
+	var isoSpec = spec.GetSpec(pServerDef.SpecId)
+	msg := isoSpec.GetMessageById(msgSelConfig.Msg)
+	parsedMsg, err := msg.Parse(data)
+	if err != nil {
+		log.Print("Parsing error. ", err.Error())
+		return nil,false,nil;
 	}
 
-	for _,pc:=range(msgSelConfig.ProcessingConditions){
-         log.Print(pc)
+	iso:=spec.NewIso(parsedMsg)
 
+	for _, pc := range msgSelConfig.ProcessingConditions {
 
+		//field:=msg.GetFieldById(pc.FieldId);
+		fieldData := parsedMsg.GetById(pc.FieldId)
+		if fieldData == nil {
+			log.Print("Processing Condition failed. Field not present - ")
+			return nil,false,nil
+		}
+		switch pc.MatchConditionType {
 
+		case "Equals":
+			{
+
+				log.Print("Comparing field value ..", fieldData.Value(), " to ", pc.FieldValue)
+				//field := fieldData.Field
+				if fieldData.Value() == pc.FieldValue {
+					if spec.DebugEnabled {
+						log.Print("Processing condition matched.")
+					}
+					//set the responsefields
+
+					for _, offId := range pc.OffFields {
+						offField := parsedMsg.Msg.GetFieldById(offId)
+						if offField.Position > 0 {
+							if offField.ParentId > 0 {
+								pFieldData := parsedMsg.FieldDataMap[offField.ParentId]
+								if pFieldData.Bitmap != nil {
+									pFieldData.Bitmap.SetOff(offField.Position)
+								}
+							}
+
+						} else {
+							///not a bitmapped field
+							parsedMsg.FieldDataMap[offId].Data=nil;
+
+						}
+					}
+
+					for _, vf := range pc.ValFields {
+
+						log.Print("Setting field value ..", fieldData.Field.Name, " to ", vf.FieldValue)
+						fieldData:=parsedMsg.GetById(vf);
+						fieldData.Set(vf.FieldValue);
+
+					}
+
+					return iso.Assemble(),true,nil;
+
+				}
+
+			}
+
+		}
 
 	}
 
+	return nil,false,NoProcessingConditionMatchError
 
 }
 
 //Process the incoming message using server definition
-func  processMsg(data []byte,pServerDef *ui_data.ServerDef) ([]byte,error){
+func processMsg(data []byte, pServerDef *ui_data.ServerDef) ([]byte, error) {
 
+	processed := false
+	for _, msgSelectionConfig := range pServerDef.MsgSelectionConfigs {
 
-
-
-	//processed:=true;
-	for _,msgSelectionConfig:=range(pServerDef.MsgSelectionConfigs){
-
-		msgSelectorData:=data[msgSelectionConfig.BytesFrom:msgSelectionConfig.BytesTo];
-		msgSelector:=strings.ToUpper(hex.EncodeToString(msgSelectorData))
-		if msgSelector==strings.ToUpper(msgSelectionConfig.BytesValue){
-		  //processed=true;
-		  process0(data,pServerDef,msgSelectionConfig);
+		msgSelectorData := data[msgSelectionConfig.BytesFrom:msgSelectionConfig.BytesTo]
+		msgSelector := strings.ToUpper(hex.EncodeToString(msgSelectorData))
+		if msgSelector == strings.ToUpper(msgSelectionConfig.BytesValue) {
+			responseData,processed,err:=process0(data, pServerDef, msgSelectionConfig)
+			if processed && err!=nil{
+				return responseData,nil
+			}
+			if err!=nil{
+				return nil,err;
+			}
 		}
-
 
 	}
 
-	return nil,nil;
+	return nil, NoMessageSelectedError
 
 	/*if !processed{
 		log.Print("No selectors matched message.");
@@ -102,6 +158,5 @@ func  processMsg(data []byte,pServerDef *ui_data.ServerDef) ([]byte,error){
 	log.Print("Writing Response. Data = " + hex.EncodeToString(buf.Bytes()))
 	connection.Write(buf.Bytes())
 	*/
-
 
 }
