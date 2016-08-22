@@ -140,7 +140,7 @@ func (dsm *dataSetManager) Add(specId string, msgId string, name string, data st
 	return nil
 }
 
-func (dsm *dataSetManager) AddServerDef(defString string) error {
+func (dsm *dataSetManager) AddServerDef(defString string) (string,error) {
 
 	if spec.DebugEnabled {
 		log.Print("Adding server definition - .. JSON = "+defString);
@@ -149,7 +149,7 @@ func (dsm *dataSetManager) AddServerDef(defString string) error {
 	serverDef:=&ui_data.ServerDef{};
 	err:=json.NewDecoder(bytes.NewBufferString(defString)).Decode(serverDef);
 	if(err!=nil){
-		return err;
+		return "",err;
 	}
 
 
@@ -160,7 +160,7 @@ func (dsm *dataSetManager) AddServerDef(defString string) error {
 		os.Mkdir(filepath.Join(dataDir,strSpecId),os.ModeDir)
 	}else{
 		if err!=nil{
-			return err;
+			return "", err;
 		}
 	}
 	dir.Close();
@@ -174,15 +174,15 @@ func (dsm *dataSetManager) AddServerDef(defString string) error {
 
 	defFile,err:=os.Open(filepath.Join(dataDir,strSpecId,fileName));
 	if err==nil{
-		return errors.New("Def file exists. Please use a different name.");
+		return "",errors.New("Def file exists. Please use a different name.");
 	}
 	defFile.Close();
 
 	err = ioutil.WriteFile(filepath.Join(dataDir, strSpecId,fileName), []byte(defString), os.FileMode(os.O_CREATE))
 	if err != nil {
-		return err
+		return "",err
 	}
-	return nil
+	return fileName,nil
 }
 
 func (dm *dataSetManager) GetServerDefs(specId string) ([]string,error){

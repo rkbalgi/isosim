@@ -90,6 +90,8 @@
         var specMsgFields;
         var fieldSelectorId = 0;
 
+        var loadedServerDef = '';
+
 
         var onSpecChange = function () {
 
@@ -169,6 +171,8 @@
 
 
                 });
+
+                loadedServerDef = serverDefName;
 
 
             }, 'text').fail(function () {
@@ -253,6 +257,30 @@
             return retval;
 
         }
+
+
+        function startServer() {
+
+            if (!loadedServerDef) {
+                alert('Please load a server def.');
+                return;
+            }
+
+            $.post('/iso/v0/server/start?specId=' + $('idSpecs').val() + '&def=' + loadedServerDef + '&port=' + $('idServerPort'), function (response) {
+
+                alert('Server started.');
+
+            }).fail(function () {
+
+                alert('Failed to start server..');
+            });
+
+
+
+        }
+
+
+
 
         function saveServer() {
 
@@ -340,8 +368,9 @@
                 return;
             }
 
-            var jqXhr = $.post('/iso/v0/server/defs/save', JSON.stringify(serverDef), function () {
+            var jqXhr = $.post('/iso/v0/server/defs/save', JSON.stringify(serverDef), function (response) {
                 alert('Server definition saved succesfully.');
+                loadedServerDef = response;
 
             }, 'text').fail(function () {
                 alert('Server definition could not be saved. Error = ' + jqXhr.statusText + " Reason: " + jqXhr.responseText);

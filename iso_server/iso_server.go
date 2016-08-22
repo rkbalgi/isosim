@@ -4,14 +4,37 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/hex"
-	"github.com/rkbalgi/isosim/web/spec"
 	"io"
 	"log"
 	"net"
 	"strconv"
+	"sync"
+	"github.com/rkbalgi/isosim/web/ui_data"
 )
 
-func StartIsoServer(port int) error {
+
+var activeServers map[string]*serverInstance
+var activeServersLock sync.Mutex
+type serverInstance struct{
+	name string
+	listener net.Listener
+
+}
+func init(){
+	activeServers=make(map[string]*serverInstance);
+	activeServersLock=sync.Mutex{};
+
+}
+
+func addServer(serverName string, listener net.Listener){
+
+	activeServersLock.Lock();
+	defer activeServersLock.Unlock();
+	activeServers[serverName]=&serverInstance{name:serverName,listener:listener};
+
+}
+
+func StartIsoServer(specId string, serverDefName string,port int) error {
 
 	//port := flag.Int("port", 7777, "-port 7777");
 	//flag.Parse();
@@ -25,6 +48,16 @@ func StartIsoServer(port int) error {
 			retVal <- err
 			return
 		}
+
+		addServer(serverDefName +strconv.Itoa(port),listener);
+		vServerDef,err:=getDef(specId,serverDefName);
+
+		if err != nil {
+			retVal <- err
+			return
+		}
+
+
 		for {
 			connection, err := listener.Accept()
 			if err != nil {
@@ -32,7 +65,7 @@ func StartIsoServer(port int) error {
 				return
 			}
 
-			go handleConnection(connection)
+			go handleConnection(connection,vServerDef)
 		}
 	}()
 
@@ -58,7 +91,7 @@ func CloseOnError(connection net.Conn, err error) {
 
 }
 
-func handleConnection(connection net.Conn) {
+func handleConnection(connection net.Conn,pServerDef *ui_data.ServerDef) {
 
 	buf := new(bytes.Buffer)
 	mli := make([]byte, 2)
@@ -79,9 +112,14 @@ func handleConnection(connection net.Conn) {
 			log.Print("Read = " + hex.EncodeToString(mli))
 		}
 		if n == 2 {
-			//assume 2I
+
 			var msgLen uint16
 			binary.Read(bytes.NewBuffer(mli), binary.BigEndian, &msgLen)
+
+			if pServerDef.MliType=="2I"{
+				msgLen-=2;
+			}
+
 			complete := false
 			for !complete {
 				n := 0
@@ -96,13 +134,13 @@ func handleConnection(connection net.Conn) {
 					log.Print("Read = " + hex.EncodeToString(tmp[0:n]))
 					buf.Write(tmp[0:n])
 					log.Print("msgLen = ", msgLen, " Read = ", n)
-					if uint16(len(buf.Bytes())) == (msgLen - 2) {
+					if uint16(len(buf.Bytes())) == msgLen {
 						//we have a complete msg
 						complete = true
 						var msgData = make([]byte, msgLen-2)
 						copy(msgData, buf.Bytes())
 
-						go handleRequest(connection, msgData)
+						go handleRequest(connection, msgData,pServerDef)
 
 					}
 				}
@@ -115,53 +153,20 @@ func handleConnection(connection net.Conn) {
 
 }
 
-func handleRequest(connection net.Conn, msgData []byte) {
+func handleRequest(connection net.Conn, msgData []byte,pServerDef *ui_data.ServerDef) {
 
-	var isoSpec = spec.GetSpecByName("TestSpec")
-	specMsg := isoSpec.GetMessageByName("Default Message")
-
-	log.Print("Parsing incoming message. Data = " + hex.EncodeToString(msgData))
-	parsedMsg, err := specMsg.Parse(msgData)
-	if err != nil {
-		log.Print("Parsing failed. Error =" + err.Error())
-		return
-	}
-
-	iso := spec.NewIso(parsedMsg)
-	iso.Get("Message Type").Set("1110")
-	isoBitmap := iso.Bitmap()
-	if isoBitmap.IsOn(2) {
-
-		if isoBitmap.Get(2).Value() == "000" {
-			isoBitmap.Set(56, "XY")
-			isoBitmap.Set(56, "ZA")
-			isoBitmap.Set(57, "BC")
-			isoBitmap.Set(2, "K*&")
-		} else {
-			isoBitmap.Set(56, "??")
-			isoBitmap.Set(56, "??")
-			isoBitmap.Set(57, "??")
-			isoBitmap.Set(2, "###")
-		}
-	} else {
-
-		isoBitmap.Set(56, "^^")
-		isoBitmap.Set(56, "<<")
-		isoBitmap.Set(57, ">>")
-		isoBitmap.Set(2, "999")
-	}
-
-	responseMsgData := iso.Assemble()
-	var respLen uint16 = 2 + uint16(len(responseMsgData))
+	responseData,err:=processMsg(msgData,pServerDef);
+	var respLen uint16 = 2 + uint16(len(responseData))
 	buf := new(bytes.Buffer)
 	err = binary.Write(buf, binary.BigEndian, respLen)
 	if err != nil {
 		log.Print("Failed to construct response . Error = " + err.Error())
 		return
 	}
-	buf.Write(responseMsgData)
+	buf.Write(responseData)
 
 	log.Print("Writing Response. Data = " + hex.EncodeToString(buf.Bytes()))
 	connection.Write(buf.Bytes())
+
 
 }
