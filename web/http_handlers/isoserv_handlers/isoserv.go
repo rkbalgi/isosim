@@ -14,6 +14,9 @@ func AddAll(){
 	addIsoServerSaveDefHandler();
 	fetchDefHandler();
 	startServerHandler();
+	addGetActiveServersHandler();
+	stopServerHandler();
+
 }
 
 func addIsoServerHandlers() {

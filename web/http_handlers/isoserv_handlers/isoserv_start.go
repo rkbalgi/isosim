@@ -32,6 +32,7 @@ func startServerHandler() {
 			sendError(rw, err.Error())
 			return
 		}
+		log.Print("Server started ok.")
 
 	})
 }

@@ -16,22 +16,50 @@
 
     <div id="headerDiv">
         <div class="cl_cursive_heading"> ISO WebSim </div>
+        [<a href="/iso/home">Home</a> | <a href="/iso/v0/server">Manage Servers</a> ]
     </div>
 
 
-    <div id="idNewServerDefDiv">
+    <div id="navDiv">
+
+        <ul style="list-style-type: none; margin:0;padding:0;">
+            <li>
+                <button onclick="addMsgSelector()" class="cl_small_btn"> + Msg Selector </button>
+            </li>
+            <li>
+                <button onclick="loadDef()" id="idLoadDefBtn" class="cl_small_btn" disabled>Load Definition</button>
+            </li>
+            <li>
+                <button onclick="saveServer()" class="cl_small_btn">Save</button>
+            </li>
+            <li>
+                <button onclick="showActiveServers()" class="cl_small_btn">Show Active Servers</button>
+            </li>
+            <li>
+                <button onclick="startServer()" class="cl_small_btn">Start</button>
+            </li>
+        </ul>
+
+
+
+
+    </div>
+
+
+
+    <div id="bodyDiv">
         <table class="cl_field_name">
 
             <tr>
                 <td> Server Name</td>
                 <td>
-                    <input type="text" id="idServerName" value="IsoTestSpec_Server_01" />
+                    <input type="text" id="idServerName" class="cl_field_name" value="IsoTestSpec_Server_01" />
                 </td>
             </tr>
             <tr>
                 <td> Server Port</td>
                 <td>
-                    <input type="text" id="idServerPort" value="6666" />
+                    <input type="text" id="idServerPort" class="cl_field_name" value="6666" />
                 </td>
             </tr>
             <tr>
@@ -64,10 +92,7 @@
             </tr>
         </table>
         <br/>
-        <button onclick="addMsgSelector()" class="cl_small_btn" style="width:180px;"> Add Message Selector </button>
-        <button onclick="loadDef()" id="idLoadDefBtn" class="cl_small_btn" disabled>Load Definition</button>
-        <button onclick="saveServer()" class="cl_small_btn">Save</button>
-        <button onclick="startServer()" class="cl_small_btn">Start</button>
+
         <div id="serverDef">
         </div>
 
@@ -76,6 +101,20 @@
 
 
     <br/>
+    <div id="idActiveServersDiv" style="border-style:ridge;display:none; background-color: #dde8e2; position:absolute; float:right; right: 20px; top: 20px;width:440px; height: 90%; z-index:99">
+
+        <div class="cl_field_name" style="width:440px;height:20px; position:relative; float:right;">
+            <div style="background-color:#c9bdbd;height:20px;">
+                <span>Active Server Instances</span>
+                <span onclick="closeThis(this)" class="cl_field_name" style="cursor:pointer;float:right;background-color:#c9bdbd;">X [Close]</span>
+            </div>
+        </div>
+        <br/>
+        <br/>
+        <div class="cl_act_serv_content cl_field_name"></div>
+
+    </div>
+
 
 
 
@@ -92,6 +131,68 @@
         var proc_cond_class = "cl_proc_condition"
 
         var loadedServerDef = '';
+
+        function closeThis(elem) {
+            $(elem).closest('div#idActiveServersDiv').hide();
+        }
+
+
+        function stopServer(serverName) {
+
+            $.get('/iso/v0/server/stop?name=' + serverName, function (response) {
+
+                showActiveServers();
+                alert('Server stopped. ');
+
+
+            }, 'text').fail(function () {
+
+                alert('Failed to stop server. ' + this.responseText);
+
+
+            });
+
+
+        }
+
+        function showActiveServers() {
+
+            $.get('/iso/v0/server/active', function (response) {
+
+                //alert(response);
+                var obj = JSON.parse(response);
+                if (obj.msg) {
+                    $('#idActiveServersDiv').children('div.cl_act_serv_content').html(obj.msg);
+                } else {
+
+                    var htmlContent = '<table class="cl_field_name" style="font-size:13px;"><tr><th>Name</th><th>Port</th><th>Action</th></tr>'
+
+                    $(obj).each(function (i, o) {
+
+                        htmlContent += '<tr><td>' + o.Name + '</td><td>' + o.Port + '</td>';
+                        htmlContent += '<td><button class="cl_small_btn" onclick=\"stopServer(\'' + o.Name + o.Port + '\')\">Stop</button></td></tr>'
+
+
+
+                    });
+                    htmlContent += '</table>'
+
+                }
+
+                $('#idActiveServersDiv').children('div.cl_act_serv_content').html(htmlContent);
+                $('#idActiveServersDiv').show();
+
+            }, 'text').fail(function () {
+                    $('#idActiveServersDiv').children('div.cl_act_serv_content').html('Failed to get active servers. Reason = ' + this.statusText);
+                    $('#idActiveServersDiv').show();
+                }
+
+            );
+
+
+
+
+        }
 
 
         var onSpecChange = function () {
@@ -114,7 +215,7 @@
         }
 
         function hideAll() {
-            ['idStartServerDiv', 'idNewServerDefDiv'].forEach(function (e, i) {
+            ['idStartServerDiv', 'bodyDiv'].forEach(function (e, i) {
                 $('#' + e).hide();
             });
         }
@@ -383,9 +484,15 @@
 
         function addMsgProcessingCondition(id, pc) {
 
-            //console.log('adding ...');
+            console.log('adding ...');
             var msgConditionTemplate = '<br/><br/><div class="cl_proc_condition" style="margin-left:20px;padding-left:5px;" id="msgConditionDiv_' + msgSelectionConditionId + '"> When field = <select class="cl_field_name"></select> value \
-            <select class="cl_field_match_condition"><option value="Equals">Equals</option></select> - <input class="cl_bytes_value" type="text" name="fieldValue"/> Do - \
+            <select class="cl_field_match_condition">' +
+                '<option value="StringEquals">StringEquals</option> \
+            <option value="IntEquals">IntEquals</option> \
+            <option value="IntGt">IntGreaterThan</option> \
+            <option value="IntLt">IntLessThan</option> \
+            <option value="Any">Any</option> ' +
+                '</select> - <input class="cl_bytes_value" type="text" name="fieldValue"/> Do - \
             <button onclick="setFieldValue(' + msgSelectionConditionId + ')" class="cl_small_btn">Set Field Value</button> \
             <button onclick="setFieldOff(' + msgSelectionConditionId + ')" class="cl_small_btn"> Set Field Off </button> \
             </div>';

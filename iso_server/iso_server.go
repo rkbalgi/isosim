@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"sync"
 	"github.com/rkbalgi/isosim/web/ui_data"
+	"encoding/json"
+	"errors"
 )
 
 
@@ -19,6 +21,7 @@ var activeServers map[string]*serverInstance
 var activeServersLock sync.Mutex
 type serverInstance struct{
 	name string
+	port int
 	listener net.Listener
 
 }
@@ -28,14 +31,61 @@ func init(){
 
 }
 
+type activeServer struct {
+
+  Name string
+  Port int
+}
+
+//Returns a list of running servers along with listener port info
+//To be used while displaying information o UI
+func GetActiveServers() (string){
+
+	if len(activeServers)==0{
+		return "{\"msg\": \"No server instances running.\"}";
+	}
+	result:=make([]activeServer,0,len(activeServers));
+	for _,si:=range(activeServers){
+		result=append(result,activeServer{si.name,si.port})
+	}
+	jsonRep:=bytes.NewBufferString("");
+	json.NewEncoder(jsonRep).Encode(result);
+	return jsonRep.String();
+
+}
+
+
+
 //Adds a server to the list of active servers
-func addServer(serverName string, listener net.Listener){
+func addServer(serverName string, port int,listener net.Listener){
 
 	activeServersLock.Lock();
 	defer activeServersLock.Unlock();
-	activeServers[serverName]=&serverInstance{name:serverName,listener:listener};
+	activeServers[serverName+strconv.Itoa(port)]=&serverInstance{serverName,
+		port,listener};
 
 }
+
+//Adds a server to the list of active servers
+func Stop(serverName string) error{
+
+	activeServersLock.Lock();
+	defer activeServersLock.Unlock();
+	var si *serverInstance
+	var  ok bool;
+	if si,ok=activeServers[serverName]; !ok{
+		return errors.New("No such server running ..- "+serverName);
+	}
+	err:=si.listener.Close();
+	if err==nil{
+		delete(activeServers,serverName);
+	}
+	return err;
+
+}
+
+
+
 
 func StartIsoServer(specId string, serverDefName string,port int) error {
 
@@ -50,13 +100,14 @@ func StartIsoServer(specId string, serverDefName string,port int) error {
 			return
 		}
 
-		addServer(serverDefName +strconv.Itoa(port),listener);
+
+		addServer(serverDefName,port,listener);
 		vServerDef,err:=getDef(specId,serverDefName);
 
-		if err != nil {
+		//if err != nil {
 			retVal <- err
-			return
-		}
+		//	return
+		//}
 
 
 		for {
@@ -73,8 +124,11 @@ func StartIsoServer(specId string, serverDefName string,port int) error {
 	select {
 	case errVal := <-retVal:
 		{
-			log.Print("Error on server. Error =  ", errVal)
-			return errVal
+			if errVal!=nil{
+				log.Print("Error on server. Error =  ", errVal.Error())
+				return errVal
+			}
+
 
 		}
 	}

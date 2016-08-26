@@ -2,28 +2,29 @@ package iso_server
 
 import (
 	"encoding/hex"
+	"errors"
 	"github.com/rkbalgi/isosim/web/spec"
 	"github.com/rkbalgi/isosim/web/ui_data"
 	"log"
+	"strconv"
 	"strings"
-	"errors"
 )
 
-var NoMessageSelectedError=errors.New("No message selected.")
+var NoMessageSelectedError = errors.New("No message selected.")
 var NoProcessingConditionMatchError = errors.New("No processing conditions matched.")
 
-func process0(data []byte, pServerDef *ui_data.ServerDef, msgSelConfig ui_data.MsgSelectionConfig) ([]byte,bool,error) {
+func process0(data []byte, pServerDef *ui_data.ServerDef, msgSelConfig ui_data.MsgSelectionConfig) ([]byte, bool, error) {
 
 	var isoSpec = spec.GetSpec(pServerDef.SpecId)
 	msg := isoSpec.GetMessageById(msgSelConfig.Msg)
 	parsedMsg, err := msg.Parse(data)
 	if err != nil {
 		log.Print("Parsing error. ", err.Error())
-		return nil,false,nil;
+		return nil, false, nil
 	}
 
-	iso:=spec.NewIso(parsedMsg)
-	iso.Bitmap();
+	iso := spec.NewIso(parsedMsg)
+	iso.Bitmap()
 
 	for _, pc := range msgSelConfig.ProcessingConditions {
 
@@ -31,63 +32,90 @@ func process0(data []byte, pServerDef *ui_data.ServerDef, msgSelConfig ui_data.M
 		fieldData := parsedMsg.GetById(pc.FieldId)
 		if fieldData == nil {
 			log.Print("Processing Condition failed. Field not present - ")
-			return nil,false,nil
+			return nil, false, nil
 		}
+
+		if spec.DebugEnabled {
+			log.Print("[", pc.MatchConditionType, "] ", " Comparing field value ..", fieldData.Value(), " to ", pc.FieldValue)
+		}
+
 		switch pc.MatchConditionType {
 
-		case "Equals":
+		case "Any":
 			{
 
-				log.Print("Comparing field value ..", fieldData.Value(), " to ", pc.FieldValue)
-				//field := fieldData.Field
+				if spec.DebugEnabled {
+					log.Print("[",pc.MatchConditionType + "] Processing condition matched.")
+				}
+				//set the response fields
+				buildResponse(iso, &pc)
+				return iso.Assemble(), true, nil
+
+			}
+
+		case "StringEquals":
+			{
+
 				if fieldData.Value() == pc.FieldValue {
 					if spec.DebugEnabled {
-						log.Print("Processing condition matched.")
+						log.Print("[",pc.MatchConditionType + "] Processing condition matched.")
 					}
-					//set the responsefields
+					//set the response fields
+					buildResponse(iso, &pc)
+					return iso.Assemble(), true, nil
+				}
 
-					for _, offId := range pc.OffFields {
-						offField := parsedMsg.Msg.GetFieldById(offId)
-						if offField.Position > 0 {
-							if offField.ParentId > 0 {
-								pFieldData := parsedMsg.FieldDataMap[offField.ParentId]
-								if pFieldData.Bitmap != nil {
-									pFieldData.Bitmap.SetOff(offField.Position)
-								}
-							}
+			}
 
-						} else {
-							///not a bitmapped field
-							parsedMsg.FieldDataMap[offId].Data=nil;
+		case "IntEquals":
+			fallthrough;
+		case "IntGt":
+			fallthrough;
+		case "IntLt":
 
-						}
+			{
+				log.Print("Here...")
+
+
+				compareTo, err := strconv.Atoi(pc.FieldValue)
+				if err != nil {
+					log.Print("Processing condition for field ", fieldData.Field.Name, " should be integer!")
+					return nil, false, err
+				}
+				compareFrom, err := strconv.Atoi(fieldData.Value())
+				if err != nil {
+					log.Print("field ", fieldData.Field.Name, " should be integer!")
+					return nil, false, err
+				}
+
+				if spec.DebugEnabled {
+					log.Print("[", pc.MatchConditionType, "] ", " Comparing int field value ..", compareFrom, " to ", compareTo)
+				}
+
+				matched := false
+				if pc.MatchConditionType == "IntEquals" {
+					if compareFrom == compareTo {
+						matched = true
 					}
-
-					for _, vf := range pc.ValFields {
-
-						field:=parsedMsg.Msg.GetFieldById(vf.FieldId)
-						fieldData:=parsedMsg.GetById(vf.FieldId);
-						log.Print("Setting field value ..", field.Name, " to ", vf.FieldValue)
-
-						if field.Position > 0 {
-							if field.ParentId > 0 {
-								pFieldData := parsedMsg.FieldDataMap[field.ParentId]
-								if pFieldData.Bitmap != nil {
-									pFieldData.Bitmap.Set(field.Position,vf.FieldValue)
-								}
-							}
-
-						}else{
-
-						fieldData.Set(vf.FieldValue);
-						}
-
+				}
+				if pc.MatchConditionType == "IntGt" {
+					if compareFrom > compareTo {
+						matched = true
 					}
+				}
+				if pc.MatchConditionType == "IntLt" {
+					if compareFrom < compareTo {
+						matched = true
+					}
+				}
 
-					return iso.Assemble(),true,nil;
-
-
-
+				if matched {
+					if spec.DebugEnabled {
+						log.Print(pc.MatchConditionType + "] Processing condition matched.")
+					}
+					//set the response fields
+					buildResponse(iso, &pc)
+					return iso.Assemble(), true, nil
 				}
 
 			}
@@ -96,8 +124,7 @@ func process0(data []byte, pServerDef *ui_data.ServerDef, msgSelConfig ui_data.M
 
 	}
 
-
-	return nil,false,NoProcessingConditionMatchError
+	return nil, false, NoProcessingConditionMatchError
 
 }
 
@@ -109,21 +136,20 @@ func processMsg(data []byte, pServerDef *ui_data.ServerDef) ([]byte, error) {
 
 		msgSelectorData := data[msgSelectionConfig.BytesFrom:msgSelectionConfig.BytesTo]
 		msgSelector := strings.ToUpper(hex.EncodeToString(msgSelectorData))
-		expectedVal:=strings.ToUpper(msgSelectionConfig.BytesValue)
-		log.Print("MsgSelector: Comparing ",msgSelector," to ",expectedVal);
+		expectedVal := strings.ToUpper(msgSelectionConfig.BytesValue)
+		log.Print("MsgSelector: Comparing ", msgSelector, " to ", expectedVal)
 		if msgSelector == expectedVal {
-			responseData,processed,err:=process0(data, pServerDef, msgSelectionConfig)
-			if processed && err==nil{
-				return responseData,nil
+			responseData, processed, err := process0(data, pServerDef, msgSelectionConfig)
+			if processed && err == nil {
+				return responseData, nil
 			}
-			if err!=nil{
-				return nil,err;
+			if err != nil {
+				return nil, err
 			}
 		}
 
 	}
 
 	return nil, NoMessageSelectedError
-
 
 }

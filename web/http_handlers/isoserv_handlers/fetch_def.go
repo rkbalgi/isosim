@@ -46,6 +46,7 @@ func fetchDefHandler(){
 		}
 
 		data,err:=data.DataSetManager().GetServerDef(strSpecId,fileName);
+		log.Print("Def = "+string(data))
 
 		if err!=nil{
 			sendError(rw,err.Error());

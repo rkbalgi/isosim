@@ -90,9 +90,9 @@ func Parse(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 		bitmap := parsedMsg.FieldDataMap[field.Id].Bitmap
 		for _, childField := range field.Children() {
 
-			if DebugEnabled {
-				log.Print("Parsing field =" + childField.Name)
-			}
+			//if DebugEnabled {
+			//	log.Print("Parsing field =" + childField.Name)
+			//}
 
 			if bitmap.IsOn(childField.Position) {
 				if err := Parse(buf, parsedMsg, childField); err != nil {
@@ -119,7 +119,7 @@ func parseFixed(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 	fieldData.Data = NextBytes(buf, bytesRequired)
 
 	if DebugEnabled {
-		log.Print("Remaining Buffer = ", hex.EncodeToString(buf.Bytes()))
+		//log.Print("Remaining Buffer = ", hex.EncodeToString(buf.Bytes()))
 		log.Printf("Field : [%s] - Data = [%s]", field.Name, hex.EncodeToString(fieldData.Data))
 	}
 
@@ -222,7 +222,7 @@ func parseVariable(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error 
 	fieldData.Data = NextBytes(buf, int(length))
 
 	if DebugEnabled {
-		log.Print("Remaining Buffer = ", hex.EncodeToString(buf.Bytes()))
+		//log.Print("Remaining Buffer = ", hex.EncodeToString(buf.Bytes()))
 		log.Printf("Field : [%s] - Len: %02d - Data = [%s]", field.Name, length, hex.EncodeToString(fieldData.Data))
 	}
 

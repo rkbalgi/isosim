@@ -2,7 +2,7 @@
 
 <head>
 
-    <link href="https://fonts.googleapis.com/css?family=Crimson+Text|Reem+Kufi|Cormorant+Garamond|Gloria+Hallelujah|Lora" rel="stylesheet">
+    <!--<link href="https://fonts.googleapis.com/css?family=Crimson+Text|Reem+Kufi|Cormorant+Garamond|Gloria+Hallelujah|Lora" rel="stylesheet">-->
     <link rel="stylesheet" type="text/css" href="isosim_styles.css">
     <script type="text/javascript" src="isosim_common.js"></script>
     <script type="text/javascript" src="isosim_ajax.js"></script>
@@ -11,7 +11,7 @@
     <script language="javascript">
         //globals
 
-    
+
 
         var emptyBitmap = '0000000000000000000000000000000000000000000000000000000000000000';
 
@@ -40,7 +40,7 @@
 
         function jsLoadSpecs() {
 
-            var onSuccessFuncCall = function(jsonData) {
+            var onSuccessFuncCall = function (jsonData) {
 
                     var specsObj = JSON.parse(jsonData);
                     var htmlContent = '';
@@ -74,7 +74,7 @@
                 var specId = selectedOption.id;
 
                 var url = '/iso/v0/msgs/' + specId;
-                var onSuccessFunc = function(jsonData) {
+                var onSuccessFunc = function (jsonData) {
                         var msgsObj = JSON.parse(jsonData);
                         var htmlContent = '';
                         for (i = 0; i < msgsObj.length; i++) {
@@ -129,7 +129,7 @@
 
                     //now do the AJAX call
                     var url = '/iso/v0/template/' + specId + '/' + msgId;
-                    var onSuccessFunc = function(jsonData) {
+                    var onSuccessFunc = function (jsonData) {
 
 
                         //alert(jsonData);
@@ -151,7 +151,7 @@
 
                         var elems = document.getElementsByClassName('cl_vsmall_btn_edit');
                         for (var i = 0; i < elems.length; i++) {
-                            elems[i].addEventListener('click', function(event) {
+                            elems[i].addEventListener('click', function (event) {
 
                                 var fieldVal = "";
                                 var index = event.target.id.indexOf('_');
@@ -593,7 +593,7 @@
 
                     var elem = document.getElementById('idJsTrace');
                     url = '/iso/v0/parse/' + specId + '/' + selectedMsgOption.id;
-                    doAjaxCall(url, function(responseText) {
+                    doAjaxCall(url, function (responseText) {
 
                         console.log('parsed msg (json)' + responseText);
                         var parsedMsgObj = JSON.parse(responseText);
@@ -678,42 +678,42 @@
 
             switch (fieldObj.DataEncoding) {
 
-                case 'ASCII':
-                case 'EBCDIC':
-                    {
+            case 'ASCII':
+            case 'EBCDIC':
+                {
 
-                        if (fieldVal.length != fieldObj.FixedSize) {
-                            errors.push(newErrObj(fieldObj, 'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = ' + fieldVal.length));
-                        }
-
-                        validateFieldContentConstraints(fieldObj, fieldVal, errors);
-
-
-                        break;
+                    if (fieldVal.length != fieldObj.FixedSize) {
+                        errors.push(newErrObj(fieldObj, 'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = ' + fieldVal.length));
                     }
-                case 'BINARY':
-                    {
-                        if (!validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors)) {
-                            var len = fieldVal.length / 2;
-                            if (len != fieldObj.FixedSize) {
-                                errors.push(newErrObj(fieldObj, 'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = ' + len));
-                            }
+
+                    validateFieldContentConstraints(fieldObj, fieldVal, errors);
+
+
+                    break;
+                }
+            case 'BINARY':
+                {
+                    if (!validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors)) {
+                        var len = fieldVal.length / 2;
+                        if (len != fieldObj.FixedSize) {
+                            errors.push(newErrObj(fieldObj, 'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = ' + len));
                         }
-                        //validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
-                        validateBinaryFieldForContent(fieldObj, fieldVal, errors);
-                        break;
                     }
-                case 'BCD':
-                    {
-                        if (!validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors)) {
-                            var len = fieldVal.length / 2;
-                            if (len != fieldObj.FixedSize) {
-                                errors.push(newErrObj(fieldObj, 'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = ' + len));
-                            }
+                    //validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
+                    validateBinaryFieldForContent(fieldObj, fieldVal, errors);
+                    break;
+                }
+            case 'BCD':
+                {
+                    if (!validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors)) {
+                        var len = fieldVal.length / 2;
+                        if (len != fieldObj.FixedSize) {
+                            errors.push(newErrObj(fieldObj, 'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = ' + len));
                         }
-                        validateBcdFieldForContent(fieldObj, fieldVal, errors);
-                        break;
                     }
+                    validateBcdFieldForContent(fieldObj, fieldVal, errors);
+                    break;
+                }
 
             }
 
@@ -732,27 +732,27 @@
 
             switch (fieldObj.DataEncoding) {
 
-                case 'ASCII':
-                case 'EBCDIC':
-                    {
-                        validateFieldContentConstraints(fieldObj, fieldVal, errors);
-                        validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors);
+            case 'ASCII':
+            case 'EBCDIC':
+                {
+                    validateFieldContentConstraints(fieldObj, fieldVal, errors);
+                    validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors);
 
-                        break;
-                    }
-                case 'BINARY':
-                    {
-                        validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
-                        validateBinaryFieldForContent(fieldObj, fieldVal, errors);
-                        validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors);
-                        break;
-                    }
-                case 'BCD':
-                    {
-                        validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
-                        validateBcdFieldForContent(fieldObj, fieldVal, errors);
-                        validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors);
-                    }
+                    break;
+                }
+            case 'BINARY':
+                {
+                    validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
+                    validateBinaryFieldForContent(fieldObj, fieldVal, errors);
+                    validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors);
+                    break;
+                }
+            case 'BCD':
+                {
+                    validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
+                    validateBcdFieldForContent(fieldObj, fieldVal, errors);
+                    validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors);
+                }
 
             }
 
@@ -793,38 +793,38 @@
 
 
             switch (fieldObj.ContentType) {
-                case 'Alpha':
-                    {
+            case 'Alpha':
+                {
 
-                        if (!alphaRE.exec(fieldVal)) {
-                            errors.push(newErrObj(fieldObj, 'Field content should be alphabets only.'));
-                            return true;
-
-                        }
-                        break;
+                    if (!alphaRE.exec(fieldVal)) {
+                        errors.push(newErrObj(fieldObj, 'Field content should be alphabets only.'));
+                        return true;
 
                     }
-                case 'AlphaNumeric':
-                    {
+                    break;
 
-                        if (!alphaRE.exec(fieldVal)) {
-                            errors.push(newErrObj(fieldObj, 'Field content should be alpha-numeric only.'));
-                            return true;
+                }
+            case 'AlphaNumeric':
+                {
 
-                        }
-                        break;
+                    if (!alphaRE.exec(fieldVal)) {
+                        errors.push(newErrObj(fieldObj, 'Field content should be alpha-numeric only.'));
+                        return true;
 
                     }
-                case 'Numeric':
-                    {
+                    break;
 
-                        if (!numericRE.exec(fieldVal)) {
-                            errors.push(newErrObj(fieldObj, 'Field content should be numeric only.'));
-                            return true;
+                }
+            case 'Numeric':
+                {
 
-                        }
-                        break;
+                    if (!numericRE.exec(fieldVal)) {
+                        errors.push(newErrObj(fieldObj, 'Field content should be numeric only.'));
+                        return true;
+
                     }
+                    break;
+                }
             }
 
 
@@ -973,7 +973,7 @@
             //var postData = 'specId=' + specId + "&" + 'msgId=' + msgId + "&" + "msg=" + msg;
 
             console.log('postData = ' + postData);
-            doAjaxCall('/iso/v0/send', function(responseText) {
+            doAjaxCall('/iso/v0/send', function (responseText) {
                 //alert(responseText);
                 var responseData = JSON.parse(responseText);
 
@@ -1003,7 +1003,7 @@
 
                 var elems = document.getElementsByClassName('cl_vsmall_btn_view');
                 for (var i = 0; i < elems.length; i++) {
-                    elems[i].addEventListener('click', function(event) {
+                    elems[i].addEventListener('click', function (event) {
 
                         var fieldVal = "";
                         var index = event.target.id.indexOf('_');
@@ -1085,7 +1085,6 @@
         function closeAboutDialog() {
             document.getElementById('idAboutIsoWebSim').style.display = "none";
         }
-
     </script>
 
 
@@ -1097,6 +1096,7 @@
 
     <div id="headerDiv">
         <div class="cl_cursive_heading"> ISO WebSim </div>
+        [<a href="/iso/home">Home</a> | <a href="/iso/v0/server">Manage Servers</a> ]
 
     </div>
 

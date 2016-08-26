@@ -3,7 +3,6 @@ package spec
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/hex"
 	"fmt"
 	"github.com/rkbalgi/go/encoding/ebcdic"
 	"log"
@@ -30,7 +29,7 @@ func Assemble(buf *bytes.Buffer, parsedMsg *ParsedMsg, fieldData *FieldData) {
 			fmtStr.WriteString(strconv.Itoa(fieldInfo.LengthIndicatorSize))
 			fmtStr.WriteString("d")
 
-			log.Print("fmt ", fmtStr.String())
+			//log.Print("fmt ", fmtStr.String())
 			lenStr := fmt.Sprintf(fmtStr.String(), len(fieldData.Data))
 			switch fieldInfo.LengthIndicatorEncoding {
 			case BCD:
@@ -59,10 +58,10 @@ func Assemble(buf *bytes.Buffer, parsedMsg *ParsedMsg, fieldData *FieldData) {
 				}
 			}
 
-			if DebugEnabled {
-				log.Print("Len Str = " + lenStr)
-				log.Print("Length indicator bytes = " + hex.EncodeToString(lenBuf.Bytes()))
-			}
+			//if DebugEnabled {
+			//	log.Print("Len Str = " + lenStr)
+			//	log.Print("Length indicator bytes = " + hex.EncodeToString(lenBuf.Bytes()))
+			//}
 
 			buf.Write(lenBuf.Bytes())
 			buf.Write(fieldData.Data)
