@@ -6,7 +6,16 @@
     <link href="https://fonts.googleapis.com/css?family=Lora" rel="stylesheet">
 
     <link rel="stylesheet" type="text/css" href="isosim_styles.css">
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="bootstrap-dialog.min.css">
+
     <script type="text/javascript" src="jquery-3.1.0.js"></script>
+    <script type="text/javascript" src="bootstrap.min.js"></script>
+
+    <script type="text/javascript" src="bootstrap-dialog.min.js"></script>
+
+
+
     <script type="text/javascript" src="isosim_common.js"></script>
 
 </head>
@@ -101,12 +110,12 @@
 
 
     <br/>
-    <div id="idActiveServersDiv" style="border-style:ridge;display:none; background-color: #dde8e2; position:absolute; float:right; right: 20px; top: 20px;width:440px; height: 90%; z-index:99">
+    <div id="idActiveServersDiv" style="border-style:ridge;display:none; background-color: #dde8e2; position:absolute; float:right; right: 20px; top: 20px;width:445px; height: 90%; z-index:99">
 
-        <div class="cl_field_name" style="width:440px;height:20px; position:relative; float:right;">
-            <div style="background-color:#c9bdbd;height:20px;">
+        <div class="cl_field_name" style="width:440 px;height:20px; position:relative; float:right;">
+            <div style="background-color:#c9bdbd;height:30px;">
                 <span>Active Server Instances</span>
-                <span onclick="closeThis(this)" class="cl_field_name" style="cursor:pointer;float:right;background-color:#c9bdbd;">X [Close]</span>
+                <a href='#' onclick="closeThis(this)" class="btn btn-primary link btn-sm" style="cursor:pointer;float:right;background-color:#c9bdbd;">X</a>
             </div>
         </div>
         <br/>
@@ -114,7 +123,6 @@
         <div class="cl_act_serv_content cl_field_name"></div>
 
     </div>
-
 
 
 
@@ -142,12 +150,12 @@
             $.get('/iso/v0/server/stop?name=' + serverName, function (response) {
 
                 showActiveServers();
-                alert('Server stopped. ');
+                showMsgDialog('Server stopped. ');
 
 
             }, 'text').fail(function () {
 
-                alert('Failed to stop server. ' + this.responseText);
+                showErrorDialog('Failed to stop server. ' + this.responseText);
 
 
             });
@@ -204,7 +212,7 @@
 
                 specMessages = data;
             }).fail(function () {
-                alert('failed to load spec messages!. please check if the server is running..');
+                showErrorDialog('failed to load spec messages!. please check if the server is running..');
             });
         }
 
@@ -220,9 +228,26 @@
             });
         }
 
+        function showMsgDialog(msg) {
+            BootstrapDialog.alert({
+                message: msg,
+                title: 'Information',
+                type: BootstrapDialog.TYPE_INFO
+            });
+        }
+
+        function showErrorDialog(msg) {
+            BootstrapDialog.alert({
+                title: 'Error',
+                message: msg,
+                type: BootstrapDialog.TYPE_WARNING
+            });
+        }
+
         $(document).ready(function () {
 
             //hideAll();
+
 
             //get all specs and add them to the combo
             $.getJSON('http://localhost:8080/iso/v0/specs', function (data) {
@@ -240,12 +265,12 @@
                 $.getJSON('/iso/v0/msgs/' + selectedSpec, function (data) {
                     specMessages = data;
                 }).fail(function () {
-                    alert('failed to load spec messages!. please check if the server is running..');
+                    showErrorDialog('failed to load spec messages!. please check if the server is running..');
                 });
 
 
             }).fail(function () {
-                alert('failed to load specs!. please check if the server is running..');
+                showErrorDialog('failed to load specs!. please check if the server is running..');
             });
 
 
@@ -279,10 +304,9 @@
 
             }, 'text').fail(function () {
 
-                alert('failed to get spec definition - ' + this.responseText);
+                showErrorDialog('failed to get spec definition - ' + this.responseText);
 
             });
-            //alert(serverDefName + " +" + specId);
         }
 
 
@@ -364,17 +388,17 @@
         function startServer() {
 
             if (!loadedServerDef) {
-                alert('Please load a server def.');
+                showErrorDialog('Please load a server definition.');
                 return;
             }
 
             $.post('/iso/v0/server/start?specId=' + $('#idSpecs').val() + '&def=' + loadedServerDef + '&port=' + $('#idServerPort').val(), function (response) {
 
-                alert('Server started.');
+                showMsgDialog('Server started.');
 
             }).fail(function () {
 
-                alert('Failed to start server..');
+                showErrorDialog('Failed to start server.');
             });
 
 
@@ -391,12 +415,12 @@
 
 
             if (!serverName || !serverPort) {
-                alert('Please provide a valid server name and port.');
+                showErrorDialog('Please provide a valid server name and port.');
                 return;
             }
 
             if (!numericRE.exec(serverPort)) {
-                alert('Please provide a valid listen port.');
+                showErrorDialog('Please provide a valid listen port.');
                 return;
             }
 
@@ -466,16 +490,16 @@
             });
 
             if (validationFailed) {
-                alert('Please fix all the errors.');
+                showErrorDialog('Please fix all the errors.');
                 return;
             }
 
             var jqXhr = $.post('/iso/v0/server/defs/save', JSON.stringify(serverDef), function (response) {
-                alert('Server definition saved succesfully.');
+                showMsgDialog('Server definition saved succesfully.');
                 loadedServerDef = response;
 
             }, 'text').fail(function () {
-                alert('Server definition could not be saved. Error = ' + jqXhr.statusText + " Reason: " + jqXhr.responseText);
+                showErrorDialog('Server definition could not be saved. Error = ' + jqXhr.statusText + " Reason: " + jqXhr.responseText);
 
             });
 
@@ -506,9 +530,6 @@
                 id: msgSelectionConditionId
             }, function (event) {
                 var msgId = $('#msgSelectorDiv_' + id).children('select.cl_spec_msg').val();
-                //var msgSelCondId = msgSelectionConditionId;
-                //alert('changed to..' + msgId);
-                //alert('cond =' + msgSelectionConditionId);
                 $('#msgConditionDiv_' + event.data.id).children('select.cl_field_name').html(getFields(msgId));
 
             });
@@ -519,23 +540,18 @@
 
             if (pc) {
 
-                //alert(pc.FieldId + pc.MatchConditionType + pc.FieldValue);
-
-                //alert(pc.FieldId)
                 $('#msgConditionDiv_' + msgSelectionConditionId).children('select.cl_field_name').val(pc.FieldId);
                 $('#msgConditionDiv_' + msgSelectionConditionId).children('select.cl_field_match_condition').val(pc.MatchConditionType);
                 $('#msgConditionDiv_' + msgSelectionConditionId).children('input[name="fieldValue"]').val(pc.FieldValue);
 
                 if (pc.OffFields.length > 0) {
                     pc.OffFields.forEach(function (obj, i) {
-                        //alert(obj.FieldId);
                         setFieldOff(msgSelectionConditionId, obj, fieldsHtml);
                     });
 
                 }
                 if (pc.ValFields.length > 0) {
                     pc.ValFields.forEach(function (obj, i) {
-                        //alert(obj.FieldId, obj.FieldValue);
                         setFieldValue(msgSelectionConditionId, obj.FieldId, obj.FieldValue, fieldsHtml);
                     });
 
@@ -658,7 +674,7 @@
 
             }, 'text').fail(function () {
 
-                alert("Failed to get server definitions. Reason = " + this.statusText + " " + this.responseText);
+                showErrorDialog("Failed to get server definitions. Reason = " + this.statusText + " " + this.responseText);
             });
 
 
