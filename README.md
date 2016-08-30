@@ -1,8 +1,10 @@
 # ISO WebSim
 
+![](../docs/images/home.png)
+
 **Update: 22nd August 2016 - Included ability to define servers (see last bottom image)**
 
-**Update: 30th August 2016 - Moved images to wiki **
+**Update: 30th August 2016 - Moved images to wiki**
 
 Iso Websim is a ISO8583 simulator built using golang (http://golang.org). It provides a simple interface to load ISO specifications. 
 The specifications themselves are defined in text file (more information on developing your own specs can be found in the [this] (./specs/isoSpec.spec?raw=true) file which you can use as a  sample to start with.
