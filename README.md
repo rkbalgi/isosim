@@ -1,6 +1,6 @@
 # ISO WebSim
 
-![](../docs/images/home.png)
+![](https://github.com/rkbalgi/isosim/blob/master/docs/images/home.png)
 
 **Update: 22nd August 2016 - Included ability to define servers (see last bottom image)**
 
