@@ -2,6 +2,8 @@
 
 **Update: 22nd August 2016 - Included ability to define servers (see last bottom image)**
 
+**Update: 30th August 2016 - Moved images to wiki **
+
 Iso Websim is a ISO8583 simulator built using golang (http://golang.org). It provides a simple interface to load ISO specifications. 
 The specifications themselves are defined in text file (more information on developing your own specs can be found in the [this] (./specs/isoSpec.spec?raw=true) file which you can use as a  sample to start with.
 
@@ -36,26 +38,7 @@ C:\go run isosim.go -httpPort 8080 -specDefFile specs\isoSpecs.spec -htmlDir .\h
 
 And now open chrome and hit this URL [http://localhost:8080/iso/home](http://localhost:8080/iso/home)
 
-###Screenshots
-####Main
-![Main](./docs/images/main.png)
-####Loading Template
-![](./docs/images/load_template.png)
-####Parsing Message
-![](./docs/images/parse_message.png)
-####Validating Message
-![](./docs/images/validate_message.png)
-####Sending Message
-![](./docs/images/send_message.png)
-####Save Message
-![](./docs/images/save_message.png)
-####Load Message
-![](./docs/images/load_message.png)
-####Update Message
-![](./docs/images/update_message.png)
+Read more about this on the [wiki](https://github.com/rkbalgi/isosim/wiki)
 
-#### Define Servers (Experimental)
-Define servers with predefined condition to respond to (Example - If amount==10, Then action code=ABC etc)
-![](./docs/images/server-exp0.png)
 
 
