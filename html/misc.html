@@ -1,0 +1,37 @@
+<html>
+
+<head>
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="bootstrap-dialog.min.css">
+
+    <script type="text/javascript" src="jquery-3.1.0.js"></script>
+    <script type="text/javascript" src="bootstrap.min.js"></script>
+    <script type="text/javascript" src="bootstrap-dialog.min.js"></script>
+
+
+
+
+    <head>
+<body>
+<div style="position:fixed;top:20px;left:50px;justify-content: center;">
+    Thales (Simulator) Hsm Port = <input type="text" id="hsmPort">
+    <br/>
+    <div style="justify-content: center;">
+        <button class="btn btn-primary btn-sm" id="idStartHsmBtn" style="padding:10px;">Start</button>
+        <button class="btn btn-warning btn-sm" id="idStopHsmBtn" style="padding:10px;">Stop</button>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+                $(document).ready(function(){
+                $('#idStartHsmBtn').click(function(){
+                  BootstrapDialog.alert('Start has been clicked!');
+                });
+
+                });
+
+                </script>
+
+</body>
+</html>

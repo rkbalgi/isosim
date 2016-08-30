@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"github.com/rkbalgi/isosim/web/http_handlers/isoserv_handlers"
+	"github.com/rkbalgi/isosim/web/http_handlers/misc_handlers"
 )
 
 type IsoHttpHandler struct {
@@ -84,6 +85,7 @@ func setRoutes() {
 	isoserv_handlers.AddAll();
 	saveMsgHandler()
 	loadMsgHandler()
+	misc_handlers.AddMiscHandlers();
 }
 
 func sendError(rw http.ResponseWriter, errorMsg string) {
