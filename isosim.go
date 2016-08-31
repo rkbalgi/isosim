@@ -11,9 +11,10 @@ import (
 	"strconv"
 )
 
-var version = "v0.1"
+var version = "v0.2"
 
 //v0.1 - Initial version
+//v0.2 - ISO server development (08/31/2016)
 
 func main() {
 
@@ -28,7 +29,11 @@ func main() {
 
 	if *isDebugEnabled {
 		spec.DebugEnabled = true
+		log.Print("Debug has been enabled.");
 	}
+
+
+
 
 	if *dataDir == "" {
 		log.Print("Please provide 'dataDir' parameter.")

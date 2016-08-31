@@ -34,11 +34,6 @@ func sendMsgHandler() {
 			return
 		}
 
-		log.Print(req.PostForm)
-		//log.Print("?" + req.PostForm.Get("specId") + "?")
-		///log.Print(req.PostForm.Get("msgId"))
-		//log.Print(strconv.Atoi(req.PostForm.Get("specId")))
-		//log.Print(req.PostForm.Get("msg"))
 
 		sMli := req.PostForm.Get("mli")
 		var mli local_net.MliType
@@ -65,20 +60,17 @@ func sendMsgHandler() {
 		log.Print(hostIpAddr, port)
 
 		if specId, err := strconv.Atoi(req.PostForm.Get("specId")); err == nil {
-			log.Print("Spec Id =" + strconv.Itoa(specId))
 			isoSpec := spec.GetSpec(specId)
 			if isoSpec == nil {
 				sendError(rw, InvalidSpecIdError.Error())
 				return
 			}
-			log.Print("Spec = " + isoSpec.Name)
 			if msgId, err := strconv.Atoi(req.PostForm.Get("msgId")); err == nil {
 				msg := isoSpec.GetMessageById(msgId)
 				if msg == nil {
 					sendError(rw, InvalidMsgIdError.Error())
 					return
 				}
-				log.Print("Spec Msg = " + msg.Name)
 				parsedMsg, err := msg.ParseJSON(req.PostForm.Get("msg"))
 				if err != nil {
 					log.Print(err.Error())
@@ -114,7 +106,6 @@ func sendMsgHandler() {
 				responseMsg, err := msg.Parse(responseData)
 				netClient.Close()
 				fieldDataList := ToJsonList(responseMsg)
-				log.Print("Response List =", fieldDataList)
 				json.NewEncoder(rw).Encode(fieldDataList)
 
 			} else {

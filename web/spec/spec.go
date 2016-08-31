@@ -8,7 +8,7 @@ import (
 )
 
 var specMap map[string]*Spec = make(map[string]*Spec, 10)
-var DebugEnabled bool = true
+var DebugEnabled bool
 
 type Spec struct {
 	Id       int

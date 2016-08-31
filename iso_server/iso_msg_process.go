@@ -74,8 +74,6 @@ func process0(data []byte, pServerDef *ui_data.ServerDef, msgSelConfig ui_data.M
 		case "IntLt":
 
 			{
-				log.Print("Here...")
-
 
 				compareTo, err := strconv.Atoi(pc.FieldValue)
 				if err != nil {

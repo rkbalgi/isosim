@@ -9,7 +9,12 @@ import (
 	"strings"
 )
 
+func init(){
+	DebugEnabled=false;
+}
 func Init(specDefFile string) error {
+
+
 
 	file, err := os.Open(filepath.Join(specDefFile))
 	if err != nil {
