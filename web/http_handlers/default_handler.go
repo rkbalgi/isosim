@@ -60,17 +60,17 @@ func setRoutes() {
 	//for static resources
 	http.HandleFunc("/iso/", func(rw http.ResponseWriter, req *http.Request) {
 
-		pattern := "/iso/"
-		if spec.DebugEnabled {
-			log.Printf("Pattern: %s . Requested URI = %s", pattern, req.RequestURI)
-		}
+		//pattern := "/iso/"
+		//if spec.DebugEnabled {
+		//	log.Printf("Pattern: %s . Requested URI = %s", pattern, req.RequestURI)
+		//}
 
 		if strings.HasSuffix(req.RequestURI, ".css") ||
 			strings.HasSuffix(req.RequestURI, ".js") {
 
 			i := strings.LastIndex(req.RequestURI, "/")
 			fileName := req.RequestURI[i+1 : len(req.RequestURI)]
-			log.Print("Requested File = " + fileName)
+			//log.Print("Requested File = " + fileName)
 			http.ServeFile(rw, req, filepath.Join(spec.HtmlDir, fileName))
 
 		}
