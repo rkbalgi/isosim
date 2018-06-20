@@ -250,7 +250,7 @@
 
 
             //get all specs and add them to the combo
-            $.getJSON('http://localhost:8080/iso/v0/specs', function (data) {
+            $.getJSON('/iso/v0/specs', function (data) {
 
                 $.each(data, function (i, spec) {
                     $('#idSpecs').append('<option value="' + spec.Id + '">' + spec.Name + '</option>');
@@ -578,7 +578,7 @@
 
         function loadSpecMessageFields(msgId, pasync = true) {
             $.get({
-                url: 'http://localhost:8080/iso/v0/template/' + selectedSpec + '/' + msgId,
+                url: '/iso/v0/template/' + selectedSpec + '/' + msgId,
                 success: function (response) {
                     var data = JSON.parse(response);
                     var fieldList = [];

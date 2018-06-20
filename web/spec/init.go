@@ -9,16 +9,17 @@ import (
 	"strings"
 )
 
-func init(){
-	DebugEnabled=false;
+func init() {
+	DebugEnabled = false
 }
+
+/*Init initializes the spec defined in the file specDefFile
+ */
 func Init(specDefFile string) error {
-
-
 
 	file, err := os.Open(filepath.Join(specDefFile))
 	if err != nil {
-		errors.New("Initialization error. Unable to open specDefFile - " + err.Error())
+		err = errors.New("Initialization error. Unable to open specDefFile - " + err.Error())
 		return err
 	}
 	reader := bufio.NewReader(file)

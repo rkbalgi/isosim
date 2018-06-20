@@ -3,15 +3,18 @@ package http_handlers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/rkbalgi/isosim/web/spec"
 	"log"
 	"net"
 	"net/http"
 	"strconv"
+
+	"github.com/rkbalgi/isosim/web/spec"
 )
 
 import (
 	"encoding/hex"
+	"fmt"
+
 	local_net "github.com/rkbalgi/go/net"
 )
 
@@ -33,7 +36,6 @@ func sendMsgHandler() {
 			sendError(rw, err.Error())
 			return
 		}
-
 
 		sMli := req.PostForm.Get("mli")
 		var mli local_net.MliType
@@ -57,7 +59,7 @@ func sendMsgHandler() {
 
 		}
 
-		log.Print(hostIpAddr, port)
+		log.Print(fmt.Sprintf("Target Iso Server Address -  %s:%d", hostIpAddr, port))
 
 		if specId, err := strconv.Atoi(req.PostForm.Get("specId")); err == nil {
 			isoSpec := spec.GetSpec(specId)
@@ -84,7 +86,7 @@ func sendMsgHandler() {
 				netClient := local_net.NewNetCatClient(hostIpAddr.String()+":"+req.PostForm.Get("port"), mli)
 				log.Print("connecting to -"+hostIpAddr.String()+":", port)
 
-				log.Print("assembled request msg = " + hex.EncodeToString(msgData), "MliType = "+mli)
+				log.Print("assembled request msg = "+hex.EncodeToString(msgData), "MliType = "+mli)
 				if err := netClient.OpenConnection(); err != nil {
 					sendError(rw, "failed to connect -"+err.Error())
 					return

@@ -2,13 +2,14 @@ package main
 
 import (
 	"flag"
-	"github.com/rkbalgi/isosim/data"
-	"github.com/rkbalgi/isosim/web/http_handlers"
-	"github.com/rkbalgi/isosim/web/spec"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
+
+	"github.com/rkbalgi/isosim/data"
+	"github.com/rkbalgi/isosim/web/http_handlers"
+	"github.com/rkbalgi/isosim/web/spec"
 )
 
 var version = "v0.2"
@@ -29,11 +30,8 @@ func main() {
 
 	if *isDebugEnabled {
 		spec.DebugEnabled = true
-		log.Print("Debug has been enabled.");
+		log.Print("Debug has been enabled.")
 	}
-
-
-
 
 	if *dataDir == "" {
 		log.Print("Please provide 'dataDir' parameter.")

@@ -1,18 +1,19 @@
 package data
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
-	"github.com/rkbalgi/isosim/web/spec"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
-	"sync"
-	"encoding/json"
-	"bytes"
-	"github.com/rkbalgi/isosim/web/ui_data"
 	"strconv"
 	"strings"
+	"sync"
+
+	"github.com/rkbalgi/isosim/web/spec"
+	"github.com/rkbalgi/isosim/web/ui_data"
 )
 
 type dataSetManager struct{}
@@ -49,7 +50,7 @@ func checkIfExists(specId string, msgId string, name string) (bool, error) {
 
 	dir, err := os.Open(filepath.Join(dataDir, specId, msgId))
 	if err != nil && os.IsNotExist(err) {
-		err = os.MkdirAll(filepath.Join(dataDir, specId, msgId), os.ModeDir)
+		err = os.MkdirAll(filepath.Join(dataDir, specId, msgId), 0755)
 		if err != nil {
 			return false, err
 		}
@@ -133,87 +134,83 @@ func (dsm *dataSetManager) Add(specId string, msgId string, name string, data st
 		return DataSetExistsError
 	}
 
-	err = ioutil.WriteFile(filepath.Join(dataDir, specId, msgId, name), []byte(data), os.FileMode(os.O_CREATE))
+	err = ioutil.WriteFile(filepath.Join(dataDir, specId, msgId, name), []byte(data), 0755)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (dsm *dataSetManager) AddServerDef(defString string) (string,error) {
+func (dsm *dataSetManager) AddServerDef(defString string) (string, error) {
 
 	if spec.DebugEnabled {
-		log.Print("Adding server definition - .. JSON = "+defString);
+		log.Print("Adding server definition - .. JSON = " + defString)
 	}
 
-	serverDef:=&ui_data.ServerDef{};
-	err:=json.NewDecoder(bytes.NewBufferString(defString)).Decode(serverDef);
-	if(err!=nil){
-		return "",err;
-	}
-
-
-	strSpecId:=strconv.Itoa(serverDef.SpecId);
-	dir,err:=os.Open(filepath.Join(dataDir,strSpecId));
-	if err!=nil && os.IsNotExist(err){
-		//create dir if one doesn't exist
-		os.Mkdir(filepath.Join(dataDir,strSpecId),os.ModeDir)
-	}else{
-		if err!=nil{
-			return "", err;
-		}
-	}
-	dir.Close();
-
-	fileName:=serverDef.ServerName;
-	fileName=strings.Replace(fileName," ","",-1);
-	fileName=strings.Replace(fileName,",","",-1);
-	fileName=fileName+".srvdef.json";
-
-	log.Print("Writing spec def to file = "+fileName);
-
-	defFile,err:=os.Open(filepath.Join(dataDir,strSpecId,fileName));
-	if err==nil{
-		return "",errors.New("Def file exists. Please use a different name.");
-	}
-	defFile.Close();
-
-	err = ioutil.WriteFile(filepath.Join(dataDir, strSpecId,fileName), []byte(defString), os.FileMode(os.O_CREATE))
+	serverDef := &ui_data.ServerDef{}
+	err := json.NewDecoder(bytes.NewBufferString(defString)).Decode(serverDef)
 	if err != nil {
-		return "",err
+		return "", err
 	}
-	return fileName,nil
+
+	strSpecId := strconv.Itoa(serverDef.SpecId)
+	dir, err := os.Open(filepath.Join(dataDir, strSpecId))
+	if err != nil && os.IsNotExist(err) {
+		//create dir if one doesn't exist
+		os.Mkdir(filepath.Join(dataDir, strSpecId), 0755)
+	} else {
+		if err != nil {
+			return "", err
+		}
+	}
+	dir.Close()
+
+	fileName := serverDef.ServerName
+	fileName = strings.Replace(fileName, " ", "", -1)
+	fileName = strings.Replace(fileName, ",", "", -1)
+	fileName = fileName + ".srvdef.json"
+
+	log.Print("Writing spec def to file = " + fileName)
+
+	defFile, err := os.Open(filepath.Join(dataDir, strSpecId, fileName))
+	if err == nil {
+		return "", errors.New("server-def file exists")
+	}
+	defFile.Close()
+
+	err = ioutil.WriteFile(filepath.Join(dataDir, strSpecId, fileName), []byte(defString), 0755)
+	if err != nil {
+		return "", err
+	}
+	return fileName, nil
 }
 
-func (dm *dataSetManager) GetServerDefs(specId string) ([]string,error){
+func (dm *dataSetManager) GetServerDefs(specId string) ([]string, error) {
 
-	dir,err:=os.Open(filepath.Join(dataDir,specId));
-	if err!=nil{
-		return nil,err;
+	dir, err := os.Open(filepath.Join(dataDir, specId))
+	if err != nil {
+		return nil, err
 	}
-	fi,err:=dir.Readdir(-1);
-	res:=make([]string,0,2);
-	for _,fi:=range(fi){
-		if strings.HasSuffix(fi.Name(),".srvdef.json"){
-			res=append(res,fi.Name());
+	fi, err := dir.Readdir(-1)
+	res := make([]string, 0, 2)
+	for _, fi := range fi {
+		if strings.HasSuffix(fi.Name(), ".srvdef.json") {
+			res = append(res, fi.Name())
 		}
 	}
 
-	return res,nil;
-
+	return res, nil
 
 }
 
+func (dm *dataSetManager) GetServerDef(specId string, name string) ([]byte, error) {
 
-func (dm *dataSetManager) GetServerDef(specId string,name string) ([]byte,error){
-
-	file,err:=os.Open(filepath.Join(dataDir,specId,name));
-	if err!=nil{
-		return nil,err;
+	file, err := os.Open(filepath.Join(dataDir, specId, name))
+	if err != nil {
+		return nil, err
 	}
-	data,err:=ioutil.ReadAll(file);
-	return data,err;
-
+	data, err := ioutil.ReadAll(file)
+	return data, err
 
 }
 
@@ -223,11 +220,9 @@ func (dsm *dataSetManager) Update(specId string, msgId string, name string, data
 		log.Print("Updating data set - " + name + " data = " + data)
 	}
 
-	err := ioutil.WriteFile(filepath.Join(dataDir, specId, msgId, name), []byte(data), os.FileMode(os.O_TRUNC))
+	err := ioutil.WriteFile(filepath.Join(dataDir, specId, msgId, name), []byte(data), 0755)
 	if err != nil {
 		return err
 	}
 	return nil
 }
-
-

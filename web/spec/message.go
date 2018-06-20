@@ -36,7 +36,7 @@ func (msg *Message) AddField(fieldName string, fieldInfo *FieldInfo) {
 
 func (msg *Message) GetFieldById(id int) *Field {
 
-  return msg.fieldByIdMap[id]
+	return msg.fieldByIdMap[id]
 }
 
 func (msg *Message) GetField(fieldName string) *Field {
@@ -57,6 +57,7 @@ func (msg *Message) Fields() []*Field {
 	return msg.fields
 }
 
+//Error to represent a condition where data remain post parsing
 var UnreadDataRemainingError = errors.New("Unprocessed data remaining")
 
 func (msg *Message) Parse(msgData []byte) (*ParsedMsg, error) {

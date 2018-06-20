@@ -1,11 +1,12 @@
 package http_handlers
 
 import (
-	"github.com/rkbalgi/isosim/data"
-	"github.com/rkbalgi/isosim/web/spec"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/rkbalgi/isosim/data"
+	"github.com/rkbalgi/isosim/web/spec"
 )
 
 func saveMsgHandler() {
