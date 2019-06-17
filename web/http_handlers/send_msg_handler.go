@@ -40,9 +40,9 @@ func sendMsgHandler() {
 		sMli := req.PostForm.Get("mli")
 		var mli local_net.MliType
 		if sMli == "2I" {
-			mli = local_net.MLI_2I
+			mli = local_net.Mli2i
 		} else if sMli == "2E" {
-			mli = local_net.MLI_2E
+			mli = local_net.Mli2e
 		}
 
 		var host = req.PostForm.Get("host")

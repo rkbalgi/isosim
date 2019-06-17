@@ -100,9 +100,9 @@ func AddMiscHandlers() {
 			return
 		}
 
-		mli := net.MLI_2I
+		mli := net.Mli2i
 		if pMli == "2E" {
-			mli = net.MLI_2E
+			mli = net.Mli2e
 		}
 
 		client := net.NewNetCatClient(pHost+":"+pPort, mli)
