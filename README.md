@@ -2,7 +2,9 @@
 
 **Update: 22nd August 2016 - Included ability to define servers (see last bottom image)**  
 **Update: 30th August 2016 - Moved images to wiki**
-**Update: 17th June 2019 - Now run isosim on [docker](https://github.com/rkbalgi/isosim/wiki/Running-on-Docker)! -  **
+**Update: 17th June 2019 -   Now run isosim on Docker**
+
+Docker Info - https://github.com/rkbalgi/isosim/wiki/Running-on-Docker
 
 
 Iso Websim is a ISO8583 simulator built using golang (http://golang.org). It provides a simple interface to load ISO specifications. 
