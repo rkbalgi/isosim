@@ -18,16 +18,16 @@ func startServerHandler() {
 		}
 
 		req.ParseForm()
-		specId,def,port := req.Form.Get("specId"),req.Form.Get("def"),req.Form.Get("port")
+		specId, def, port := req.Form.Get("specId"), req.Form.Get("def"), req.Form.Get("port")
 		matched, _ := regexp.MatchString("^[0-9]+$", port)
 		if len(port) == 0 || !matched {
-			sendError(rw, "Invalid Port - " + port)
+			sendError(rw, "Invalid Port - "+port)
 			return
 
 		}
 
 		port_, _ := strconv.Atoi(port)
-		err := iso_server.StartIsoServer(specId,def,port_)
+		err := iso_server.StartIsoServer(specId, def, port_)
 		if err != nil {
 			sendError(rw, err.Error())
 			return

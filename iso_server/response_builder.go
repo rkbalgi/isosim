@@ -6,11 +6,9 @@ import (
 	"log"
 )
 
-func buildResponse(iso *spec.Iso,pc *ui_data.ProcessingCondition){
+func buildResponse(iso *spec.Iso, pc *ui_data.ProcessingCondition) {
 
-
-
-	parsedMsg:=iso.ParsedMsg();
+	parsedMsg := iso.ParsedMsg()
 
 	for _, offId := range pc.OffFields {
 		offField := parsedMsg.Msg.GetFieldById(offId)
@@ -24,31 +22,30 @@ func buildResponse(iso *spec.Iso,pc *ui_data.ProcessingCondition){
 
 		} else {
 			///not a bitmapped field
-			parsedMsg.FieldDataMap[offId].Data=nil;
+			parsedMsg.FieldDataMap[offId].Data = nil
 
 		}
 	}
 
 	for _, vf := range pc.ValFields {
 
-		field:=parsedMsg.Msg.GetFieldById(vf.FieldId)
-		fieldData:=parsedMsg.GetById(vf.FieldId);
+		field := parsedMsg.Msg.GetFieldById(vf.FieldId)
+		fieldData := parsedMsg.GetById(vf.FieldId)
 		log.Print("Setting field value ..", field.Name, " to ", vf.FieldValue)
 
 		if field.Position > 0 {
 			if field.ParentId > 0 {
 				pFieldData := parsedMsg.FieldDataMap[field.ParentId]
 				if pFieldData.Bitmap != nil {
-					pFieldData.Bitmap.Set(field.Position,vf.FieldValue)
+					pFieldData.Bitmap.Set(field.Position, vf.FieldValue)
 				}
 			}
 
-		}else{
+		} else {
 
-			fieldData.Set(vf.FieldValue);
+			fieldData.Set(vf.FieldValue)
 		}
 
 	}
-
 
 }

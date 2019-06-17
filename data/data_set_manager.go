@@ -26,7 +26,7 @@ func Init(dirname string) error {
 	if err != nil {
 		return err
 	}
-	dir.Close()
+	_ = dir.Close()
 	dataDir = dirname
 	return nil
 }
@@ -41,7 +41,7 @@ func DataSetManager() *dataSetManager {
 	return instance
 }
 
-var DataSetExistsError = errors.New("Data Set Exists.")
+var ErrDataSetExists = errors.New("data set exists")
 
 func checkIfExists(specId string, msgId string, name string) (bool, error) {
 
@@ -131,7 +131,7 @@ func (dsm *dataSetManager) Add(specId string, msgId string, name string, data st
 		return err
 	}
 	if exists {
-		return DataSetExistsError
+		return ErrDataSetExists
 	}
 
 	err = ioutil.WriteFile(filepath.Join(dataDir, specId, msgId, name), []byte(data), 0755)
@@ -185,7 +185,7 @@ func (dsm *dataSetManager) AddServerDef(defString string) (string, error) {
 	return fileName, nil
 }
 
-func (dm *dataSetManager) GetServerDefs(specId string) ([]string, error) {
+func (dsm *dataSetManager) GetServerDefs(specId string) ([]string, error) {
 
 	dir, err := os.Open(filepath.Join(dataDir, specId))
 	if err != nil {
@@ -203,7 +203,7 @@ func (dm *dataSetManager) GetServerDefs(specId string) ([]string, error) {
 
 }
 
-func (dm *dataSetManager) GetServerDef(specId string, name string) ([]byte, error) {
+func (dsm *dataSetManager) GetServerDef(specId string, name string) ([]byte, error) {
 
 	file, err := os.Open(filepath.Join(dataDir, specId, name))
 	if err != nil {

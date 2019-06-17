@@ -18,12 +18,12 @@ func stopServerHandler() {
 		req.ParseForm()
 		name := req.Form.Get("name")
 
-		if name=="" {
-			sendError(rw, "Invalid Server Name - " + name)
+		if name == "" {
+			sendError(rw, "Invalid Server Name - "+name)
 			return
 
 		}
-                err := iso_server.Stop(name)
+		err := iso_server.Stop(name)
 		if err != nil {
 			sendError(rw, err.Error())
 			return

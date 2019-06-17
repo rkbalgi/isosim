@@ -72,7 +72,7 @@ func loadMsgHandler() {
 					return
 				}
 				log.Print("Data sets = ", ds)
-				json.NewEncoder(rw).Encode(ds)
+				_ = json.NewEncoder(rw).Encode(ds)
 
 			} else {
 				sendError(rw, InvalidMsgIdError.Error())

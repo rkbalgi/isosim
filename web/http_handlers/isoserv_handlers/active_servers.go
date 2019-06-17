@@ -1,16 +1,16 @@
 package isoserv_handlers
 
 import (
-	"net/http"
 	"github.com/rkbalgi/isosim/iso_server"
+	"net/http"
 )
 
-func addGetActiveServersHandler(){
+func addGetActiveServersHandler() {
 
-	http.HandleFunc("/iso/v0/server/active",func(rw http.ResponseWriter,req *http.Request){
+	http.HandleFunc("/iso/v0/server/active", func(rw http.ResponseWriter, req *http.Request) {
 
-		data:=iso_server.GetActiveServers();
-		rw.Write([]byte(data));
+		data := iso_server.GetActiveServers()
+		_, _ = rw.Write([]byte(data))
 
 	})
 }

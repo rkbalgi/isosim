@@ -24,7 +24,7 @@ func addIsoServerSaveDefHandler() {
 			sendError(rw, "Failed.  = "+err.Error())
 			return
 		}
-		rw.Write([]byte(serverDef))
+		_, _ = rw.Write([]byte(serverDef))
 
 	})
 }

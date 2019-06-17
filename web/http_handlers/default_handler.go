@@ -2,14 +2,14 @@ package http_handlers
 
 import (
 	"errors"
+	"github.com/rkbalgi/isosim/web/http_handlers/isoserv_handlers"
+	"github.com/rkbalgi/isosim/web/http_handlers/misc_handlers"
 	"github.com/rkbalgi/isosim/web/spec"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
-	"github.com/rkbalgi/isosim/web/http_handlers/isoserv_handlers"
-	"github.com/rkbalgi/isosim/web/http_handlers/misc_handlers"
 )
 
 type IsoHttpHandler struct {
@@ -60,11 +60,6 @@ func setRoutes() {
 	//for static resources
 	http.HandleFunc("/iso/", func(rw http.ResponseWriter, req *http.Request) {
 
-		//pattern := "/iso/"
-		//if spec.DebugEnabled {
-		//	log.Printf("Pattern: %s . Requested URI = %s", pattern, req.RequestURI)
-		//}
-
 		if strings.HasSuffix(req.RequestURI, ".css") ||
 			strings.HasSuffix(req.RequestURI, ".js") {
 
@@ -82,10 +77,10 @@ func setRoutes() {
 	getMessageTemplateHandler()
 	parseTraceHandler()
 	sendMsgHandler()
-	isoserv_handlers.AddAll();
+	isoserv_handlers.AddAll()
 	saveMsgHandler()
 	loadMsgHandler()
-	misc_handlers.AddMiscHandlers();
+	misc_handlers.AddMiscHandlers()
 }
 
 func sendError(rw http.ResponseWriter, errorMsg string) {
@@ -93,6 +88,6 @@ func sendError(rw http.ResponseWriter, errorMsg string) {
 		log.Print("Sending error = " + errorMsg)
 	}
 	rw.WriteHeader(http.StatusBadRequest)
-	rw.Write([]byte(errorMsg))
+	_, _ = rw.Write([]byte(errorMsg))
 
 }

@@ -30,8 +30,8 @@ func (iso *Iso) Bitmap() *Bitmap {
 
 }
 
-func (iso *Iso) ParsedMsg() *ParsedMsg{
-	return iso.parsedMsg;
+func (iso *Iso) ParsedMsg() *ParsedMsg {
+	return iso.parsedMsg
 }
 func (iso *Iso) Assemble() []byte {
 

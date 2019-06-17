@@ -10,8 +10,9 @@ import (
 	"strings"
 )
 
-var NoMessageSelectedError = errors.New("No message selected.")
-var NoProcessingConditionMatchError = errors.New("No processing conditions matched.")
+//ErrNoMessageSelected is a error which implies that a message wasn't selected in the  UI
+var ErrNoMessageSelected = errors.New("isosim: no message selected")
+var ErrNoProcessingConditionMatch = errors.New("isosim: no processing conditions matched")
 
 func process0(data []byte, pServerDef *ui_data.ServerDef, msgSelConfig ui_data.MsgSelectionConfig) ([]byte, bool, error) {
 
@@ -45,7 +46,7 @@ func process0(data []byte, pServerDef *ui_data.ServerDef, msgSelConfig ui_data.M
 			{
 
 				if spec.DebugEnabled {
-					log.Print("[",pc.MatchConditionType + "] Processing condition matched.")
+					log.Print("[", pc.MatchConditionType+"] Processing condition matched.")
 				}
 				//set the response fields
 				buildResponse(iso, &pc)
@@ -58,7 +59,7 @@ func process0(data []byte, pServerDef *ui_data.ServerDef, msgSelConfig ui_data.M
 
 				if fieldData.Value() == pc.FieldValue {
 					if spec.DebugEnabled {
-						log.Print("[",pc.MatchConditionType + "] Processing condition matched.")
+						log.Print("[", pc.MatchConditionType+"] Processing condition matched.")
 					}
 					//set the response fields
 					buildResponse(iso, &pc)
@@ -68,9 +69,9 @@ func process0(data []byte, pServerDef *ui_data.ServerDef, msgSelConfig ui_data.M
 			}
 
 		case "IntEquals":
-			fallthrough;
+			fallthrough
 		case "IntGt":
-			fallthrough;
+			fallthrough
 		case "IntLt":
 
 			{
@@ -122,7 +123,7 @@ func process0(data []byte, pServerDef *ui_data.ServerDef, msgSelConfig ui_data.M
 
 	}
 
-	return nil, false, NoProcessingConditionMatchError
+	return nil, false, ErrNoProcessingConditionMatch
 
 }
 
@@ -148,6 +149,6 @@ func processMsg(data []byte, pServerDef *ui_data.ServerDef) ([]byte, error) {
 
 	}
 
-	return nil, NoMessageSelectedError
+	return nil, ErrNoMessageSelected
 
 }

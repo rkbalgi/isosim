@@ -1,4 +1,4 @@
-package isoserv_handlers;
+package isoserv_handlers
 
 import (
 	"github.com/rkbalgi/isosim/web/spec"
@@ -7,15 +7,14 @@ import (
 	"path/filepath"
 )
 
+func AddAll() {
 
-func AddAll(){
-
-	addIsoServerHandlers();
-	addIsoServerSaveDefHandler();
-	fetchDefHandler();
-	startServerHandler();
-	addGetActiveServersHandler();
-	stopServerHandler();
+	addIsoServerHandlers()
+	addIsoServerSaveDefHandler()
+	fetchDefHandler()
+	startServerHandler()
+	addGetActiveServersHandler()
+	stopServerHandler()
 
 }
 
@@ -37,7 +36,6 @@ func addIsoServerHandlers() {
 
 	})
 
-
 }
 
 func sendError(rw http.ResponseWriter, errorMsg string) {
@@ -45,6 +43,6 @@ func sendError(rw http.ResponseWriter, errorMsg string) {
 		log.Print("Sending error = " + errorMsg)
 	}
 	rw.WriteHeader(http.StatusBadRequest)
-	rw.Write([]byte(errorMsg))
+	_, _ = rw.Write([]byte(errorMsg))
 
 }

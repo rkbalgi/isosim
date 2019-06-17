@@ -16,8 +16,8 @@ import (
 var thalesHsm *hsm.ThalesHsm
 var lock sync.Mutex
 
-func init(){
-	thalesHsm=nil;
+func init() {
+	thalesHsm = nil
 
 }
 
@@ -32,12 +32,11 @@ func AddMiscHandlers() {
 	//for starting a hsm instance
 	http.HandleFunc("/iso/misc/thales/start", func(rw http.ResponseWriter, req *http.Request) {
 
-
 		lock.Lock()
-		defer lock.Unlock();
-		if thalesHsm!=nil{
-			sendError(rw,"HSM already running. Please stop before trying again.")
-			return;
+		defer lock.Unlock()
+		if thalesHsm != nil {
+			sendError(rw, "HSM already running. Please stop before trying again.")
+			return
 		}
 
 		req.ParseForm()
@@ -59,8 +58,8 @@ func AddMiscHandlers() {
 	//for stopping a hsm instance
 	http.HandleFunc("/iso/misc/thales/stop", func(rw http.ResponseWriter, req *http.Request) {
 
-		lock.Lock();
-		defer lock.Unlock();
+		lock.Lock()
+		defer lock.Unlock()
 
 		if thalesHsm == nil {
 			rw.WriteHeader(500)
@@ -91,8 +90,8 @@ func AddMiscHandlers() {
 			return
 		}
 
-		if spec.DebugEnabled{
-			log.Print("[sendraw] params = ",pHost+":"+pPort," mli= ",pMli," data = ",pData);
+		if spec.DebugEnabled {
+			log.Print("[sendraw] params = ", pHost+":"+pPort, " mli= ", pMli, " data = ", pData)
 		}
 
 		data, err := hex.DecodeString(pData)
@@ -107,13 +106,12 @@ func AddMiscHandlers() {
 		}
 
 		client := net.NewNetCatClient(pHost+":"+pPort, mli)
-		err=client.OpenConnection();
+		err = client.OpenConnection()
 
-		if(err!=nil){
-			sendError(rw,"Failed to open connection to target. "+err.Error())
-			return;
+		if err != nil {
+			sendError(rw, "Failed to open connection to target. "+err.Error())
+			return
 		}
-
 
 		client.Write(data)
 		response, err := client.ReadNextPacket()

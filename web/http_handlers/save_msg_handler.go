@@ -55,7 +55,7 @@ func saveMsgHandler() {
 						req.PostForm.Get("dataSetName"), req.PostForm.Get("msg"))
 				}
 				if err != nil {
-					if err == data.DataSetExistsError {
+					if err == data.ErrDataSetExists {
 						sendError(rw, "Data set exists. Please choose a different name.")
 						return
 					}

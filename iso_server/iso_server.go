@@ -4,90 +4,85 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/hex"
+	"encoding/json"
+	"errors"
+	"github.com/rkbalgi/isosim/web/ui_data"
 	"io"
 	"log"
 	"net"
 	"strconv"
 	"sync"
-	"github.com/rkbalgi/isosim/web/ui_data"
-	"encoding/json"
-	"errors"
 )
-
 
 //The list of servers that are currently running
 var activeServers map[string]*serverInstance
+
 //The lock to protect concurrent access to activeServers map
 var activeServersLock sync.Mutex
-type serverInstance struct{
-	name string
-	port int
-	listener net.Listener
 
+type serverInstance struct {
+	name     string
+	port     int
+	listener net.Listener
 }
-func init(){
-	activeServers=make(map[string]*serverInstance);
-	activeServersLock=sync.Mutex{};
+
+func init() {
+	activeServers = make(map[string]*serverInstance)
+	activeServersLock = sync.Mutex{}
 
 }
 
 type activeServer struct {
-
-  Name string
-  Port int
+	Name string
+	Port int
 }
 
 //Returns a list of running servers along with listener port info
 //To be used while displaying information o UI
-func GetActiveServers() (string){
+func GetActiveServers() string {
 
-	if len(activeServers)==0{
-		return "{\"msg\": \"No server instances running.\"}";
+	if len(activeServers) == 0 {
+		return "{\"msg\": \"No server instances running.\"}"
 	}
-	result:=make([]activeServer,0,len(activeServers));
-	for _,si:=range(activeServers){
-		result=append(result,activeServer{si.name,si.port})
+	result := make([]activeServer, 0, len(activeServers))
+	for _, si := range activeServers {
+		result = append(result, activeServer{si.name, si.port})
 	}
-	jsonRep:=bytes.NewBufferString("");
-	json.NewEncoder(jsonRep).Encode(result);
-	return jsonRep.String();
-
-}
-
-
-
-//Adds a server to the list of active servers
-func addServer(serverName string, port int,listener net.Listener){
-
-	activeServersLock.Lock();
-	defer activeServersLock.Unlock();
-	activeServers[serverName+strconv.Itoa(port)]=&serverInstance{serverName,
-		port,listener};
+	jsonRep := bytes.NewBufferString("")
+	json.NewEncoder(jsonRep).Encode(result)
+	return jsonRep.String()
 
 }
 
 //Adds a server to the list of active servers
-func Stop(serverName string) error{
+func addServer(serverName string, port int, listener net.Listener) {
 
-	activeServersLock.Lock();
-	defer activeServersLock.Unlock();
+	activeServersLock.Lock()
+	defer activeServersLock.Unlock()
+	activeServers[serverName+strconv.Itoa(port)] = &serverInstance{serverName,
+		port, listener}
+
+}
+
+//Adds a server to the list of active servers
+func Stop(serverName string) error {
+
+	activeServersLock.Lock()
+	defer activeServersLock.Unlock()
 	var si *serverInstance
-	var  ok bool;
-	if si,ok=activeServers[serverName]; !ok{
-		return errors.New("No such server running ..- "+serverName);
+	var ok bool
+	if si, ok = activeServers[serverName]; !ok {
+		return errors.New("No such server running ..- " + serverName)
 	}
-	err:=si.listener.Close();
-	if err==nil{
-		delete(activeServers,serverName);
+	err := si.listener.Close()
+	if err == nil {
+		delete(activeServers, serverName)
 	}
-	return err;
+	return err
 
 }
 
-
-
-
-func StartIsoServer(specId string, serverDefName string,port int) error {
+func StartIsoServer(specId string, serverDefName string, port int) error {
 
 	retVal := make(chan error)
 
@@ -100,15 +95,13 @@ func StartIsoServer(specId string, serverDefName string,port int) error {
 			return
 		}
 
-
-		addServer(serverDefName,port,listener);
-		vServerDef,err:=getDef(specId,serverDefName);
+		addServer(serverDefName, port, listener)
+		vServerDef, err := getDef(specId, serverDefName)
 
 		//if err != nil {
-			retVal <- err
+		retVal <- err
 		//	return
 		//}
-
 
 		for {
 			connection, err := listener.Accept()
@@ -117,18 +110,17 @@ func StartIsoServer(specId string, serverDefName string,port int) error {
 				return
 			}
 
-			go handleConnection(connection,vServerDef)
+			go handleConnection(connection, vServerDef)
 		}
 	}()
 
 	select {
 	case errVal := <-retVal:
 		{
-			if errVal!=nil{
+			if errVal != nil {
 				log.Print("Error on server. Error =  ", errVal.Error())
 				return errVal
 			}
-
 
 		}
 	}
@@ -146,7 +138,7 @@ func CloseOnError(connection net.Conn, err error) {
 
 }
 
-func handleConnection(connection net.Conn,pServerDef *ui_data.ServerDef) {
+func handleConnection(connection net.Conn, pServerDef *ui_data.ServerDef) {
 
 	buf := new(bytes.Buffer)
 	mli := make([]byte, 2)
@@ -169,10 +161,10 @@ func handleConnection(connection net.Conn,pServerDef *ui_data.ServerDef) {
 		if n == 2 {
 
 			var msgLen uint16
-			binary.Read(bytes.NewBuffer(mli), binary.BigEndian, &msgLen)
+			_ = binary.Read(bytes.NewBuffer(mli), binary.BigEndian, &msgLen)
 
-			if pServerDef.MliType=="2I"{
-				msgLen-=2;
+			if pServerDef.MliType == "2I" {
+				msgLen -= 2
 			}
 
 			complete := false
@@ -195,7 +187,7 @@ func handleConnection(connection net.Conn,pServerDef *ui_data.ServerDef) {
 						var msgData = make([]byte, msgLen)
 						copy(msgData, buf.Bytes())
 
-						go handleRequest(connection, msgData,pServerDef)
+						go handleRequest(connection, msgData, pServerDef)
 
 					}
 				}
@@ -208,21 +200,20 @@ func handleConnection(connection net.Conn,pServerDef *ui_data.ServerDef) {
 
 }
 
-func handleRequest(connection net.Conn, msgData []byte,pServerDef *ui_data.ServerDef) {
+func handleRequest(connection net.Conn, msgData []byte, pServerDef *ui_data.ServerDef) {
 
-	responseData,err:=processMsg(msgData,pServerDef);
+	responseData, err := processMsg(msgData, pServerDef)
 	if err != nil {
 		log.Print("Failed to process message . Error = " + err.Error())
 		return
 	}
-	var respLen uint16 = 0;
+	var respLen uint16 = 0
 
-	if pServerDef.MliType=="2I"{
-		respLen=2 + uint16(len(responseData));
-	}else{
-		respLen=uint16(len(responseData))
+	if pServerDef.MliType == "2I" {
+		respLen = 2 + uint16(len(responseData))
+	} else {
+		respLen = uint16(len(responseData))
 	}
-
 
 	buf := new(bytes.Buffer)
 	err = binary.Write(buf, binary.BigEndian, respLen)
@@ -232,7 +223,6 @@ func handleRequest(connection net.Conn, msgData []byte,pServerDef *ui_data.Serve
 	}
 	buf.Write(responseData)
 	log.Print("Writing Response. Data = " + hex.EncodeToString(buf.Bytes()))
-	connection.Write(buf.Bytes())
-
+	_, _ = connection.Write(buf.Bytes())
 
 }

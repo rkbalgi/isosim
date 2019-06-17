@@ -18,11 +18,11 @@ import (
 	local_net "github.com/rkbalgi/go/net"
 )
 
-var InvalidSpecIdError = errors.New("Invalid spec id")
-var InvalidMsgIdError = errors.New("Invalid msg id")
-var ParseError = errors.New("Parse Error")
+var InvalidSpecIdError = errors.New("invalid spec id")
+var InvalidMsgIdError = errors.New("invalid msg id")
+var ParseError = errors.New("parse error")
 
-var InvalidHostOrPortError = errors.New("Invalid Host or Port")
+var InvalidHostOrPortError = errors.New("invalid host or port")
 
 func sendMsgHandler() {
 
