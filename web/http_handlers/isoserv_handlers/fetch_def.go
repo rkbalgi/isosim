@@ -2,10 +2,13 @@ package isoserv_handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/rkbalgi/isosim/data"
 	"github.com/rkbalgi/isosim/web/spec"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
 )
 
 //This function will register a handler that will save incoming server definitions into a file
@@ -26,10 +29,20 @@ func fetchDefHandler() {
 			log.Print("Server Defs = ", len(serverDefs), serverDefs)
 		}
 		if err != nil {
+			if pe, ok := err.(*os.PathError); ok {
+				fmt.Println(pe.Op, pe.Path, pe.Err)
+				specId, err2 := strconv.Atoi(strSpecId)
+				if sp := spec.GetSpec(specId); err2 == nil && sp != nil {
+					sendError(rw, "No definitions for spec - "+sp.Name)
+				} else {
+					sendError(rw, "No such spec (specId) - "+strSpecId)
+				}
+				return
+			}
 			sendError(rw, err.Error())
 			return
 		}
-		json.NewEncoder(rw).Encode(serverDefs)
+		_ = json.NewEncoder(rw).Encode(serverDefs)
 
 	})
 
