@@ -2,7 +2,6 @@ package isoserv_handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/rkbalgi/isosim/data"
 	"github.com/rkbalgi/isosim/web/spec"
 	"log"
@@ -29,8 +28,7 @@ func fetchDefHandler() {
 			log.Print("Server Defs = ", len(serverDefs), serverDefs)
 		}
 		if err != nil {
-			if pe, ok := err.(*os.PathError); ok {
-				fmt.Println(pe.Op, pe.Path, pe.Err)
+			if _, ok := err.(*os.PathError); ok {
 				specId, err2 := strconv.Atoi(strSpecId)
 				if sp := spec.GetSpec(specId); err2 == nil && sp != nil {
 					sendError(rw, "No definitions for spec - "+sp.Name)
