@@ -8,7 +8,6 @@ import (
 
 func Test_ParseMsg(t *testing.T) {
 
-	spec.PrintAllSpecsInfo()
 	msgData, _ := hex.DecodeString("")
 
 	t.Log("Parsing ISO message ")
