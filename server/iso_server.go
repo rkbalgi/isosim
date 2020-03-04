@@ -1,4 +1,4 @@
-package iso_server
+package server
 
 import (
 	"bytes"

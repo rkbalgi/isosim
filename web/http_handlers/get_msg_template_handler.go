@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
-	"github.com/rkbalgi/isosim/web/spec"
+	"github.com/rkbalgi/isosim/iso"
 	"github.com/rkbalgi/isosim/web/ui_data"
 	"log"
 	"net/http"
@@ -50,14 +50,12 @@ func getMessageTemplateHandler() {
 			return
 		}
 
-		spec := spec.GetSpec(int(specId))
+		spec := iso.SpecByID(int(specId))
 		if spec != nil {
-			msg := spec.GetMessageById(int(msgId))
+			msg := spec.MessageByID(int(msgId))
 			if msg != nil {
 				log.Printf("Fetching Template for Spec: %s and Message: %s", spec.Name, msg.Name)
-				//TODO::
 				jsonMsgTemplate := ui_data.NewJsonMessageTemplate(msg)
-				//jsonEncoder:=json.NewEncoder(rw);
 				json.NewEncoder(rw).Encode(jsonMsgTemplate)
 
 			} else {

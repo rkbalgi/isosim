@@ -1,4 +1,4 @@
-package spec
+package iso
 
 import (
 	"bytes"
@@ -18,8 +18,14 @@ type Bitmap struct {
 const HighBitMask uint64 = uint64(1) << 63
 
 func NewBitmap() *Bitmap {
-
 	return &Bitmap{bmpData: make([]uint64, 3), childData: make(map[int]*FieldData, 10)}
+}
+
+func emptyBitmap(parsedMsg *ParsedMsg) *Bitmap {
+	bmp := NewBitmap()
+	bmp.parsedMsg = parsedMsg
+	bmp.field = parsedMsg.Msg.GetField("Bitmap")
+	return bmp
 }
 
 func (bmp *Bitmap) Get(pos int) *FieldData {
@@ -38,24 +44,35 @@ func (bmp *Bitmap) Get(pos int) *FieldData {
 
 func (bmp *Bitmap) Set(pos int, val string) {
 
-	//log.Print("Bmp = ",bmp.field);
-	childField := bmp.field.fieldsByPosition[pos]
-	if childField == nil {
+	field := bmp.field.fieldsByPosition[pos]
+	if field == nil {
 		log.Fatal("No field at position -", pos)
 	}
 
+	var rawFieldData = field.ValueFromString(val)
 	var fieldData *FieldData
 	var ok bool
 	if fieldData, ok = bmp.childData[pos]; ok {
-		fieldData.Data = childField.ValueFromString(val)
+		fieldData.Data = rawFieldData
 	} else {
-		fieldData = &FieldData{Field: childField}
-		fieldData.Data = childField.ValueFromString(val)
-		bmp.parsedMsg.FieldDataMap[childField.Id] = fieldData
-		bmp.childData[childField.Position] = fieldData
+		fieldData = &FieldData{Field: field}
+		fieldData.Data = rawFieldData
+		bmp.parsedMsg.FieldDataMap[field.Id] = fieldData
+		bmp.childData[field.Position] = fieldData
 		bmp.SetOn(pos)
 	}
 
+	// if the field is has children, then we should ensure that they're
+	// initialized  too
+	if field.HasChildren() {
+		if field.FieldInfo.Type == Fixed {
+			log.Println("Attempting to set child field via parse .. ")
+			parseFixed(bytes.NewBuffer(rawFieldData), bmp.parsedMsg, field)
+		} else if field.FieldInfo.Type == Variable {
+			//FIXME:: for parsing variable type fields, prepend a constructed length indicator
+			parseVariable(bytes.NewBuffer(rawFieldData), bmp.parsedMsg, field)
+		}
+	}
 }
 
 //Returns a copy of the Bitmap
@@ -96,25 +113,24 @@ func (bmp *Bitmap) BinaryString() string {
 
 }
 
-func (bmp *Bitmap) Parse(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
+func (bmp *Bitmap) parse(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 
 	//TODO:: build support for ASCII/EBCDIC encoded bitmaps
-	//bmp.Field = field;
 	if buf.Len() < 8 {
-		return InsufficientDataError
+		return ErrInsufficientData
 	}
 
 	data := NextBytes(buf, 8)
 	binary.Read(bytes.NewBuffer(data), binary.BigEndian, &bmp.bmpData[0])
 	if (bmp.bmpData[0] & HighBitMask) == HighBitMask {
 		if buf.Len() < 8 {
-			return InsufficientDataError
+			return ErrInsufficientData
 		}
 		data = NextBytes(buf, 8)
 		binary.Read(bytes.NewBuffer(data), binary.BigEndian, &bmp.bmpData[1])
 		if bmp.bmpData[1]&HighBitMask == HighBitMask {
 			if buf.Len() < 8 {
-				return InsufficientDataError
+				return ErrInsufficientData
 			}
 			data = NextBytes(buf, 8)
 			binary.Read(bytes.NewBuffer(data), binary.BigEndian, &bmp.bmpData[2])
@@ -140,23 +156,23 @@ func (bmp *Bitmap) targetAndMask(position int) (targetInt *uint64, mask uint64, 
 	case position > 0 && position < 65:
 		{
 			targetInt = &bmp.bmpData[0]
-			shift = (uint64(64) - uint64(position))
+			shift = uint64(64) - uint64(position)
 			bc = 1
 		}
 	case position > 64 && position < 129:
 		{
 			targetInt = &bmp.bmpData[1]
-			shift = (uint64(128) - uint64(position))
+			shift = uint64(128) - uint64(position)
 			bc = 2
 		}
 	case position < 193:
 		{
 			targetInt = &bmp.bmpData[2]
-			shift = (uint64(192) - uint64(position))
+			shift = uint64(192) - uint64(position)
 			bc = 3
 		}
 	default:
-		log.Fatal("invalid bitmap position -", position)
+		log.Println("invalid bitmap position -", position)
 	}
 
 	mask = pivot << shift

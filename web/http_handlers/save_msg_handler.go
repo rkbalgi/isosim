@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/rkbalgi/isosim/data"
-	"github.com/rkbalgi/isosim/web/spec"
+	"github.com/rkbalgi/isosim/iso"
 )
 
 func saveMsgHandler() {
@@ -30,14 +30,14 @@ func saveMsgHandler() {
 
 		if specId, err := strconv.Atoi(req.PostForm.Get("specId")); err == nil {
 			log.Print("Spec Id =" + strconv.Itoa(specId))
-			isoSpec := spec.GetSpec(specId)
+			isoSpec := iso.SpecByID(specId)
 			if isoSpec == nil {
 				sendError(rw, InvalidSpecIdError.Error())
 				return
 			}
 			log.Print("Spec = " + isoSpec.Name)
 			if msgId, err := strconv.Atoi(req.PostForm.Get("msgId")); err == nil {
-				msg := isoSpec.GetMessageById(msgId)
+				msg := isoSpec.MessageByID(msgId)
 				if msg == nil {
 					sendError(rw, InvalidMsgIdError.Error())
 					return

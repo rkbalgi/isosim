@@ -1,4 +1,4 @@
-package spec
+package iso
 
 import (
 	"errors"
@@ -30,7 +30,7 @@ func NewFieldInfo(sFieldInfo []string) *FieldInfo {
 	switch sFieldInfo[0] {
 	case "fixed":
 		{
-			fieldInfo.Type = FIXED
+			fieldInfo.Type = Fixed
 			hasConstraints := false
 
 			switch len(sFieldInfo) {
@@ -72,12 +72,12 @@ func NewFieldInfo(sFieldInfo []string) *FieldInfo {
 		}
 	case "bitmap":
 		{
-			fieldInfo.Type = BITMAP
+			fieldInfo.Type = Bitmapped
 			fieldInfo.FieldDataEncoding = BINARY
 		}
 	case "variable":
 		{
-			fieldInfo.Type = VARIABLE
+			fieldInfo.Type = Variable
 			hasConstraints := false
 
 			switch len(sFieldInfo) {
@@ -98,7 +98,7 @@ func NewFieldInfo(sFieldInfo []string) *FieldInfo {
 			}
 
 			//if len(sFieldInfo) != 4 {
-			//	logAndExit("invalid field info = " + strings.Join(sFieldInfo, componentSeparator))
+			//	logAndExit("invalid field FieldInfo = " + strings.Join(sFieldInfo, componentSeparator))
 			//}
 			setEncoding(&(*fieldInfo).LengthIndicatorEncoding, sFieldInfo[1])
 			setEncoding(&(*fieldInfo).FieldDataEncoding, sFieldInfo[2])

@@ -2,25 +2,25 @@ package main
 
 import (
 	"flag"
+	"github.com/rkbalgi/isosim/data"
+	"github.com/rkbalgi/isosim/iso"
+	"github.com/rkbalgi/isosim/web/http_handlers"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
-
-	"github.com/rkbalgi/isosim/data"
-	"github.com/rkbalgi/isosim/web/http_handlers"
-	"github.com/rkbalgi/isosim/web/spec"
 )
 
-var version = "v0.2"
+var version = "v0.5"
 
 //v0.1 - Initial version
 //v0.2 - ISO server development (08/31/2016)
+//v0.5 - Support for embedded/nested fields
 
 func main() {
 
 	isDebugEnabled := flag.Bool("debugEnabled", true, "true if debug logging should be enabled.")
-	flag.StringVar(&spec.HtmlDir, "htmlDir", ".", "Directory that contains any HTML's and js/css files etc.")
+	flag.StringVar(&iso.HtmlDir, "htmlDir", ".", "Directory that contains any HTML's and js/css files etc.")
 
 	specDefFile := flag.String("specDefFile", "isoSpec.spec", "The file containing the ISO spec definitions.")
 	httpPort := flag.Int("httpPort", 8080, "Http port to listen on.")
@@ -29,7 +29,7 @@ func main() {
 	flag.Parse()
 
 	if *isDebugEnabled {
-		spec.DebugEnabled = true
+		iso.DebugEnabled = true
 		log.Print("Debug has been enabled.")
 	}
 
@@ -45,12 +45,12 @@ func main() {
 	}
 
 	//read all the specs from the spec file
-	err = spec.Init(*specDefFile)
+	err = iso.ReadSpecs(*specDefFile)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	//check if all the required HTML files are available
-	if err = http_handlers.Init(spec.HtmlDir); err != nil {
+	if err = http_handlers.Init(iso.HtmlDir); err != nil {
 		log.Fatal(err.Error())
 	}
 

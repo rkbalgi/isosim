@@ -3,7 +3,7 @@ package isoserv_handlers
 import (
 	"encoding/json"
 	"github.com/rkbalgi/isosim/data"
-	"github.com/rkbalgi/isosim/web/spec"
+	"github.com/rkbalgi/isosim/iso"
 	"log"
 	"net/http"
 	"os"
@@ -24,13 +24,13 @@ func fetchDefHandler() {
 		}
 
 		serverDefs, err := data.DataSetManager().GetServerDefs(strSpecId)
-		if spec.DebugEnabled {
+		if iso.DebugEnabled {
 			log.Print("Server Defs = ", len(serverDefs), serverDefs)
 		}
 		if err != nil {
 			if _, ok := err.(*os.PathError); ok {
 				specId, err2 := strconv.Atoi(strSpecId)
-				if sp := spec.GetSpec(specId); err2 == nil && sp != nil {
+				if sp := iso.SpecByID(specId); err2 == nil && sp != nil {
 					sendError(rw, "No definitions for spec - "+sp.Name)
 				} else {
 					sendError(rw, "No such spec (specId) - "+strSpecId)

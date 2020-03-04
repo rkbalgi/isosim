@@ -1,13 +1,12 @@
-package spec
+package iso
 
 import (
 	"bytes"
 	"fmt"
-	_ "io"
 	"log"
 )
 
-var specMap map[string]*Spec = make(map[string]*Spec, 10)
+var specMap = make(map[string]*Spec, 10)
 var DebugEnabled bool
 
 type Spec struct {
@@ -20,26 +19,27 @@ func (spec *Spec) GetOrAddMsg(msgName string) *Message {
 
 	msg, ok := spec.messages[msgName]
 	if !ok {
-		msg = &Message{Name: msgName, Id: NextId(), fields: make([]*Field, 0, 10), fieldByIdMap: make(map[int]*Field, 10)}
+		msg = &Message{Name: msgName, Id: nextId(),
+			fields:       make([]*Field, 0, 10),
+			fieldByIdMap: make(map[int]*Field, 10),
+			fieldByName:  make(map[string]*Field),
+		}
 		spec.messages[msgName] = msg
 	}
 	return msg
 
 }
 
-func (spec *Spec) GetMessages() []*Message {
+func (spec *Spec) Messages() []*Message {
 
-	//msg, ok := spec.messages[msgName]
 	msgs := make([]*Message, 0, len(spec.messages))
 	for _, msg := range spec.messages {
 		msgs = append(msgs, msg)
 	}
-
 	return msgs
-
 }
 
-func (spec *Spec) GetMessageById(msgId int) *Message {
+func (spec *Spec) MessageByID(msgId int) *Message {
 
 	for _, msg := range spec.messages {
 		if msg.Id == msgId {
@@ -51,7 +51,7 @@ func (spec *Spec) GetMessageById(msgId int) *Message {
 	return nil
 }
 
-func (spec *Spec) GetMessageByName(msgName string) *Message {
+func (spec *Spec) MessageByName(msgName string) *Message {
 
 	for _, msg := range spec.messages {
 		if msg.Name == msgName {
@@ -98,7 +98,7 @@ func displayField(buf *bytes.Buffer, field *Field, level int) {
 	}
 }
 
-func GetSpecs() []*Spec {
+func Specs() []*Spec {
 
 	specs := make([]*Spec, 0, len(specMap))
 	for _, spec := range specMap {
@@ -108,7 +108,7 @@ func GetSpecs() []*Spec {
 
 }
 
-func GetSpec(specId int) *Spec {
+func SpecByID(specId int) *Spec {
 
 	for _, spec := range specMap {
 
@@ -121,7 +121,7 @@ func GetSpec(specId int) *Spec {
 
 }
 
-func GetSpecByName(specName string) *Spec {
+func SpecByName(specName string) *Spec {
 
 	for _, spec := range specMap {
 
@@ -138,7 +138,7 @@ func getOrCreateNewSpec(specName string) (spec *Spec) {
 
 	spec, ok := specMap[specName]
 	if !ok {
-		spec = &Spec{Name: specName, Id: NextId(), messages: make(map[string]*Message, 2)}
+		spec = &Spec{Name: specName, Id: nextId(), messages: make(map[string]*Message, 2)}
 		specMap[specName] = spec
 	}
 	return spec

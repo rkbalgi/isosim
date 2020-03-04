@@ -1,4 +1,4 @@
-package spec
+package iso
 
 import (
 	"bytes"
@@ -8,11 +8,18 @@ import (
 	"log"
 )
 
+// ErrUnreadDataRemaining to represent a condition where data remain post parsing
+var ErrUnreadDataRemaining = errors.New("isosim: Unprocessed data remaining")
+
+// ErrUnknownField is an error when a unknown field is referenced
+var ErrUnknownField = errors.New("isosim: Unknown field")
+
 type Message struct {
 	Id           int
 	Name         string
 	fields       []*Field
 	fieldByIdMap map[int]*Field
+	fieldByName  map[string]*Field
 }
 
 type fieldIdValue struct {
@@ -20,16 +27,26 @@ type fieldIdValue struct {
 	Value string
 }
 
-func (msg *Message) AddField(fieldName string, fieldInfo *FieldInfo) {
+// NewIso returns a Iso instance that can be used to build messages
+func (msg *Message) NewIso() *Iso {
+	isoMsg := FromParsedMsg(&ParsedMsg{Msg: msg, FieldDataMap: make(map[int]*FieldData)})
+	return isoMsg
+}
 
-	field := &Field{Name: fieldName, Id: NextId(),
-		fields:           make([]*Field, 0, 10),
+func (msg *Message) addField(name string, info *FieldInfo) {
+
+	if _, ok := msg.fieldByName[name]; ok {
+		log.Printf("field %s already exists!", name)
+		return
+	}
+	field := &Field{Name: name, Id: nextId(),
+		fields:           make([]*Field, 0),
 		fieldsByPosition: make(map[int]*Field, 10),
 		ParentId:         -1}
-	field.FieldInfo = fieldInfo
+	field.FieldInfo = info
 	field.FieldInfo.Msg = msg
 	msg.fieldByIdMap[field.Id] = field
-
+	msg.fieldByName[name] = field
 	msg.fields = append(msg.fields, field)
 
 }
@@ -40,49 +57,34 @@ func (msg *Message) GetFieldById(id int) *Field {
 }
 
 func (msg *Message) GetField(fieldName string) *Field {
-
-	//TODO:: implement a map to access fields by name, or id or position
-
-	for _, field := range msg.fields {
-		if field.Name == fieldName {
-			return field
-		}
-	}
-	return nil
+	return msg.fieldByName[fieldName]
 }
 
 //Returns all fields of this Message
 func (msg *Message) Fields() []*Field {
-
 	return msg.fields
 }
-
-//Error to represent a condition where data remain post parsing
-var UnreadDataRemainingError = errors.New("Unprocessed data remaining")
 
 func (msg *Message) Parse(msgData []byte) (*ParsedMsg, error) {
 
 	buf := bytes.NewBuffer(msgData)
 	parsedMsg := &ParsedMsg{Msg: msg, FieldDataMap: make(map[int]*FieldData, 64)}
 	for _, field := range msg.fields {
-		if err := Parse(buf, parsedMsg, field); err != nil {
+		if err := parse(buf, parsedMsg, field); err != nil {
 			return nil, err
 		}
 
 	}
-
 	if buf.Len() > 0 {
 		if DebugEnabled {
 			log.Print("Unprocessed Data =" + hex.EncodeToString(buf.Bytes()))
 		}
-		return nil, UnreadDataRemainingError
+		return nil, ErrUnreadDataRemaining
 	}
 
 	return parsedMsg, nil
 
 }
-
-var UnknownFieldError = errors.New("Unknown field")
 
 func (msg *Message) ParseJSON(jsonMsg string) (*ParsedMsg, error) {
 
@@ -94,20 +96,16 @@ func (msg *Message) ParseJSON(jsonMsg string) (*ParsedMsg, error) {
 
 	isoBitmap := NewBitmap()
 
-	log.Print("field id map = ", msg.fieldByIdMap)
-	log.Print("field id/val array =", fieldValArr)
-
 	for _, pFieldIdValue := range fieldValArr {
 
-		//log.Print("ID = ", pFieldIdValue.Id)
 		field := msg.fieldByIdMap[pFieldIdValue.Id]
 		if field == nil {
-			return nil, UnknownFieldError
+			return nil, ErrUnknownField
 		}
 
 		fieldData := new(FieldData)
 		fieldData.Field = field
-		if field.FieldInfo.Type == BITMAP {
+		if field.FieldInfo.Type == Bitmapped {
 			fieldData.Bitmap = isoBitmap
 			isoBitmap.field = field
 			parsedMsg.FieldDataMap[field.Id] = fieldData
@@ -116,7 +114,7 @@ func (msg *Message) ParseJSON(jsonMsg string) (*ParsedMsg, error) {
 			fieldData.Data = field.ValueFromString(pFieldIdValue.Value)
 			if field.ParentId != -1 {
 				parentField := msg.fieldByIdMap[field.ParentId]
-				if parentField.FieldInfo.Type == BITMAP {
+				if parentField.FieldInfo.Type == Bitmapped {
 					log.Print("on field = ", field.Position)
 					isoBitmap.SetOn(field.Position)
 				}

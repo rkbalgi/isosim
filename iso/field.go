@@ -1,4 +1,4 @@
-package spec
+package iso
 
 import (
 	"encoding/hex"
@@ -21,23 +21,14 @@ type Field struct {
 func (field *Field) ValueToString(data []byte) string {
 
 	switch field.FieldInfo.FieldDataEncoding {
-	case BCD:
-		fallthrough
-
-	case BINARY:
-		{
-			return hex.EncodeToString(data)
-		}
+	case BCD, BINARY:
+		return hex.EncodeToString(data)
 	case ASCII:
-		{
-			return string(data)
-		}
+		return string(data)
 	case EBCDIC:
-		{
-			return ebcdic.EncodeToString(data)
-		}
+		return ebcdic.EncodeToString(data)
 	default:
-		log.Fatal("invalid encoding - ", field.FieldInfo.FieldDataEncoding)
+		log.Println("invalid encoding - ", field.FieldInfo.FieldDataEncoding)
 
 	}
 	return ""
@@ -47,27 +38,18 @@ func (field *Field) ValueToString(data []byte) string {
 func (field *Field) ValueFromString(data string) []byte {
 
 	switch field.FieldInfo.FieldDataEncoding {
-	case BCD:
-		fallthrough
-
-	case BINARY:
-		{
-			str, err := hex.DecodeString(data)
-			if err != nil {
-				panic(err)
-			}
-			return str
+	case BCD, BINARY:
+		str, err := hex.DecodeString(data)
+		if err != nil {
+			panic(err)
 		}
+		return str
 	case ASCII:
-		{
-			return []byte(data)
-		}
+		return []byte(data)
 	case EBCDIC:
-		{
-			return ebcdic.Decode(data)
-		}
+		return ebcdic.Decode(data)
 	default:
-		log.Fatal("invalid encoding -", field.FieldInfo.FieldDataEncoding)
+		log.Println("invalid encoding -", field.FieldInfo.FieldDataEncoding)
 
 	}
 	return nil
@@ -82,36 +64,38 @@ func (field *Field) Children() []*Field {
 	return field.fields
 }
 
-func (field *Field) AddChildField(fieldName string, position int, fieldInfo *FieldInfo) {
+func (field *Field) addChild(name string, position int, info *FieldInfo) {
 
-	newField := &Field{Name: fieldName, Id: NextId(), Position: position, FieldInfo: fieldInfo, ParentId: -1}
+	newField := &Field{Name: name, Id: nextId(), Position: position, fields: make([]*Field, 0), FieldInfo: info, ParentId: -1}
+
 	field.fields = append(field.fields, newField)
 
-	if field.FieldInfo.Type == BITMAP {
+	if field.FieldInfo.Type == Bitmapped {
 		field.fieldsByPosition[position] = newField
 	}
 	newField.ParentId = field.Id
 	newField.FieldInfo.Msg = field.FieldInfo.Msg
 	newField.FieldInfo.Msg.fieldByIdMap[newField.Id] = newField
+	field.FieldInfo.Msg.fieldByName[name] = newField
 }
 
-//Returns properties of the Field as a string
+//String returns the attributes of the Field as a string
 func (field *Field) String() string {
 
 	switch field.FieldInfo.Type {
-	case FIXED:
+	case Fixed:
 		{
 			return fmt.Sprintf("%-40s - Id: %d - Length: %02d; Encoding: %s", field.Name, field.Id,
 				field.FieldInfo.FieldSize,
 				GetEncodingName(field.FieldInfo.FieldDataEncoding))
 
 		}
-	case BITMAP:
+	case Bitmapped:
 		{
 			return fmt.Sprintf("%-40s - Id: %d - Encoding: %s", field.Name, field.Id,
 				GetEncodingName(field.FieldInfo.FieldDataEncoding))
 		}
-	case VARIABLE:
+	case Variable:
 		{
 			return fmt.Sprintf("%-40s - Id: %d - Length Indicator Size : %02d; Length Indicator Encoding: %s; Encoding: %s",
 				field.Name, field.Id, field.FieldInfo.LengthIndicatorSize,
@@ -120,7 +104,7 @@ func (field *Field) String() string {
 
 		}
 	default:
-		log.Fatal("invalid field type -", field.FieldInfo.Type)
+		log.Println("invalid field type -", field.FieldInfo.Type)
 	}
 
 	return ""

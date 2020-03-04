@@ -37,7 +37,9 @@ exit status 2
 ```
 
 ###Starting Isosim 
-C:\go run isosim.go -httpPort 8080 -specDefFile specs\isoSpecs.spec -htmlDir .\html 
+$> set GOPATH=...
+$> cd src\github.com\rkbalgi\isosim\cmd\isosim
+$> go run isosim.go -httpPort 8080 -specDefFile ..\..\specs\isoSpecs.spec -htmlDir ..\..\html --dataDir .
 
 And now open chrome and hit this URL [http://localhost:8080/iso/home](http://localhost:8080/iso/home)
 

@@ -2,9 +2,7 @@
 //specs/messages
 package ui_data
 
-import (
-	"github.com/rkbalgi/isosim/web/spec"
-)
+import "github.com/rkbalgi/isosim/iso"
 
 type JsonFieldTemplate struct {
 	Name         string
@@ -29,23 +27,23 @@ type JsonMessageTemplate struct {
 	Fields []*JsonFieldTemplate
 }
 
-func newJsonFieldTemplate(field *spec.Field) *JsonFieldTemplate {
+func newJsonFieldTemplate(field *iso.Field) *JsonFieldTemplate {
 	jsonFieldTemplate := &JsonFieldTemplate{Children: make([]*JsonFieldTemplate, 0, 10)}
 	jsonFieldTemplate.Id = field.Id
 	jsonFieldTemplate.Name = field.Name
 	jsonFieldTemplate.Position = field.Position
-	jsonFieldTemplate.DataEncoding = spec.GetEncodingName(field.FieldInfo.FieldDataEncoding)
+	jsonFieldTemplate.DataEncoding = iso.GetEncodingName(field.FieldInfo.FieldDataEncoding)
 
 	fieldInfo := field.FieldInfo
 
 	switch fieldInfo.Type {
-	case spec.BITMAP:
+	case iso.Bitmapped:
 		{
-			jsonFieldTemplate.Type = "BITMAP"
+			jsonFieldTemplate.Type = "Bitmapped"
 		}
-	case spec.FIXED:
+	case iso.Fixed:
 		{
-			jsonFieldTemplate.Type = "FIXED"
+			jsonFieldTemplate.Type = "Fixed"
 			jsonFieldTemplate.FixedSize = fieldInfo.FieldSize
 			if len(fieldInfo.Content) > 0 {
 				jsonFieldTemplate.ContentType = fieldInfo.Content
@@ -53,9 +51,9 @@ func newJsonFieldTemplate(field *spec.Field) *JsonFieldTemplate {
 				jsonFieldTemplate.ContentType = "Any"
 			}
 		}
-	case spec.VARIABLE:
+	case iso.Variable:
 		{
-			jsonFieldTemplate.Type = "VARIABLE"
+			jsonFieldTemplate.Type = "Variable"
 
 			if len(fieldInfo.Content) > 0 {
 				jsonFieldTemplate.ContentType = fieldInfo.Content
@@ -84,7 +82,7 @@ func newJsonFieldTemplate(field *spec.Field) *JsonFieldTemplate {
 
 }
 
-func NewJsonMessageTemplate(msg *spec.Message) *JsonMessageTemplate {
+func NewJsonMessageTemplate(msg *iso.Message) *JsonMessageTemplate {
 
 	jsonMsgTemplate := &JsonMessageTemplate{Fields: make([]*JsonFieldTemplate, 0, 10)}
 	for _, field := range msg.Fields() {

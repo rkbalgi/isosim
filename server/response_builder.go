@@ -1,14 +1,14 @@
-package iso_server
+package server
 
 import (
-	"github.com/rkbalgi/isosim/web/spec"
+	"github.com/rkbalgi/isosim/iso"
 	"github.com/rkbalgi/isosim/web/ui_data"
 	"log"
 )
 
-func buildResponse(iso *spec.Iso, pc *ui_data.ProcessingCondition) {
+func buildResponse(isoMsg *iso.Iso, pc *ui_data.ProcessingCondition) {
 
-	parsedMsg := iso.ParsedMsg()
+	parsedMsg := isoMsg.ParsedMsg()
 
 	for _, offId := range pc.OffFields {
 		offField := parsedMsg.Msg.GetFieldById(offId)

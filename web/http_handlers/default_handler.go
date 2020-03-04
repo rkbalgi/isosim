@@ -2,9 +2,9 @@ package http_handlers
 
 import (
 	"errors"
+	"github.com/rkbalgi/isosim/iso"
 	"github.com/rkbalgi/isosim/web/http_handlers/isoserv_handlers"
 	"github.com/rkbalgi/isosim/web/http_handlers/misc_handlers"
-	"github.com/rkbalgi/isosim/web/spec"
 	"log"
 	"net/http"
 	"os"
@@ -25,7 +25,7 @@ func Init(htmlDir string) error {
 		isoHtmlFile, _ = filepath.Abs(isoHtmlFile)
 	}
 
-	if spec.DebugEnabled {
+	if iso.DebugEnabled {
 		log.Print("iso.html location = " + isoHtmlFile)
 	}
 	file, err := os.Open(isoHtmlFile)
@@ -41,17 +41,17 @@ func Init(htmlDir string) error {
 
 func setRoutes() {
 
-	if spec.DebugEnabled {
+	if iso.DebugEnabled {
 		log.Print("Setting default route " + homeUrl + ". Served By = " + isoHtmlFile)
 	}
 
 	//default route
 	http.HandleFunc(homeUrl, func(rw http.ResponseWriter, req *http.Request) {
 		pattern := homeUrl
-		if spec.DebugEnabled {
+		if iso.DebugEnabled {
 			log.Printf("Pattern: %s . Requested URI = %s", pattern, req.RequestURI)
 		}
-		if spec.DebugEnabled {
+		if iso.DebugEnabled {
 			log.Print("Serving file = " + isoHtmlFile)
 		}
 		http.ServeFile(rw, req, isoHtmlFile)
@@ -66,7 +66,7 @@ func setRoutes() {
 			i := strings.LastIndex(req.RequestURI, "/")
 			fileName := req.RequestURI[i+1 : len(req.RequestURI)]
 			//log.Print("Requested File = " + fileName)
-			http.ServeFile(rw, req, filepath.Join(spec.HtmlDir, fileName))
+			http.ServeFile(rw, req, filepath.Join(iso.HtmlDir, fileName))
 
 		}
 
@@ -84,7 +84,7 @@ func setRoutes() {
 }
 
 func sendError(rw http.ResponseWriter, errorMsg string) {
-	if spec.DebugEnabled {
+	if iso.DebugEnabled {
 		log.Print("Sending error = " + errorMsg)
 	}
 	rw.WriteHeader(http.StatusBadRequest)

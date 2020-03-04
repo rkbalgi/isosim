@@ -12,7 +12,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/rkbalgi/isosim/web/spec"
+	"github.com/rkbalgi/isosim/iso"
 	"github.com/rkbalgi/isosim/web/ui_data"
 )
 
@@ -122,7 +122,7 @@ func (dsm *dataSetManager) Get(specId string, msgId string, dsName string) ([]by
 
 func (dsm *dataSetManager) Add(specId string, msgId string, name string, data string) error {
 
-	if spec.DebugEnabled {
+	if iso.DebugEnabled {
 		log.Print("Adding data set - " + name + " data = " + data)
 	}
 
@@ -143,7 +143,7 @@ func (dsm *dataSetManager) Add(specId string, msgId string, name string, data st
 
 func (dsm *dataSetManager) AddServerDef(defString string) (string, error) {
 
-	if spec.DebugEnabled {
+	if iso.DebugEnabled {
 		log.Print("Adding server definition - .. JSON = " + defString)
 	}
 
@@ -216,7 +216,7 @@ func (dsm *dataSetManager) GetServerDef(specId string, name string) ([]byte, err
 
 func (dsm *dataSetManager) Update(specId string, msgId string, name string, data string) error {
 
-	if spec.DebugEnabled {
+	if iso.DebugEnabled {
 		log.Print("Updating data set - " + name + " data = " + data)
 	}
 

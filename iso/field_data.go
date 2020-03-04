@@ -1,36 +1,13 @@
-package spec
+package iso
 
 type FieldData struct {
-	Field  *Field
-	Data   []byte
+	Field *Field
+	Data  []byte
+
+	// Bitmap is only used for bitmapped fields to keep track of
+	// what bits are on
 	Bitmap *Bitmap
 }
-
-/*func (fieldData *FieldData) IsOn(position int) bool {
-
-	if (fieldData.Bitmap != nil) {
-		return fieldData.Bitmap.IsOn(position)
-	}
-
-	return false;
-
-}
-
-func (fieldData *FieldData) GetAtPos(parsedMsg *ParsedMsg, position int) *FieldData {
-
-	if (fieldData.Bitmap != nil) {
-		if (fieldData.Bitmap.IsOn(position)) {
-			fieldId := fieldData.Field.fieldsByPosition[position];
-			if fieldId != nil {
-				return parsedMsg.FieldDataMap[fieldId];
-			}
-		}
-	}
-
-	return nil;
-
-}
-*/
 
 //Returns the value of this field as a string
 func (fieldData *FieldData) Value() string {
@@ -43,7 +20,7 @@ func (fieldData *FieldData) Set(value string) {
 
 }
 
-//Returns a deep copy of FieldData
+// Copy returns a deep copy of FieldData
 func (fieldData *FieldData) Copy() *FieldData {
 
 	newFieldData := &FieldData{Field: fieldData.Field}

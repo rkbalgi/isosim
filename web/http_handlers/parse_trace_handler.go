@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
-	"github.com/rkbalgi/isosim/web/spec"
+	"github.com/rkbalgi/isosim/iso"
 	"github.com/rkbalgi/isosim/web/ui_data"
 	"io/ioutil"
 	"log"
@@ -49,9 +49,9 @@ func parseTraceHandler() {
 			return
 		}
 
-		isoSpec := spec.GetSpec(int(specId))
+		isoSpec := iso.SpecByID(int(specId))
 		if isoSpec != nil {
-			msg := isoSpec.GetMessageById(int(msgId))
+			msg := isoSpec.MessageByID(int(msgId))
 			if msg != nil {
 				log.Printf("Fetching Template for Spec: %s and Message: %s", isoSpec.Name, msg.Name)
 				//TODO::
@@ -60,7 +60,7 @@ func parseTraceHandler() {
 					sendError(rw, err.Error())
 					return
 				}
-				if spec.DebugEnabled {
+				if iso.DebugEnabled {
 					log.Print("Processing Trace = " + string(reqData))
 				}
 				msgData, err := hex.DecodeString(string(reqData))
@@ -71,7 +71,7 @@ func parseTraceHandler() {
 				} else {
 					parsedMsg, err := msg.Parse(msgData)
 					if err != nil {
-						sendError(rw, "Parse error "+err.Error())
+						sendError(rw, "parse error "+err.Error())
 						return
 					}
 
@@ -95,13 +95,12 @@ func parseTraceHandler() {
 
 }
 
-func ToJsonList(parsedMsg *spec.ParsedMsg) []ui_data.JsonFieldDataRep {
+func ToJsonList(parsedMsg *iso.ParsedMsg) []ui_data.JsonFieldDataRep {
 
 	fieldDataList := make([]ui_data.JsonFieldDataRep, 0, 10)
 	for id, fieldData := range parsedMsg.FieldDataMap {
-		//log.Print(fieldData.Field.Name, fieldData.Value())
 		dataRep := ui_data.JsonFieldDataRep{Id: id, Value: fieldData.Field.ValueToString(fieldData.Data)}
-		if fieldData.Field.FieldInfo.Type == spec.BITMAP {
+		if fieldData.Field.FieldInfo.Type == iso.Bitmapped {
 			dataRep.Value = fieldData.Bitmap.BinaryString()
 
 		}

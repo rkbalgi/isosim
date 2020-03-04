@@ -1,4 +1,5 @@
 # . is a special character and cannot appear between field names, spec names etc.
+# field names within a spec are required to be unique
 #
 #
 #format   := {fieldDef}={fieldSpecification}
@@ -15,6 +16,12 @@ spec.TestSpec.Default Message.Bitmap.2.Fixed ASCII=fixed.ascii.size:3.constraint
 spec.TestSpec.Default Message.Bitmap.3.Fixed EBCDIC=fixed.ebcdic.size:3.constraints{content:Alpha;}
 spec.TestSpec.Default Message.Bitmap.4.Fixed BCD=fixed.bcd.size:3
 spec.TestSpec.Default Message.Bitmap.5.Fixed BINARY=fixed.binary.size:3
+spec.TestSpec.Default Message.Bitmap.6.FieldWithSubFields=fixed.ascii.size:8
+spec.TestSpec.Default Message.FieldWithSubFields.1.SF6_1=fixed.ascii.size:4
+spec.TestSpec.Default Message.SF6_1.1.SF6_1_1=fixed.ascii.size:2
+spec.TestSpec.Default Message.SF6_1.1.SF6_1_2=fixed.ascii.size:2
+spec.TestSpec.Default Message.FieldWithSubFields.2.SF6_2=fixed.ascii.size:2
+spec.TestSpec.Default Message.FieldWithSubFields.3.SF6_3=fixed.ascii.size:2
 spec.TestSpec.Default Message.Bitmap.55.Var BCD/BINARY=variable.bcd.binary.size:2
 spec.TestSpec.Default Message.Bitmap.56.Var BCD/ASCII=variable.bcd.ascii.size:2
 spec.TestSpec.Default Message.Bitmap.57.Var BINARY/EBCDIC =variable.binary.ebcdic.size:2

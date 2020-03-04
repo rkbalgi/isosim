@@ -1,7 +1,7 @@
 package isoserv_handlers
 
 import (
-	"github.com/rkbalgi/isosim/web/spec"
+	"github.com/rkbalgi/isosim/iso"
 	"log"
 	"net/http"
 	"path/filepath"
@@ -24,12 +24,12 @@ func addIsoServerHandlers() {
 	http.HandleFunc("/iso/v0/server", func(rw http.ResponseWriter, req *http.Request) {
 
 		pattern := "/iso/v0/server"
-		if spec.DebugEnabled {
+		if iso.DebugEnabled {
 			log.Printf("Pattern: %s . Requested URI = %s", pattern, req.RequestURI)
 		}
 
-		file := filepath.Join(spec.HtmlDir, "iso_server.html")
-		if spec.DebugEnabled {
+		file := filepath.Join(iso.HtmlDir, "iso_server.html")
+		if iso.DebugEnabled {
 			log.Print("Serving file = " + file)
 		}
 		http.ServeFile(rw, req, file)
@@ -39,7 +39,7 @@ func addIsoServerHandlers() {
 }
 
 func sendError(rw http.ResponseWriter, errorMsg string) {
-	if spec.DebugEnabled {
+	if iso.DebugEnabled {
 		log.Print("Sending error = " + errorMsg)
 	}
 	rw.Header().Set("X-IsoSim-ErrorText", errorMsg)

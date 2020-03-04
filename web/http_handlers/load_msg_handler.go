@@ -3,7 +3,7 @@ package http_handlers
 import (
 	"encoding/json"
 	"github.com/rkbalgi/isosim/data"
-	"github.com/rkbalgi/isosim/web/spec"
+	"github.com/rkbalgi/isosim/iso"
 	"log"
 	"net/http"
 	"strconv"
@@ -17,27 +17,22 @@ func loadMsgHandler() {
 
 		err := req.ParseForm()
 		if err != nil {
-
 			sendError(rw, err.Error())
 			return
 		}
 
 		log.Print(req.Form)
-		//log.Print("?" + req.PostForm.Get("specId") + "?")
-		///log.Print(req.PostForm.Get("msgId"))
-		//log.Print(strconv.Atoi(req.PostForm.Get("specId")))
-		//log.Print(req.PostForm.Get("msg"))
 
 		if specId, err := strconv.Atoi(req.Form.Get("specId")); err == nil {
 			log.Print("Spec Id =" + strconv.Itoa(specId))
-			isoSpec := spec.GetSpec(specId)
+			isoSpec := iso.SpecByID(specId)
 			if isoSpec == nil {
 				sendError(rw, InvalidSpecIdError.Error())
 				return
 			}
 			log.Print("Spec = " + isoSpec.Name)
 			if msgId, err := strconv.Atoi(req.Form.Get("msgId")); err == nil {
-				msg := isoSpec.GetMessageById(msgId)
+				msg := isoSpec.MessageByID(msgId)
 				if msg == nil {
 					sendError(rw, InvalidMsgIdError.Error())
 					return

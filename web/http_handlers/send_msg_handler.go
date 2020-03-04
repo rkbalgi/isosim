@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/rkbalgi/isosim/web/spec"
+	"github.com/rkbalgi/isosim/iso"
 )
 
 import (
@@ -62,13 +62,13 @@ func sendMsgHandler() {
 		log.Print(fmt.Sprintf("Target Iso Server Address -  %s:%d", hostIpAddr, port))
 
 		if specId, err := strconv.Atoi(req.PostForm.Get("specId")); err == nil {
-			isoSpec := spec.GetSpec(specId)
+			isoSpec := iso.SpecByID(specId)
 			if isoSpec == nil {
 				sendError(rw, InvalidSpecIdError.Error())
 				return
 			}
 			if msgId, err := strconv.Atoi(req.PostForm.Get("msgId")); err == nil {
-				msg := isoSpec.GetMessageById(msgId)
+				msg := isoSpec.MessageByID(msgId)
 				if msg == nil {
 					sendError(rw, InvalidMsgIdError.Error())
 					return
@@ -80,13 +80,17 @@ func sendMsgHandler() {
 					return
 				}
 
-				iso := spec.NewIso(parsedMsg)
-				msgData := iso.Assemble()
+				isoMsg := iso.FromParsedMsg(parsedMsg)
+				msgData, err := isoMsg.Assemble()
+				if err != nil {
+					sendError(rw, "failed to assemble -"+err.Error())
+					return
+				}
 
 				netClient := local_net.NewNetCatClient(hostIpAddr.String()+":"+req.PostForm.Get("port"), mli)
 				log.Print("connecting to -"+hostIpAddr.String()+":", port)
 
-				log.Print("assembled request msg = "+hex.EncodeToString(msgData), "MliType = "+mli)
+				log.Print("assembled request msg = "+hex.EncodeToString(msgData), " MliType = "+mli)
 				if err := netClient.OpenConnection(); err != nil {
 					sendError(rw, "failed to connect -"+err.Error())
 					return

@@ -1,8 +1,8 @@
 package isoserv_handlers
 
 import (
-	"github.com/rkbalgi/isosim/iso_server"
-	"github.com/rkbalgi/isosim/web/spec"
+	"github.com/rkbalgi/isosim/iso"
+	"github.com/rkbalgi/isosim/server"
 	"log"
 	"net/http"
 	"regexp"
@@ -13,7 +13,7 @@ func startServerHandler() {
 
 	http.HandleFunc("/iso/v0/server/start", func(rw http.ResponseWriter, req *http.Request) {
 
-		if spec.DebugEnabled {
+		if iso.DebugEnabled {
 			log.Printf("Requested URI = %s", req.RequestURI)
 		}
 
@@ -27,7 +27,7 @@ func startServerHandler() {
 		}
 
 		port_, _ := strconv.Atoi(port)
-		err := iso_server.StartIsoServer(specId, def, port_)
+		err := server.StartIsoServer(specId, def, port_)
 		if err != nil {
 			sendError(rw, err.Error())
 			return

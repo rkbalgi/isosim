@@ -1,4 +1,4 @@
-package spec
+package iso
 
 import (
 	"bytes"
@@ -9,8 +9,8 @@ import (
 	"strconv"
 )
 
-//Assembles all the field into the dst Buffer buf
-func Assemble(buf *bytes.Buffer, parsedMsg *ParsedMsg, fieldData *FieldData) {
+// assemble assembles all the field into the dst Buffer buf
+func assemble(buf *bytes.Buffer, parsedMsg *ParsedMsg, fieldData *FieldData) error {
 
 	if DebugEnabled {
 		log.Print("Assembling field - " + fieldData.Field.Name)
@@ -18,83 +18,62 @@ func Assemble(buf *bytes.Buffer, parsedMsg *ParsedMsg, fieldData *FieldData) {
 	fieldInfo := fieldData.Field.FieldInfo
 	switch fieldInfo.Type {
 
-	case FIXED:
-		{
+	case Fixed:
+		// if the field has children we will derive the data of the field
+		// from the children (nested fields) else we take it from the parent field
+		if !fieldData.Field.HasChildren() {
 			buf.Write(fieldData.Data)
 		}
-	case VARIABLE:
+	case Variable:
 		{
+			//FIXME:: include support for embedded fields for top level variable fields
 			lenBuf := new(bytes.Buffer)
-			fmtStr := bytes.NewBufferString("%0")
-			fmtStr.WriteString(strconv.Itoa(fieldInfo.LengthIndicatorSize))
-			fmtStr.WriteString("d")
-
-			//log.Print("fmt ", fmtStr.String())
-			lenStr := fmt.Sprintf(fmtStr.String(), len(fieldData.Data))
+			fmtStr := "%0" + strconv.FormatInt(int64(fieldInfo.LengthIndicatorSize), 10) + "d"
+			lenStr := fmt.Sprintf(fmtStr, len(fieldData.Data))
 			switch fieldInfo.LengthIndicatorEncoding {
 			case BCD:
 				{
-
 					if intVal, err := strconv.ParseUint(lenStr, 10, 32); err != nil {
-						log.Fatal(err.Error())
+						return err
 					} else {
 						writeIntToBuf(lenBuf, intVal, fieldInfo.LengthIndicatorSize)
 					}
 
 				}
 			case BINARY:
-				{
-
-					writeIntToBuf(lenBuf, uint64(len(fieldData.Data)), fieldInfo.LengthIndicatorSize)
-
-				}
+				writeIntToBuf(lenBuf, uint64(len(fieldData.Data)), fieldInfo.LengthIndicatorSize)
 			case ASCII:
-				{
-					lenBuf.Write([]byte(lenStr))
-				}
+				lenBuf.Write([]byte(lenStr))
 			case EBCDIC:
-				{
-					lenBuf.Write(ebcdic.Decode(lenStr))
-				}
+				lenBuf.Write(ebcdic.Decode(lenStr))
 			}
-
-			//if DebugEnabled {
-			//	log.Print("Len Str = " + lenStr)
-			//	log.Print("Length indicator bytes = " + hex.EncodeToString(lenBuf.Bytes()))
-			//}
 
 			buf.Write(lenBuf.Bytes())
 			buf.Write(fieldData.Data)
 		}
-	case BITMAP:
-		{
-			buf.Write(fieldData.Bitmap.Bytes())
-		}
+	case Bitmapped:
+		buf.Write(fieldData.Bitmap.Bytes())
 
 	}
 
 	if fieldData.Field.HasChildren() {
 
-		if fieldInfo.Type == BITMAP {
-
+		if fieldInfo.Type == Bitmapped {
 			bmp := fieldData.Bitmap
-
 			for _, childField := range fieldData.Field.Children() {
 				if bmp.IsOn(childField.Position) {
-					Assemble(buf, parsedMsg, parsedMsg.FieldDataMap[childField.Id])
+					assemble(buf, parsedMsg, parsedMsg.FieldDataMap[childField.Id])
 				}
-
 			}
-
 		} else {
-
-			//TODO:: untested/unsupported - children of non bitmapped fields
-			for _, childField := range fieldData.Field.Children() {
-				Assemble(buf, parsedMsg, parsedMsg.FieldDataMap[childField.Id])
+			for _, cf := range fieldData.Field.Children() {
+				assemble(buf, parsedMsg, parsedMsg.FieldDataMap[cf.Id])
 			}
 		}
 
 	}
+
+	return nil
 
 }
 

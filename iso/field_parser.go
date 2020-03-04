@@ -1,4 +1,4 @@
-package spec
+package iso
 
 import (
 	"bytes"
@@ -11,9 +11,9 @@ import (
 	"strconv"
 )
 
-var InsufficientDataError = errors.New("Insufficient data to parse field")
-var LargeLengthIndicatorSizeError = errors.New("Too large length indicator size. ")
-var InvalidEncodingError = errors.New("Invalid encoding")
+var ErrInsufficientData = errors.New("isosim: Insufficient data to parse field")
+var ErrLargeLengthIndicator = errors.New("isosim: Too large length indicator size. ")
+var ErrInvalidEncoding = errors.New("isosim: Invalid encoding")
 
 type ParsedMsg struct {
 	IsRequest bool
@@ -53,53 +53,40 @@ func (pMsg *ParsedMsg) Copy() *ParsedMsg {
 
 }
 
-func Parse(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
+func parse(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 
 	var err error
 	switch field.FieldInfo.Type {
 
-	case FIXED:
-		{
-			err = parseFixed(buf, parsedMsg, field)
+	case Fixed:
+		err = parseFixed(buf, parsedMsg, field)
+	case Variable:
+		err = parseVariable(buf, parsedMsg, field)
+	case Bitmapped:
+		err = parseBitmap(buf, parsedMsg, field)
+	default:
+		return fmt.Errorf("isosim: Unsupported field type - %v", field.FieldInfo.Type)
 
-		}
-	case VARIABLE:
-		{
-			err = parseVariable(buf, parsedMsg, field)
-		}
-	case BITMAP:
-		{
-			err = parseBitmap(buf, parsedMsg, field)
-		}
 	}
 
 	if err != nil {
 		return err
 	}
 
-	if (field.FieldInfo.Type == FIXED || field.FieldInfo.Type == VARIABLE) && field.HasChildren() {
-		for _, childField := range field.Children() {
-			if err := Parse(buf, parsedMsg, childField); err != nil {
-				return err
-			}
-		}
-	}
-	if field.FieldInfo.Type == BITMAP {
-		//log.Print("Parsing children of " + field.Name)
-		bitmap := parsedMsg.FieldDataMap[field.Id].Bitmap
-		for _, childField := range field.Children() {
+	switch field.FieldInfo.Type {
+	case Fixed, Variable:
 
-			//if DebugEnabled {
-			//	log.Print("Parsing field =" + childField.Name)
-			//}
-
-			if bitmap.IsOn(childField.Position) {
-				if err := Parse(buf, parsedMsg, childField); err != nil {
-					return err
+	case Bitmapped:
+		{
+			bitmap := parsedMsg.FieldDataMap[field.Id].Bitmap
+			for _, cf := range field.Children() {
+				if bitmap.IsOn(cf.Position) {
+					if err := parse(buf, parsedMsg, cf); err != nil {
+						return err
+					}
+					bitmap.childData[cf.Position] = parsedMsg.FieldDataMap[cf.Id]
 				}
-				bitmap.childData[childField.Position] = parsedMsg.FieldDataMap[childField.Id]
 			}
-
 		}
 	}
 
@@ -111,18 +98,27 @@ func parseFixed(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 
 	bytesRequired := field.FieldInfo.FieldSize
 	if buf.Len() < bytesRequired {
-		return InsufficientDataError
+		return ErrInsufficientData
 	}
 
 	fieldData := &FieldData{Field: field}
 	fieldData.Data = NextBytes(buf, bytesRequired)
 
 	if DebugEnabled {
-		//log.Print("Remaining Buffer = ", hex.EncodeToString(buf.Bytes()))
 		log.Printf("Field : [%s] - Data = [%s]", field.Name, hex.EncodeToString(fieldData.Data))
 	}
 
 	parsedMsg.FieldDataMap[field.Id] = fieldData
+
+	if field.HasChildren() {
+		newBuf := bytes.NewBuffer(parsedMsg.Get(field.Name).Data)
+		for _, cf := range field.Children() {
+			if err := parse(newBuf, parsedMsg, cf); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 
 }
@@ -130,7 +126,7 @@ func parseFixed(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 func parseVariable(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 
 	if buf.Len() < field.FieldInfo.LengthIndicatorSize {
-		return InsufficientDataError
+		return ErrInsufficientData
 	}
 	lenData := NextBytes(buf, field.FieldInfo.LengthIndicatorSize)
 	var length uint64
@@ -139,7 +135,7 @@ func parseVariable(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error 
 	case BINARY:
 		{
 			if field.FieldInfo.LengthIndicatorSize > 4 {
-				return LargeLengthIndicatorSizeError
+				return ErrLargeLengthIndicator
 			}
 
 			switch field.FieldInfo.LengthIndicatorSize {
@@ -213,7 +209,7 @@ func parseVariable(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error 
 		}
 	default:
 		{
-			return InvalidEncodingError
+			return ErrInvalidEncoding
 		}
 	}
 
@@ -221,11 +217,20 @@ func parseVariable(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error 
 	fieldData.Data = NextBytes(buf, int(length))
 
 	if DebugEnabled {
-		//log.Print("Remaining Buffer = ", hex.EncodeToString(buf.Bytes()))
 		log.Printf("Field : [%s] - Len: %02d - Data = [%s]", field.Name, length, hex.EncodeToString(fieldData.Data))
 	}
 
 	parsedMsg.FieldDataMap[field.Id] = fieldData
+
+	if field.HasChildren() {
+		newBuf := bytes.NewBuffer(parsedMsg.Get(field.Name).Data)
+		for _, cf := range field.Children() {
+			if err := parse(newBuf, parsedMsg, cf); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 
 }
@@ -234,7 +239,7 @@ func parseBitmap(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 
 	bitmap := NewBitmap()
 	bitmap.field = field
-	err := bitmap.Parse(buf, parsedMsg, field)
+	err := bitmap.parse(buf, parsedMsg, field)
 	if err != nil {
 		return err
 	}
@@ -253,7 +258,6 @@ func NextBytes(buf *bytes.Buffer, n int) []byte {
 
 	replica := make([]byte, n)
 	nextData := buf.Next(n)
-	//log.Print(nextData, cap(replica))
 	copy(replica, nextData)
 	return replica
 

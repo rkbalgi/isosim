@@ -1,4 +1,4 @@
-package spec
+package iso
 
 import (
 	"bufio"
@@ -13,9 +13,8 @@ func init() {
 	DebugEnabled = false
 }
 
-/*Init initializes the spec defined in the file specDefFile
- */
-func Init(specDefFile string) error {
+// ReadSpecs initializes the spec defined in the file specDefFile
+func ReadSpecs(specDefFile string) error {
 
 	file, err := os.Open(filepath.Join(specDefFile))
 	if err != nil {
@@ -51,7 +50,7 @@ func Init(specDefFile string) error {
 				spec := getOrCreateNewSpec(specName)
 				msgName, fieldName := keyPart[2], keyPart[3]
 				specMsg := spec.GetOrAddMsg(msgName)
-				specMsg.AddField(fieldName, fieldInfo)
+				specMsg.addField(fieldName, fieldInfo)
 
 			}
 		case 6:
@@ -63,9 +62,9 @@ func Init(specDefFile string) error {
 				parentField := specMsg.GetField(parentFieldName)
 				tmp, err := strconv.ParseInt(position, 10, 0)
 				if err != nil {
-					return errors.New("Syntax error. " + "Invalid field position. Line = " + line)
+					return errors.New("isosim: Syntax Error. " + "Invalid field position. Line = " + line)
 				}
-				parentField.AddChildField(childFieldName, int(tmp), fieldInfo)
+				parentField.addChild(childFieldName, int(tmp), fieldInfo)
 
 			}
 		default:
