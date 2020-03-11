@@ -9,7 +9,6 @@ import (
 
 func Test_AssembleMsg(t *testing.T) {
 
-	DebugEnabled = true
 	if err := ReadSpecs(filepath.Join("..", "specs", "isoSpecs.spec")); err != nil {
 		t.Fatal(err)
 		return

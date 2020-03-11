@@ -1,9 +1,8 @@
 package isoserv_handlers
 
 import (
-	"github.com/rkbalgi/isosim/iso"
 	"github.com/rkbalgi/isosim/server"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -11,9 +10,7 @@ func stopServerHandler() {
 
 	http.HandleFunc("/iso/v0/server/stop", func(rw http.ResponseWriter, req *http.Request) {
 
-		if iso.DebugEnabled {
-			log.Printf("Requested URI = %s", req.RequestURI)
-		}
+		log.Debugln("Requested URI = %s", req.RequestURI)
 
 		req.ParseForm()
 		name := req.Form.Get("name")
@@ -28,7 +25,7 @@ func stopServerHandler() {
 			sendError(rw, err.Error())
 			return
 		}
-		log.Print("Server stopped ok.")
+		log.Infof("Server [%s] has been stopped\n", name)
 
 	})
 }

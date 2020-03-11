@@ -3,11 +3,12 @@ package iso
 import (
 	"bytes"
 	"fmt"
-	"log"
+	log "github.com/sirupsen/logrus"
+	"sync"
 )
 
+var specMapMu sync.RWMutex
 var specMap = make(map[string]*Spec, 10)
-var DebugEnabled bool
 
 type Spec struct {
 	Id       int
@@ -16,6 +17,9 @@ type Spec struct {
 }
 
 func (spec *Spec) GetOrAddMsg(msgName string) *Message {
+
+	specMapMu.Lock()
+	defer specMapMu.Unlock()
 
 	msg, ok := spec.messages[msgName]
 	if !ok {
@@ -32,6 +36,9 @@ func (spec *Spec) GetOrAddMsg(msgName string) *Message {
 
 func (spec *Spec) Messages() []*Message {
 
+	specMapMu.RLock()
+	defer specMapMu.RUnlock()
+
 	msgs := make([]*Message, 0, len(spec.messages))
 	for _, msg := range spec.messages {
 		msgs = append(msgs, msg)
@@ -40,6 +47,9 @@ func (spec *Spec) Messages() []*Message {
 }
 
 func (spec *Spec) MessageByID(msgId int) *Message {
+
+	specMapMu.RLock()
+	defer specMapMu.RUnlock()
 
 	for _, msg := range spec.messages {
 		if msg.Id == msgId {
@@ -53,14 +63,10 @@ func (spec *Spec) MessageByID(msgId int) *Message {
 
 func (spec *Spec) MessageByName(msgName string) *Message {
 
-	for _, msg := range spec.messages {
-		if msg.Name == msgName {
-			return msg
-		}
+	specMapMu.RLock()
+	defer specMapMu.RUnlock()
 
-	}
-
-	return nil
+	return spec.messages[msgName]
 
 }
 
@@ -79,7 +85,7 @@ func printAllSpecsInfo() {
 
 			}
 		}
-		log.Print(buf.String() + "\n")
+		log.Debugln(buf.String() + "\n")
 		buf.Reset()
 	}
 }
@@ -110,12 +116,13 @@ func Specs() []*Spec {
 
 func SpecByID(specId int) *Spec {
 
-	for _, spec := range specMap {
+	specMapMu.RLock()
+	defer specMapMu.RUnlock()
 
+	for _, spec := range specMap {
 		if spec.Id == specId {
 			return spec
 		}
-
 	}
 	return nil
 
@@ -123,18 +130,17 @@ func SpecByID(specId int) *Spec {
 
 func SpecByName(specName string) *Spec {
 
-	for _, spec := range specMap {
+	specMapMu.RLock()
+	defer specMapMu.RUnlock()
 
-		if spec.Name == specName {
-			return spec
-		}
-
-	}
-	return nil
+	return specMap[specName]
 
 }
 
 func getOrCreateNewSpec(specName string) (spec *Spec) {
+
+	specMapMu.Lock()
+	defer specMapMu.Unlock()
 
 	spec, ok := specMap[specName]
 	if !ok {

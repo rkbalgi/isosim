@@ -3,15 +3,12 @@ package iso
 import (
 	"bufio"
 	"errors"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 )
-
-func init() {
-	DebugEnabled = false
-}
 
 // ReadSpecs initializes the spec defined in the file specDefFile
 func ReadSpecs(specDefFile string) error {
@@ -21,11 +18,11 @@ func ReadSpecs(specDefFile string) error {
 		err = errors.New("Initialization error. Unable to open specDefFile - " + err.Error())
 		return err
 	}
+	defer file.Close()
 	reader := bufio.NewReader(file)
 	scanner := bufio.NewScanner(reader)
 	for scanner.Scan() {
 		line := scanner.Text()
-		//fmt.Println("line = ", line)
 		if len(strings.TrimSpace(line)) == 0 {
 			continue
 		}
@@ -68,15 +65,11 @@ func ReadSpecs(specDefFile string) error {
 
 			}
 		default:
-			{
-				return errors.New("Syntax error. Line = " + line)
-			}
+			return errors.New("isosim: Syntax error in spec definition file. Line = " + line)
 		}
 	}
 
-	file.Close()
-
-	if DebugEnabled {
+	if log.GetLevel() == log.DebugLevel {
 		printAllSpecsInfo()
 	}
 

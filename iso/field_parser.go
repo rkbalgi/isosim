@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/rkbalgi/go/encoding/ebcdic"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"strconv"
 )
 
@@ -104,9 +104,7 @@ func parseFixed(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 	fieldData := &FieldData{Field: field}
 	fieldData.Data = NextBytes(buf, bytesRequired)
 
-	if DebugEnabled {
-		log.Printf("Field : [%s] - Data = [%s]", field.Name, hex.EncodeToString(fieldData.Data))
-	}
+	log.Debugf("Field : [%s] - Data = [%s]\n", field.Name, hex.EncodeToString(fieldData.Data))
 
 	parsedMsg.FieldDataMap[field.Id] = fieldData
 
@@ -216,9 +214,7 @@ func parseVariable(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error 
 	fieldData := &FieldData{Field: field}
 	fieldData.Data = NextBytes(buf, int(length))
 
-	if DebugEnabled {
-		log.Printf("Field : [%s] - Len: %02d - Data = [%s]", field.Name, length, hex.EncodeToString(fieldData.Data))
-	}
+	log.Debugf("Field : [%s] - Len: %02d - Data = [%s]\n", field.Name, length, hex.EncodeToString(fieldData.Data))
 
 	parsedMsg.FieldDataMap[field.Id] = fieldData
 
@@ -243,9 +239,7 @@ func parseBitmap(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 	if err != nil {
 		return err
 	}
-	if DebugEnabled {
-		log.Printf("Field : [%s] - Data = [%s]", field.Name, bitmap.BinaryString())
-	}
+	log.Debugf("Field : [%s] - Data = [%s]\n", field.Name, bitmap.BinaryString())
 	parsedMsg.FieldDataMap[field.Id] = &FieldData{Field: field, Bitmap: bitmap}
 	return nil
 

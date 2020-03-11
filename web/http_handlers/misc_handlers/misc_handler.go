@@ -5,7 +5,7 @@ import (
 	"github.com/rkbalgi/go/hsm"
 	"github.com/rkbalgi/go/net"
 	"github.com/rkbalgi/isosim/iso"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"path/filepath"
 	"strconv"
@@ -41,9 +41,7 @@ func AddMiscHandlers() {
 
 		req.ParseForm()
 		port := req.Form.Get("hsmPort")
-		if iso.DebugEnabled {
-			log.Print("Request to start HSM @ port = ", port)
-		}
+		log.Debugln("Request to start HSM @ port = ", port)
 		intPort, err := strconv.Atoi(port)
 		if port == "" || err != nil {
 			rw.WriteHeader(500)
@@ -90,9 +88,7 @@ func AddMiscHandlers() {
 			return
 		}
 
-		if iso.DebugEnabled {
-			log.Print("[sendraw] params = ", pHost+":"+pPort, " mli= ", pMli, " data = ", pData)
-		}
+		log.Debugln("[send-raw] params = ", pHost+":"+pPort, " mli= ", pMli, " data = ", pData)
 
 		data, err := hex.DecodeString(pData)
 		if err != nil {
@@ -121,9 +117,7 @@ func AddMiscHandlers() {
 			return
 		}
 
-		if iso.DebugEnabled {
-			log.Print("[sendraw] Response received = " + hex.EncodeToString(data))
-		}
+		log.Debugln("[send-raw] Response received = " + hex.EncodeToString(data))
 		client.Close()
 		rw.Write([]byte(hex.EncodeToString(response)))
 

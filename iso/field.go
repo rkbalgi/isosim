@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/rkbalgi/go/encoding/ebcdic"
-	"log"
+	log "github.com/sirupsen/logrus"
 )
 
 type Field struct {
@@ -28,7 +28,7 @@ func (field *Field) ValueToString(data []byte) string {
 	case EBCDIC:
 		return ebcdic.EncodeToString(data)
 	default:
-		log.Println("invalid encoding - ", field.FieldInfo.FieldDataEncoding)
+		log.Errorln("Invalid encoding - ", field.FieldInfo.FieldDataEncoding)
 
 	}
 	return ""
@@ -49,7 +49,7 @@ func (field *Field) ValueFromString(data string) []byte {
 	case EBCDIC:
 		return ebcdic.Decode(data)
 	default:
-		log.Println("invalid encoding -", field.FieldInfo.FieldDataEncoding)
+		log.Errorln("Invalid encoding -", field.FieldInfo.FieldDataEncoding)
 
 	}
 	return nil

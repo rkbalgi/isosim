@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"github.com/rkbalgi/isosim/iso"
 	"github.com/rkbalgi/isosim/web/ui_data"
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -27,7 +27,7 @@ func parseTraceHandler() {
 			}
 		}
 
-		log.Print(urlComponents)
+		log.Traceln("UrlComponents in HTTP request", urlComponents)
 
 		if len(urlComponents) != 5 {
 			sendError(rw, "invalid url - "+reqUri)
@@ -53,16 +53,14 @@ func parseTraceHandler() {
 		if isoSpec != nil {
 			msg := isoSpec.MessageByID(int(msgId))
 			if msg != nil {
-				log.Printf("Fetching Template for Spec: %s and Message: %s", isoSpec.Name, msg.Name)
+				log.Debugln("Fetching Template for Spec: %s and Message: %s", isoSpec.Name, msg.Name)
 				//TODO::
 				reqData, err := ioutil.ReadAll(req.Body)
 				if err != nil {
 					sendError(rw, err.Error())
 					return
 				}
-				if iso.DebugEnabled {
-					log.Print("Processing Trace = " + string(reqData))
-				}
+				log.Debugln("Processing Trace = " + string(reqData))
 				msgData, err := hex.DecodeString(string(reqData))
 				//log.Print("decoded ...", err, msgData)
 				if err != nil {

@@ -2,7 +2,7 @@ package http_handlers
 
 import (
 	"encoding/json"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
 	"strings"
@@ -23,7 +23,7 @@ func getSpecMessagesHandler() {
 			return
 		} else {
 
-			log.Print("Getting messages for Spec Id ", specId)
+			log.Debugln("Getting messages for Spec Id ", specId)
 			sp := iso.SpecByID(int(specId))
 			if sp != nil {
 				rw.Header().Add("Access-Control-Allow-Origin", "http://localhost:3000")

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/rkbalgi/isosim/data"
 	"github.com/rkbalgi/isosim/iso"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
 )
@@ -13,7 +13,7 @@ func loadMsgHandler() {
 
 	http.HandleFunc(LoadMsgUrl, func(rw http.ResponseWriter, req *http.Request) {
 
-		log.Print("Handling - " + LoadMsgUrl)
+		log.Debugln("Handling - " + LoadMsgUrl)
 
 		err := req.ParseForm()
 		if err != nil {
@@ -21,20 +21,19 @@ func loadMsgHandler() {
 			return
 		}
 
-		log.Print(req.Form)
+		log.Traceln("UrlComponents in HTTP request", req.Form)
 
 		if specId, err := strconv.Atoi(req.Form.Get("specId")); err == nil {
-			log.Print("Spec Id =" + strconv.Itoa(specId))
 			isoSpec := iso.SpecByID(specId)
 			if isoSpec == nil {
-				sendError(rw, InvalidSpecIdError.Error())
+				sendError(rw, ErrInvalidSpecID.Error())
 				return
 			}
 			log.Print("Spec = " + isoSpec.Name)
 			if msgId, err := strconv.Atoi(req.Form.Get("msgId")); err == nil {
 				msg := isoSpec.MessageByID(msgId)
 				if msg == nil {
-					sendError(rw, InvalidMsgIdError.Error())
+					sendError(rw, ErrInvalidMsgID.Error())
 					return
 				}
 
@@ -53,7 +52,7 @@ func loadMsgHandler() {
 
 				}
 
-				log.Print("Spec Msg = " + msg.Name)
+				log.Debugln("Spec Msg = " + msg.Name)
 				ds, err := data.DataSetManager().GetAll(req.Form.Get("specId"),
 					req.Form.Get("msgId"))
 				if err != nil {
@@ -66,16 +65,16 @@ func loadMsgHandler() {
 					sendError(rw, "No datasets exists for the spec/msg.")
 					return
 				}
-				log.Print("Data sets = ", ds)
+				log.Debugln("Data sets = ", ds)
 				_ = json.NewEncoder(rw).Encode(ds)
 
 			} else {
-				sendError(rw, InvalidMsgIdError.Error())
+				sendError(rw, ErrInvalidMsgID.Error())
 				return
 			}
 
 		} else {
-			sendError(rw, InvalidSpecIdError.Error())
+			sendError(rw, ErrInvalidSpecID.Error())
 			return
 		}
 

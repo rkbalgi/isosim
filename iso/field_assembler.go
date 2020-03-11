@@ -3,18 +3,17 @@ package iso
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"github.com/rkbalgi/go/encoding/ebcdic"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"strconv"
 )
 
 // assemble assembles all the field into the dst Buffer buf
 func assemble(buf *bytes.Buffer, parsedMsg *ParsedMsg, fieldData *FieldData) error {
 
-	if DebugEnabled {
-		log.Print("Assembling field - " + fieldData.Field.Name)
-	}
+	log.Debugln("assembling field - " + fieldData.Field.Name)
 	fieldInfo := fieldData.Field.FieldInfo
 	switch fieldInfo.Type {
 
@@ -22,6 +21,7 @@ func assemble(buf *bytes.Buffer, parsedMsg *ParsedMsg, fieldData *FieldData) err
 		// if the field has children we will derive the data of the field
 		// from the children (nested fields) else we take it from the parent field
 		if !fieldData.Field.HasChildren() {
+			log.Debugf("assembled data for field %s = %s\n", fieldData.Field.Name, hex.EncodeToString(fieldData.Data))
 			buf.Write(fieldData.Data)
 		}
 	case Variable:
@@ -47,11 +47,12 @@ func assemble(buf *bytes.Buffer, parsedMsg *ParsedMsg, fieldData *FieldData) err
 			case EBCDIC:
 				lenBuf.Write(ebcdic.Decode(lenStr))
 			}
-
+			log.Debugf("assembled data for variable field %s = %s:%s\n", fieldData.Field.Name, hex.EncodeToString(lenBuf.Bytes()), hex.EncodeToString(fieldData.Data))
 			buf.Write(lenBuf.Bytes())
 			buf.Write(fieldData.Data)
 		}
 	case Bitmapped:
+		log.Debugf("assembled data for field %s = %s\n", fieldData.Field.Name, hex.EncodeToString(fieldData.Bitmap.Bytes()))
 		buf.Write(fieldData.Bitmap.Bytes())
 
 	}

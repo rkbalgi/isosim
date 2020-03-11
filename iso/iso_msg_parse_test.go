@@ -11,7 +11,6 @@ func Test_ParseMsg(t *testing.T) {
 
 	msgData, _ := hex.DecodeString("31313030fc000000000003100000002000000000313233F4F5F6123678abcdef313233343536373800120102030405060708090a0b0c000568656c6c6ff0f0f60009f1a3b2c13032f1f2")
 
-	DebugEnabled = true
 	if err := ReadSpecs(filepath.Join("..", "specs", "isoSpecs.spec")); err != nil {
 		t.Fatal(err)
 		return

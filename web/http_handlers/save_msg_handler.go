@@ -1,7 +1,7 @@
 package http_handlers
 
 import (
-	"log"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
 
@@ -13,7 +13,7 @@ func saveMsgHandler() {
 
 	http.HandleFunc(SaveMsgUrl, func(rw http.ResponseWriter, req *http.Request) {
 
-		log.Print("Handling - " + SaveMsgUrl)
+		log.Traceln("Handling - " + SaveMsgUrl)
 
 		err := req.ParseForm()
 		if err != nil {
@@ -21,28 +21,20 @@ func saveMsgHandler() {
 			sendError(rw, err.Error())
 			return
 		}
-
-		log.Print(req.PostForm)
-		//log.Print("?" + req.PostForm.Get("specId") + "?")
-		///log.Print(req.PostForm.Get("msgId"))
-		//log.Print(strconv.Atoi(req.PostForm.Get("specId")))
-		//log.Print(req.PostForm.Get("msg"))
+		log.Traceln("HTTP request data in "+SaveMsgUrl+" request", req.PostForm)
 
 		if specId, err := strconv.Atoi(req.PostForm.Get("specId")); err == nil {
-			log.Print("Spec Id =" + strconv.Itoa(specId))
 			isoSpec := iso.SpecByID(specId)
 			if isoSpec == nil {
-				sendError(rw, InvalidSpecIdError.Error())
+				sendError(rw, ErrInvalidSpecID.Error())
 				return
 			}
-			log.Print("Spec = " + isoSpec.Name)
 			if msgId, err := strconv.Atoi(req.PostForm.Get("msgId")); err == nil {
 				msg := isoSpec.MessageByID(msgId)
 				if msg == nil {
-					sendError(rw, InvalidMsgIdError.Error())
+					sendError(rw, ErrInvalidMsgID.Error())
 					return
 				}
-				//log.Print("Spec Msg = " + msg.Name)
 
 				if req.Form.Get("updateMsg") == "true" {
 					err = data.DataSetManager().Update(req.PostForm.Get("specId"),
@@ -66,12 +58,12 @@ func saveMsgHandler() {
 				}
 
 			} else {
-				sendError(rw, InvalidMsgIdError.Error())
+				sendError(rw, ErrInvalidMsgID.Error())
 				return
 			}
 
 		} else {
-			sendError(rw, InvalidSpecIdError.Error())
+			sendError(rw, ErrInvalidSpecID.Error())
 			return
 		}
 

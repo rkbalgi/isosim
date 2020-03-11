@@ -25,7 +25,7 @@ func getDef(specId string, defName string) (*ui_data.ServerDef, error) {
 		defer serverDefsMutex.Unlock()
 		vServerDef = &ui_data.ServerDef{}
 		vServerDef.MsgSelectionConfigs = make([]ui_data.MsgSelectionConfig, 0, 10)
-		serverDef, err := data.DataSetManager().GetServerDef(specId, defName)
+		serverDef, err := data.DataSetManager().ServerDef(specId, defName)
 		if err != nil {
 			log.Print("Unexpected error while reading server definition. ", err.Error())
 			return nil, err

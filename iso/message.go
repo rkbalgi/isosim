@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"log"
+	log "github.com/sirupsen/logrus"
 )
 
 // ErrUnreadDataRemaining to represent a condition where data remain post parsing
@@ -76,9 +76,7 @@ func (msg *Message) Parse(msgData []byte) (*ParsedMsg, error) {
 
 	}
 	if buf.Len() > 0 {
-		if DebugEnabled {
-			log.Print("Unprocessed Data =" + hex.EncodeToString(buf.Bytes()))
-		}
+		log.Debugln("Unprocessed Data =" + hex.EncodeToString(buf.Bytes()))
 		return nil, ErrUnreadDataRemaining
 	}
 
@@ -115,7 +113,6 @@ func (msg *Message) ParseJSON(jsonMsg string) (*ParsedMsg, error) {
 			if field.ParentId != -1 {
 				parentField := msg.fieldByIdMap[field.ParentId]
 				if parentField.FieldInfo.Type == Bitmapped {
-					log.Print("on field = ", field.Position)
 					isoBitmap.SetOn(field.Position)
 				}
 

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/rkbalgi/isosim/iso"
 	"github.com/rkbalgi/isosim/web/ui_data"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"strconv"
 	"strings"
 )
@@ -29,39 +29,28 @@ func process0(data []byte, pServerDef *ui_data.ServerDef, msgSelConfig ui_data.M
 
 	for _, pc := range msgSelConfig.ProcessingConditions {
 
-		//field:=msg.GetFieldById(pc.FieldId);
 		fieldData := parsedMsg.GetById(pc.FieldId)
 		if fieldData == nil {
-			log.Print("Processing Condition failed. Field not present - ")
+			log.Debugln("Processing Condition failed. Field not present - ", pc.FieldId)
 			return nil, false, nil
 		}
 
-		if iso.DebugEnabled {
-			log.Print("[", pc.MatchConditionType, "] ", " Comparing field value ..", fieldData.Value(), " to ", pc.FieldValue)
-		}
+		log.Debugln("[", pc.MatchConditionType, "] ", " Comparing field value ..", fieldData.Value(), " to ", pc.FieldValue)
 
 		switch pc.MatchConditionType {
 
 		case "Any":
-			{
 
-				if iso.DebugEnabled {
-					log.Print("[", pc.MatchConditionType+"] Processing condition matched.")
-				}
-				//set the response fields
-				buildResponse(isoMsg, &pc)
-				response, err := isoMsg.Assemble()
-				return response, true, err
-
-			}
+			log.Debugln("[", pc.MatchConditionType+"] Processing condition matched.")
+			buildResponse(isoMsg, &pc)
+			response, err := isoMsg.Assemble()
+			return response, true, err
 
 		case "StringEquals":
 			{
 
 				if fieldData.Value() == pc.FieldValue {
-					if iso.DebugEnabled {
-						log.Print("[", pc.MatchConditionType+"] Processing condition matched.")
-					}
+					log.Debugln("[", pc.MatchConditionType+"] Processing condition matched.")
 					//set the response fields
 					buildResponse(isoMsg, &pc)
 					response, err := isoMsg.Assemble()
@@ -89,9 +78,7 @@ func process0(data []byte, pServerDef *ui_data.ServerDef, msgSelConfig ui_data.M
 					return nil, false, err
 				}
 
-				if iso.DebugEnabled {
-					log.Print("[", pc.MatchConditionType, "] ", " Comparing int field value ..", compareFrom, " to ", compareTo)
-				}
+				log.Debugln("[", pc.MatchConditionType, "] ", " Comparing int field value ..", compareFrom, " to ", compareTo)
 
 				matched := false
 				if pc.MatchConditionType == "IntEquals" {
@@ -111,9 +98,7 @@ func process0(data []byte, pServerDef *ui_data.ServerDef, msgSelConfig ui_data.M
 				}
 
 				if matched {
-					if iso.DebugEnabled {
-						log.Print(pc.MatchConditionType + "] Processing condition matched.")
-					}
+					log.Debugln(pc.MatchConditionType + "] Processing condition matched.")
 					//set the response fields
 					buildResponse(isoMsg, &pc)
 					response, err := isoMsg.Assemble()
@@ -139,7 +124,7 @@ func processMsg(data []byte, pServerDef *ui_data.ServerDef) ([]byte, error) {
 		msgSelectorData := data[msgSelectionConfig.BytesFrom:msgSelectionConfig.BytesTo]
 		msgSelector := strings.ToUpper(hex.EncodeToString(msgSelectorData))
 		expectedVal := strings.ToUpper(msgSelectionConfig.BytesValue)
-		log.Print("MsgSelector: Comparing ", msgSelector, " to ", expectedVal)
+		log.Debugln("Comparing ", msgSelector, " to ", expectedVal)
 		if msgSelector == expectedVal {
 			responseData, processed, err := process0(data, pServerDef, msgSelectionConfig)
 			if processed && err == nil {

@@ -5,7 +5,7 @@ import (
 	"github.com/rkbalgi/isosim/data"
 	"github.com/rkbalgi/isosim/iso"
 	"github.com/rkbalgi/isosim/web/http_handlers"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"os"
 	"strconv"
@@ -29,12 +29,14 @@ func main() {
 	flag.Parse()
 
 	if *isDebugEnabled {
-		iso.DebugEnabled = true
-		log.Print("Debug has been enabled.")
+		log.SetLevel(log.DebugLevel)
+		log.Infoln("Debug has been enabled.")
 	}
 
+	//log.SetFormatter(&log.TextFormatter{ForceColors: true, DisableColors: false})
+
 	if *dataDir == "" {
-		log.Print("Please provide 'dataDir' parameter.")
+		log.Infoln("Please provide 'dataDir' parameter.")
 		flag.Usage()
 		os.Exit(2)
 	}
@@ -54,6 +56,6 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	log.Print("Starting ISO WebSim - " + version)
+	log.Infoln("Starting ISO WebSim ", "Version = "+version)
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(*httpPort), nil))
 }
