@@ -9,7 +9,14 @@
 #fieldSpefication (variable size fields) := {fieldType}.{lengthEncoding}.{dataEncoding}.{lengthEncodingSizeSpec}[.constraints}
 #lengthEncodingSizeSpec := size:[0-9]+
 #constraints:=constraints'{' [content:{Numeric|AlphaNumeric}];[minSize:[0-9]+];[maxSize:[0-9]+]'}'
+##
 #
+#
+###
+####
+#TestSpec
+###
+####
 spec.TestSpec.Default Message.Message Type=fixed.ascii.size:4
 spec.TestSpec.Default Message.Bitmap=bitmap.binary
 spec.TestSpec.Default Message.Bitmap.2.Fixed2_ASCII=fixed.ascii.size:3.constraints{content:Numeric;}
@@ -40,7 +47,11 @@ spec.TestSpec.Default Message.Bitmap.59.VarField59_EBCDIC_ASCII=variable.ebcdic.
 spec.TestSpec.Default Message.Bitmap.60.VarField60_EBCDIC_BINARY=variable.ebcdic.binary.size:3.constraints{minSize:8;maxSize:12;}
 spec.TestSpec.Default Message.Bitmap.91.VarField91_ASCII_EBCDIC=variable.ascii.ebcdic.size:2.constraints{minSize:5;maxSize:15;content:Alpha;}
 #
+###
 ####
+#Iso8583-MiniSpec
+####
+###
 spec.Iso8583-MiniSpec.1100.Message Type=fixed.ascii.size:4
 spec.Iso8583-MiniSpec.1100.Bitmap=bitmap.binary
 spec.Iso8583-MiniSpec.1100.Bitmap.2.PAN=variable.ebcdic.ebcdic.size:2.constraints{content:Numeric;}
