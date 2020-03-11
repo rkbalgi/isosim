@@ -12,23 +12,33 @@
 #
 spec.TestSpec.Default Message.Message Type=fixed.ascii.size:4
 spec.TestSpec.Default Message.Bitmap=bitmap.binary
-spec.TestSpec.Default Message.Bitmap.2.Fixed ASCII=fixed.ascii.size:3.constraints{content:Numeric;}
-spec.TestSpec.Default Message.Bitmap.3.Fixed EBCDIC=fixed.ebcdic.size:3.constraints{content:Alpha;}
-spec.TestSpec.Default Message.Bitmap.4.Fixed BCD=fixed.bcd.size:3
-spec.TestSpec.Default Message.Bitmap.5.Fixed BINARY=fixed.binary.size:3
-spec.TestSpec.Default Message.Bitmap.6.FieldWithSubFields=fixed.ascii.size:8
-spec.TestSpec.Default Message.FieldWithSubFields.1.SF6_1=fixed.ascii.size:4
+spec.TestSpec.Default Message.Bitmap.2.Fixed2_ASCII=fixed.ascii.size:3.constraints{content:Numeric;}
+spec.TestSpec.Default Message.Bitmap.3.Fixed3_EBCDIC=fixed.ebcdic.size:3.constraints{content:Alpha;}
+spec.TestSpec.Default Message.Bitmap.4.Fixed4_BCD=fixed.bcd.size:3
+spec.TestSpec.Default Message.Bitmap.5.Fixed5_BINARY=fixed.binary.size:3
+#
+## An example of a fixed field with embedded/nested subfields
+spec.TestSpec.Default Message.Bitmap.6.FxdField6_WithSubFields=fixed.ascii.size:8
+spec.TestSpec.Default Message.FxdField6_WithSubFields.1.SF6_1=fixed.ascii.size:4
 spec.TestSpec.Default Message.SF6_1.1.SF6_1_1=fixed.ascii.size:2
 spec.TestSpec.Default Message.SF6_1.1.SF6_1_2=fixed.ascii.size:2
-spec.TestSpec.Default Message.FieldWithSubFields.2.SF6_2=fixed.ascii.size:2
-spec.TestSpec.Default Message.FieldWithSubFields.3.SF6_3=fixed.ascii.size:2
-spec.TestSpec.Default Message.Bitmap.55.Var BCD/BINARY=variable.bcd.binary.size:2
-spec.TestSpec.Default Message.Bitmap.56.Var BCD/ASCII=variable.bcd.ascii.size:2
-spec.TestSpec.Default Message.Bitmap.57.Var BINARY/EBCDIC =variable.binary.ebcdic.size:2
-spec.TestSpec.Default Message.Bitmap.58.Var EBCDIC/EBCDIC=variable.ebcdic.ebcdic.size:2
-spec.TestSpec.Default Message.Bitmap.59.Var EBCDIC/ASCII=variable.ebcdic.ascii.size:2
-spec.TestSpec.Default Message.Bitmap.60.Var EBCDIC/BINARY=variable.ebcdic.binary.size:3.constraints{minSize:8;maxSize:12;}
-spec.TestSpec.Default Message.Bitmap.91.Var ASCII/EBCDIC=variable.ascii.ebcdic.size:2.constraints{minSize:5;maxSize:15;content:Alpha;}
+spec.TestSpec.Default Message.FxdField6_WithSubFields.2.SF6_2=fixed.ascii.size:2
+spec.TestSpec.Default Message.FxdField6_WithSubFields.3.SF6_3=fixed.ascii.size:2
+#
+## An example of a variable field with embedded/nested subfields
+spec.TestSpec.Default Message.Bitmap.7.VarField7_WithSubFields=variable.ascii.binary.size:2
+spec.TestSpec.Default Message.VarField7_WithSubFields.1.SF7_1=fixed.ascii.size:5
+spec.TestSpec.Default Message.VarField7_WithSubFields.2.SF7_2=variable.bcd.ascii.size:2
+spec.TestSpec.Default Message.VarField7_WithSubFields.3.SF7_3=fixed.ascii.size:5
+#
+# Rest of the fields
+spec.TestSpec.Default Message.Bitmap.55.VarField55_BCD_BINARY=variable.bcd.binary.size:2
+spec.TestSpec.Default Message.Bitmap.56.VarField56_BCD_ASCII=variable.bcd.ascii.size:2
+spec.TestSpec.Default Message.Bitmap.57.VarField57_BINARY_EBCDIC =variable.binary.ebcdic.size:2
+spec.TestSpec.Default Message.Bitmap.58.VarField58_EBCDIC_EBCDIC=variable.ebcdic.ebcdic.size:2
+spec.TestSpec.Default Message.Bitmap.59.VarField59_EBCDIC_ASCII=variable.ebcdic.ascii.size:2
+spec.TestSpec.Default Message.Bitmap.60.VarField60_EBCDIC_BINARY=variable.ebcdic.binary.size:3.constraints{minSize:8;maxSize:12;}
+spec.TestSpec.Default Message.Bitmap.91.VarField91_ASCII_EBCDIC=variable.ascii.ebcdic.size:2.constraints{minSize:5;maxSize:15;content:Alpha;}
 #
 ####
 spec.Iso8583-MiniSpec.1100.Message Type=fixed.ascii.size:4
