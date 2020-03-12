@@ -8,7 +8,7 @@ Docker Info - https://github.com/rkbalgi/isosim/wiki/Running-on-Docker
 
 
 Iso Websim is a ISO8583 simulator built using golang (http://golang.org). It provides a simple interface to load ISO specifications. 
-The specifications themselves are defined in text file (more information on developing your own specs can be found in the [this] (./specs/isoSpec.spec?raw=true) file which you can use as a template to start with.
+The specifications themselves are defined in text file (more information on developing your own specs can be found in [here] (https://github.com/rkbalgi/isosim/blob/master/specs/isoSpecs.spec) file which you can use as a template to start with.
 
 You can load an existing trace or create an ISO message from scratch and send it to an ISO host (identified by host and a port). 
 
