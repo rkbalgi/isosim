@@ -1,5 +1,6 @@
 # . is a special character and cannot appear between field names, spec names etc.
 # field names within a spec are required to be unique
+# Message Type (or can also be called MTI) and Bitmap are special fields and their names should'nt be changed
 #
 #
 #format   := {fieldDef}={fieldSpecification}

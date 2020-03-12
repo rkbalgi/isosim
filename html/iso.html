@@ -79,7 +79,7 @@
           for (var i = 0; i < msgsObj.length; i++) {
             msgObj = msgsObj[i];
             var selectedStatus = "";
-            if (i == 0) {
+            if (i === 0) {
               selectedStatus = "selected";
             }
             htmlContent += "<option class=\"cl_small_text\" id=\"" + msgObj.Id + "\"" +
@@ -93,7 +93,7 @@
             jsLoadTemplate();
           }
 
-        } //end onSuccessFunc call
+        }; //end onSuccessFunc call
 
         doAjaxCall(url, onSuccessFunc)
 
@@ -104,10 +104,10 @@
     }
 
     function registerField(field) {
-      idToField[field.Id] = field
+      idToField[field.Id] = field;
       if (field.Children.length > 0) {
         for (var i = 0; i < field.Children.length; i++) {
-          registerField(field.Children[i])
+          registerField(field.Children[i]);
         }
       }
     }
@@ -157,7 +157,7 @@
             elem.innerHTML = htmlContent;
 
             var elems = document.getElementsByClassName('cl_vsmall_btn_edit');
-            for (var i = 0; i < elems.length; i++) {
+            for (i = 0; i < elems.length; i++) {
               elems[i].addEventListener('click', function (event) {
 
                 var fieldVal = "";
@@ -223,7 +223,7 @@
       var id1 = reqFieldsPrefixId1;
       var id2 = reqFieldsPrefixId2;
 
-      if (isRequest == false) {
+      if (isRequest === false) {
         id0 = respFieldsPrefixId0;
         id1 = respFieldsPrefixId1;
         id2 = respFieldsPrefixId2;
@@ -233,24 +233,29 @@
       var htmlContent = '<tr>';
 
       var disabledFlag = "";
-      if (isRequest == false) {
+      if (isRequest === false) {
         disabledFlag = "disabled";
 
       }
 
+      //bitmap and message type are mandatory fields that are always required
       var reqBmpDisabled = "";
       if (isRequest && fieldObj.Type === "Bitmapped") {
         reqBmpDisabled = "disabled";
-
+        disabledFlag = "disabled";
+      }
+      if (isRequest && (fieldObj.Name === "Message Type" || fieldObj.Name === "MTI")) {
+        disabledFlag = "disabled";
       }
 
-      htmlContent += "<td class=\"cl_field_pos\"> <input class=\"cl_req_field_sel_cb\" id=\"" + id0
-          + fieldObj.Id + "\" type=\"checkbox\"" + " onchange = \"fireReqFieldChanged("
-          + fieldObj.Id + ")\"" + disabledFlag + "/>" + fieldPosition + " </td>";
-      htmlContent += "<td class=\"cl_field_name\" id=\"" + id1 + fieldObj.Id + "\">" + fieldObj.Name
-          + "</td>";
 
       if (isRequest) {
+
+        htmlContent += "<td class=\"cl_field_pos\"> <input class=\"cl_req_field_sel_cb\" id=\"" + id0
+            + fieldObj.Id + "\" type=\"checkbox\"" + " onchange = \"fireReqFieldChanged("
+            + fieldObj.Id + ")\"" + disabledFlag + "/>" + fieldPosition + " </td>";
+        htmlContent += "<td class=\"cl_field_name\" id=\"" + id1 + fieldObj.Id + "\">" + fieldObj.Name
+            + "</td>";
 
         htmlContent += "<td>" + "<input id=\"" + id2 + fieldObj.Id
             + "\" class=\"cl_field_value\" type=\"text\" " + reqBmpDisabled
@@ -261,6 +266,14 @@
             + fieldObj.Id + '\") ' + reqBmpDisabled + '/> </td>';
 
       } else {
+
+        htmlContent += "<td class=\"cl_field_pos\"> <input class=\"cl_resp_field_sel_cb\" id=\"" + id0
+            + fieldObj.Id + "\" type=\"checkbox\"" + " onchange = \"fireReqFieldChanged("
+            + fieldObj.Id + ")\"" + disabledFlag + "/>" + fieldPosition + " </td>";
+        htmlContent += "<td class=\"cl_field_name\" id=\"" + id1 + fieldObj.Id + "\">" + fieldObj.Name
+            + "</td>";
+
+
         htmlContent += "<td>" + "<input id=\"" + id2 + fieldObj.Id
             + "\" class=\"cl_field_value\" type=\"text\" class=\"cl_small_text\" value=\""
             + fieldData + "\" disabled/>";
@@ -485,11 +498,11 @@
 
       }
 
-      if (on == false) {
-        if (bmpElem.value.substring(65 - 1, 129 - 1) == emptyBitmap) {
+      if (on === false) {
+        if (bmpElem.value.substring(65 - 1, 129 - 1) === emptyBitmap) {
           bmpElem.value = '0' + bmpElem.value.substring(1, bmpElem.value.length);
         }
-        if (bmpElem.value.substring(129 - 1, 193 - 1) == emptyBitmap) {
+        if (bmpElem.value.substring(129 - 1, 193 - 1) === emptyBitmap) {
           bmpElem.value = bmpElem.value.substring(1 - 1, 66 - 1) + '0' + bmpElem.value.substring(
               66 - 1, bmpElem.value.length);
         }
@@ -549,11 +562,7 @@
         }
         //done global
         textAreaElem.value = initialValue;
-        if (!readonly) {
-          textAreaElem.disabled = false;
-        } else {
-          textAreaElem.disabled = true;
-        }
+        textAreaElem.disabled = readonly;
 
         x = 10;
         //console.log('screenY = ' + e.pageY);
@@ -563,7 +572,7 @@
         //divElem.style.left = x;
         //divElem.style.top = y;
         //console.log("right = " + divElem.style.right);
-        if (isrequest == false) {
+        if (isrequest === false) {
           divElem.style.right = '0%';
         } else {
           divElem.style.right = '';
@@ -705,10 +714,10 @@
       //console.log('validating ' + fieldObj.Name + ' Id = ' + fieldObj.Id + ' field type = ' + fieldObj.Type + ' fieldVal = ' + fieldVal + ' is selected = ' + isSelected);
       if (isSelected) {
 
-        if (fieldObj.Type == 'VARIABLE') {
+        if (fieldObj.Type === 'Variable') {
           validateVariableField(fieldObj, fieldVal, errors);
 
-        } else if (fieldObj.Type == 'FIXED') {
+        } else if (fieldObj.Type === 'Fixed') {
           validateFixedField(fieldObj, fieldVal, errors);
         }
       }
@@ -912,7 +921,7 @@
 
     function validateFields() {
 
-      var errors = new Array();
+      var errors = []
       for (var i = 0, j = 0; i < currentMsgFields.length; i++) {
         var fieldObj = currentMsgFields[i];
         validateField(fieldObj, errors);
@@ -1013,7 +1022,7 @@
 
         var htmlContent = '';
         htmlContent += '<tr><td colspan=\"4\" align="center"><div class="cl_segment_header_resp">Message Response</div></td><tr>';
-        htmlContent += "<tr class=\"cl_small_text\"><th > Selected? </th> <th> Field </th> <th> Value </th></tr>\n";
+        htmlContent += "<tr class=\"cl_table_heading\"><th > Selected? </th> <th> Field </th> <th> Value </th></tr>\n";
         for (var i = 0; i < currentMsgFields.length; i++) {
           var fieldObj = currentMsgFields[i];
           htmlContent += getFieldHtml(fieldObj, fieldValue = "", isRequest = false);
@@ -1056,7 +1065,7 @@
     function constructReqObj() {
 
       var selectedObjs = document.getElementsByClassName('cl_req_field_sel_cb');
-      var resultObj = new Array();
+      var resultObj = [];
       //var dataPresent = false;
       for (var i = 0, j = 0; i < selectedObjs.length; i++) {
 
@@ -1070,7 +1079,7 @@
             var index = childNode.id.indexOf('_');
             var childNodeId = childNode.id.substring(index + 1, childNode.id.length);
             var fieldValue = document.getElementById(reqFieldsPrefixId2 + childNodeId).value;
-            var obj = new Object();
+            var obj = {};
             obj.Id = parseInt(childNodeId);
             obj.Value = fieldValue;
             resultObj[j++] = obj;

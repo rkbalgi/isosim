@@ -175,9 +175,9 @@ func handleConnection(connection net.Conn, pServerDef *ui_data.ServerDef) {
 				}
 
 				if n > 0 {
-					log.Traceln("Read = " + hex.EncodeToString(tmp[0:n]))
+					log.WithFields(log.Fields{"type": "server"}).Traceln("Read = " + hex.EncodeToString(tmp[0:n]))
 					buf.Write(tmp[0:n])
-					log.Traceln("msgLen = ", msgLen, " Read = ", n)
+					log.WithFields(log.Fields{"type": "server"}).Traceln("msgLen = ", msgLen, " Read = ", n)
 					if uint16(len(buf.Bytes())) == msgLen {
 						//we have a complete msg
 						complete = true
@@ -219,7 +219,7 @@ func handleRequest(connection net.Conn, msgData []byte, pServerDef *ui_data.Serv
 		return
 	}
 	buf.Write(responseData)
-	log.Debugln("Writing Response. Data = " + hex.EncodeToString(buf.Bytes()))
+	log.WithFields(log.Fields{"type": "server"}).Debugln("Writing Response. Data = " + hex.EncodeToString(buf.Bytes()))
 	_, _ = connection.Write(buf.Bytes())
 
 }

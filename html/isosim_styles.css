@@ -1,284 +1,288 @@
 #overlay {
-    //display: none;
-    position: absolute;
-    z-index: 80;
-    opacity: 0.8;
-    left: 0px;
-    top: 0px;
-    width: 100%;
-    height: 100%
+/ / display: none;
+  position: absolute;
+  z-index: 80;
+  opacity: 0.8;
+  left: 0px;
+  top: 0px;
+  width: 100%;
+  height: 100%
 }
 
 #navDiv {
-    position: relative;
-    //top: 0px;
-    left: 0px;
-    width: 10%;
-    height: 100%;
-    float: left;
-    //border-style: groove;
-    //border-color: blue;
-    padding: 2px;
-    margin: 0px;
-    z-index: 90;
+  position: relative;
+/ / top: 0 px;
+  left: 0px;
+  width: 10%;
+  height: 100%;
+  float: left;
+/ / border-style: groove;
+/ / border-color: blue;
+  padding: 2px;
+  margin: 0px;
+  z-index: 90;
 }
 
 #headerDiv {
-    position: relative;
-    top: 0px;
-    left: 0px;
-    height: 15%;
-    width: 100%;
-    float: left;
-    //border-style: dashed;
-    //border-color: red;
-    z-index: 90;
+  position: relative;
+  top: 0px;
+  left: 0px;
+  height: 15%;
+  width: 100%;
+  float: left;
+/ / border-style: dashed;
+/ / border-color: red;
+  z-index: 90;
 }
 
 #bodyDiv {
-    position: relative;
-    //top: 200px;
-    //left: 30px;
-    //height: 80px;
-    width: 85%;
-    float: left;
-    //border-style: double;
-    overflow: hidden;
-    z-index: 90;
+  position: relative;
+/ / top: 200 px;
+/ / left: 30 px;
+/ / height: 80 px;
+  width: 85%;
+  float: left;
+/ / border-style: double;
+  overflow: hidden;
+  z-index: 90;
 }
 
 .cl_cursive_heading {
-    font-family: "Gloria Hallelujah", serif;
-    font-size: 35px;
+  font-family: "Gloria Hallelujah", serif;
+  font-size: 35px;
 }
 
 .cl_small_text_new {
-    font-family: 'Lora', serif;
-    font-size: 14px;
+  font-family: 'Lora', serif;
+  font-size: 14px;
 }
 
 .cl_small_btn {
-    font-family: 'Lora', serif;
-    font-size: 10pt;
-    color: black;
-    background: #33d6ff;
-    width: 120px;
+  font-family: 'Lora', serif;
+  font-size: 10pt;
+  color: black;
+  background: #33d6ff;
+  width: 120px;
 }
 
 .cl_small_btn_disabled {
-    font-family: 'Lora', serif;
-    font-size: 10pt;
-    color: black;
-    background: #f0dbdb;
-    width: 120px;
+  font-family: 'Lora', serif;
+  font-size: 10pt;
+  color: black;
+  background: #f0dbdb;
+  width: 120px;
 }
 
 .cl_vsmall_btn_edit {
-    font-family: Lora;
-    font-size: 10pt;
-    color: black;
-    background: #bfbb53;
-    width: 50px;
+  font-family: Lora;
+  font-size: 10pt;
+  color: black;
+  background: #bfbb53;
+  width: 50px;
 }
 
 .cl_vsmall_btn_view {
-    font-family: 'Lora', serif;
-    font-size: 10pt;
-    color: black;
-    background: #bfbb53;
-    width: 50px;
+  font-family: 'Lora', serif;
+  font-size: 10pt;
+  color: black;
+  background: #bfbb53;
+  width: 50px;
 }
 
 .cl_small_text {
-    font-family: Lora, serif;
-    font-size: 10pt;
-    color: black;
+  font-family: Lora, serif;
+  font-size: 10pt;
+  color: black;
 }
 
 .cl_field_name {
-    font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
-    font-size: 15px;
-    color: #25235a;
+  font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
+  font-size: 15px;
+  color: #25235a;
 }
 
 .cl_user_input_text {
-    font-family: 'Lora', 'Times', serif;
-    font-size: 14px;
-    color: #25235a;
+  font-family: 'Lora', 'Times', serif;
+  font-size: 14px;
+  color: #25235a;
 }
 
 .cl_table_heading {
-    font-family: 'Cormorant Garamond', 'Lora', serif;
-    font-size: 19px;
-    color: #221441;
+  font-family: 'Cormorant Garamond', 'Lora', serif;
+  font-size: 19px;
+  color: #221441;
 }
 
 .cl_segment_header_req {
-    font-family: Lora, serif;
-    font-size: 12pt;
-    font-weight: 200;
-    background: #ccff99;
+  font-family: Lora, serif;
+  font-size: 12pt;
+  font-weight: 200;
+  background: #ccff99;
 }
 
 .cl_segment_header_resp {
-    font-family: Lora, serif;
-    font-size: 11pt;
-    font-weight: 200;
-    background: #cacadd;
+  font-family: Lora, serif;
+  font-size: 12pt;
+  font-weight: 200;
+  background: #cacadd;
 }
 
 .cl_field_value {
-    font-family: 'Courier New', monospace;
-    font-size: 11pt;
-    color: #090933;
-    width: 150px;
+  font-family: 'Courier New', monospace;
+  font-size: 11pt;
+  color: #090933;
+  width: 150px;
 }
 
 .cl_field_pos {
-    font-family: Lora, serif;
-    font-size: 11pt;
-    color: #e64a0a;
+  font-family: Lora, serif;
+  font-size: 11pt;
+  color: #e64a0a;
 }
 
 .cl_trace_value {
-    font-family: 'Courier New', monospace;
-    font-size: 10pt;
-    color: black;
+  font-family: 'Courier New', monospace;
+  font-size: 10pt;
+  color: black;
 }
 
 .cl_req_field_sel_cb {
-    background: grey;
+  background: grey;
+}
+
+.cl_resp_field_sel_cb {
+  background: grey;
 }
 
 .cl_val_error {
-    color: red;
-    font-family: Lora, serif;
-    font-size: 9pt;
+  color: red;
+  font-family: Lora, serif;
+  font-size: 9pt;
 }
 
 .cl_text_label {
-    color: black;
-    font-family: Lora, serif;
-    font-size: 11pt;
-    height: 25px;
-    width: 150px;
-    //align-content: center;
-    background: #bbcad1;
+  color: black;
+  font-family: Lora, serif;
+  font-size: 11pt;
+  height: 25px;
+  width: 150px;
+/ / align-content: center;
+  background: #bbcad1;
 }
 
 .cl_std_text_box {
-    background-color: #ededdd;
-    border: 1px solid #848484;
-    height: 25px;
-    width: 200px;
-    outline: 0;
-    font-family: Lora, serif;
-    font-size: 11pt;
+  background-color: #ededdd;
+  border: 1px solid #848484;
+  height: 25px;
+  width: 200px;
+  outline: 0;
+  font-family: Lora, serif;
+  font-size: 11pt;
 }
 
 .cl_std_cbox {
-    background-color: #ededdd;
-    border: 1px solid #848484;
-    height: 25px;
-    width: 200px;
-    outline: 0;
-    font-family: Lora, serif;
-    font-size: 11pt;
-    z-index: 90;
+  background-color: #ededdd;
+  border: 1px solid #848484;
+  height: 25px;
+  width: 200px;
+  outline: 0;
+  font-family: Lora, serif;
+  font-size: 11pt;
+  z-index: 90;
 }
 
 .cl_trace_dlg {
-    margin-left: 10px;
-    margin-right: 10px;
-    width: 455px;
-    height: 230px;
-    display: none;
-    background: white;
-    border-style: solid;
-    border-width: 1px;
-    border-color: blue;
-    z-index: 100;
-    //opacity: 1;
-    position: absolute;
+  margin-left: 10px;
+  margin-right: 10px;
+  width: 455px;
+  height: 230px;
+  display: none;
+  background: white;
+  border-style: solid;
+  border-width: 1px;
+  border-color: blue;
+  z-index: 100;
+/ / opacity: 1;
+  position: absolute;
 }
 
 .cl_about_dlg {
-    margin-left: 10px;
-    margin-right: 10px;
-    width: 455px;
-    height: 300px;
-    display: none;
-    background: white;
-    border-style: solid;
-    border-width: 1px;
-    border-color: blue;
-    z-index: 100;
-    //opacity: 1;
-    position: absolute;
+  margin-left: 10px;
+  margin-right: 10px;
+  width: 455px;
+  height: 300px;
+  display: none;
+  background: white;
+  border-style: solid;
+  border-width: 1px;
+  border-color: blue;
+  z-index: 100;
+/ / opacity: 1;
+  position: absolute;
 }
 
 .cl_cb_opt {
-    font-family: SourceCodePro-Medium;
-    font-size: 11pt;
+  font-family: SourceCodePro-Medium, serif;
+  font-size: 11pt;
 }
 
 .cl_dlg_header {
-    font-family: Lora, serif;
-    width: 455px;
-    background: gainsboro;
+  font-family: Lora, serif;
+  width: 455px;
+  background: gainsboro;
 }
 
 .cl_msg_selector {
-    font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
-    font-size: 15px;
-    color: #25235a;
+  font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
+  font-size: 15px;
+  color: #25235a;
 }
 
 .cl_spec_msg {
-    font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
-    font-size: 15px;
-    color: #25235a;
+  font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
+  font-size: 15px;
+  color: #25235a;
 }
 
 .cl_bytes_value {
-    font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
-    font-size: 15px;
-    color: #25235a;
+  font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
+  font-size: 15px;
+  color: #25235a;
 }
 
 .cl_field_match_condition {
-    font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
-    font-size: 15px;
-    color: #25235a;
+  font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
+  font-size: 15px;
+  color: #25235a;
 }
 
 .cl_proc_condition {
-    font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
-    font-size: 15px;
+  font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
+  font-size: 15px;
 }
 
 .cl_bytes_from {
-    font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
-    font-size: 15px;
-    color: #25235a;
-    width: 40px;
+  font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
+  font-size: 15px;
+  color: #25235a;
+  width: 40px;
 }
 
 .cl_bytes_to {
-    font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
-    font-size: 15px;
-    color: #25235a;
-    width: 40px;
+  font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
+  font-size: 15px;
+  color: #25235a;
+  width: 40px;
 }
 
 .cl_field_val {
-    font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
-    font-size: 15px;
-    color: #25235a;
+  font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
+  font-size: 15px;
+  color: #25235a;
 }
 
 .cl_field_off {
-    font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
-    font-size: 15px;
-    color: #25235a;
+  font-family: 'Lora', 'Cormorant Garamond', 'Lora', 'Times', serif;
+  font-size: 15px;
+  color: #25235a;
 }

@@ -74,7 +74,7 @@ func (iso *Iso) Assemble() ([]byte, error) {
 	buf := new(bytes.Buffer)
 	for _, field := range msg.fields {
 		if err := assemble(buf, iso.parsedMsg, iso.parsedMsg.FieldDataMap[field.Id]); err != nil {
-			return nil, nil
+			return nil, err
 		}
 	}
 
