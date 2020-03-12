@@ -20,6 +20,7 @@ type JsonFieldTemplate struct {
 
 type JsonFieldDataRep struct {
 	Id    int
+	Name  string
 	Value string
 }
 

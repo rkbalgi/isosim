@@ -15,6 +15,58 @@ import (
 
 func parseTraceHandler() {
 
+	http.HandleFunc(ParseTraceExternalUrl, func(rw http.ResponseWriter, req *http.Request) {
+
+		reqObj := struct {
+			SpecName string `json:"spec_name"`
+			MsgName  string `json:"msg_name"`
+			Data     string `json:"data"`
+		}{}
+
+		defer req.Body.Close()
+		if err := json.NewDecoder(req.Body).Decode(&reqObj); err != nil {
+			log.Errorln("Failed to unmarshal from JSON", err)
+			rw.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		if reqObj.SpecName == "" || reqObj.MsgName == "" || reqObj.Data == "" {
+			log.Errorf("Bad request. Invalid data in request")
+			rw.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		spec := iso.SpecByName(reqObj.SpecName)
+		if spec == nil {
+			log.Errorf("No such spec found - %s\n", reqObj.SpecName)
+			rw.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		msg := spec.MessageByName(reqObj.MsgName)
+		if msg == nil {
+			log.Errorf("No msg [%s] found for spec - %s\n", reqObj.MsgName, reqObj.SpecName)
+			rw.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		data, err := hex.DecodeString(reqObj.Data)
+		if err != nil {
+			log.Errorf("Invalid trace data in request. Should be valid hex. Provided data = %s", reqObj.Data)
+			rw.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		if parsedMsg, err := msg.Parse(data); err != nil {
+			json.NewEncoder(rw).Encode(struct {
+				Error            string `json:"error"`
+				ErrorDescription string `json:"error_description"`
+			}{Error: "ERR_PARSE_FAIL", ErrorDescription: err.Error()})
+		} else {
+			fieldDataList := ToJsonList(parsedMsg)
+			json.NewEncoder(rw).Encode(fieldDataList)
+		}
+
+	})
+
 	http.HandleFunc(ParseTraceUrl, func(rw http.ResponseWriter, req *http.Request) {
 
 		reqUri := req.RequestURI
@@ -74,7 +126,6 @@ func parseTraceHandler() {
 					}
 
 					fieldDataList := ToJsonList(parsedMsg)
-					//log.Print(fieldDataMap)
 					json.NewEncoder(rw).Encode(fieldDataList)
 
 				}
@@ -97,7 +148,7 @@ func ToJsonList(parsedMsg *iso.ParsedMsg) []ui_data.JsonFieldDataRep {
 
 	fieldDataList := make([]ui_data.JsonFieldDataRep, 0, 10)
 	for id, fieldData := range parsedMsg.FieldDataMap {
-		dataRep := ui_data.JsonFieldDataRep{Id: id, Value: fieldData.Field.ValueToString(fieldData.Data)}
+		dataRep := ui_data.JsonFieldDataRep{Id: id, Name: fieldData.Field.Name, Value: fieldData.Field.ValueToString(fieldData.Data)}
 		if fieldData.Field.FieldInfo.Type == iso.Bitmapped {
 			dataRep.Value = fieldData.Bitmap.BinaryString()
 
