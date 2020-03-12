@@ -90,7 +90,7 @@ func sendMsgHandler() {
 		parsedMsg, err := msg.ParseJSON(req.PostForm.Get("msg"))
 		if err != nil {
 			log.Errorln("Failed to parse msg", err.Error())
-			sendError(rw, ErrParseFailure.Error())
+			sendError(rw, "Parse Failure. Cause: "+err.Error())
 			return
 		}
 
@@ -121,7 +121,7 @@ func sendMsgHandler() {
 		}
 		responseData, err := netClient.ReadNextPacket()
 		if err != nil {
-			log.Errorln("Failed to write response from ISO server. Error = " + err.Error())
+			log.Errorln("Failed to read response from ISO server. Error = " + err.Error())
 			sendError(rw, "error reading response -"+err.Error())
 			return
 		}

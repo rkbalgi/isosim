@@ -14,8 +14,8 @@ import (
 func assemble(buf *bytes.Buffer, parsedMsg *ParsedMsg, fieldData *FieldData) error {
 
 	log.Debugln("assembling field - " + fieldData.Field.Name)
-	fieldInfo := fieldData.Field.FieldInfo
-	switch fieldInfo.Type {
+	info := fieldData.Field.FieldInfo
+	switch info.Type {
 
 	case Fixed:
 		// if the field has children we will derive the data of the field
@@ -26,30 +26,15 @@ func assemble(buf *bytes.Buffer, parsedMsg *ParsedMsg, fieldData *FieldData) err
 		}
 	case Variable:
 		{
-			//FIXME:: include support for embedded fields for top level variable fields
-			lenBuf := new(bytes.Buffer)
-			fmtStr := "%0" + strconv.FormatInt(int64(fieldInfo.LengthIndicatorSize), 10) + "d"
-			lenStr := fmt.Sprintf(fmtStr, len(fieldData.Data))
-			switch fieldInfo.LengthIndicatorEncoding {
-			case BCD:
-				{
-					if intVal, err := strconv.ParseUint(lenStr, 10, 32); err != nil {
-						return err
-					} else {
-						writeIntToBuf(lenBuf, intVal, fieldInfo.LengthIndicatorSize)
-					}
-
+			if !fieldData.Field.HasChildren() {
+				lenBuf, err := buildLengthIndicator(info.LengthIndicatorEncoding, info.LengthIndicatorSize, len(fieldData.Data))
+				if err != nil {
+					return err
 				}
-			case BINARY:
-				writeIntToBuf(lenBuf, uint64(len(fieldData.Data)), fieldInfo.LengthIndicatorSize)
-			case ASCII:
-				lenBuf.Write([]byte(lenStr))
-			case EBCDIC:
-				lenBuf.Write(ebcdic.Decode(lenStr))
+				log.Debugf("assembled data for variable field %s = %s:%s\n", fieldData.Field.Name, hex.EncodeToString(lenBuf.Bytes()), hex.EncodeToString(fieldData.Data))
+				buf.Write(lenBuf.Bytes())
+				buf.Write(fieldData.Data)
 			}
-			log.Debugf("assembled data for variable field %s = %s:%s\n", fieldData.Field.Name, hex.EncodeToString(lenBuf.Bytes()), hex.EncodeToString(fieldData.Data))
-			buf.Write(lenBuf.Bytes())
-			buf.Write(fieldData.Data)
 		}
 	case Bitmapped:
 		log.Debugf("assembled data for field %s = %s\n", fieldData.Field.Name, hex.EncodeToString(fieldData.Bitmap.Bytes()))
@@ -59,7 +44,7 @@ func assemble(buf *bytes.Buffer, parsedMsg *ParsedMsg, fieldData *FieldData) err
 
 	if fieldData.Field.HasChildren() {
 
-		if fieldInfo.Type == Bitmapped {
+		if info.Type == Bitmapped {
 			bmp := fieldData.Bitmap
 			for _, childField := range fieldData.Field.Children() {
 				if bmp.IsOn(childField.Position) {
@@ -67,8 +52,30 @@ func assemble(buf *bytes.Buffer, parsedMsg *ParsedMsg, fieldData *FieldData) err
 				}
 			}
 		} else {
-			for _, cf := range fieldData.Field.Children() {
-				assemble(buf, parsedMsg, parsedMsg.FieldDataMap[cf.Id])
+			if info.Type == Fixed {
+				tempBuf := bytes.Buffer{}
+				for _, cf := range fieldData.Field.Children() {
+					assemble(&tempBuf, parsedMsg, parsedMsg.FieldDataMap[cf.Id])
+				}
+				buf.Write(tempBuf.Bytes())
+				fieldData.Data = tempBuf.Bytes()
+				log.Debugf("assembled data for fixed field %s = %s\n", fieldData.Field.Name, hex.EncodeToString(fieldData.Data))
+
+			} else if info.Type == Variable {
+				//assemble all child fields and then construct the parent
+				tempBuf := bytes.Buffer{}
+				for _, cf := range fieldData.Field.Children() {
+					assemble(&tempBuf, parsedMsg, parsedMsg.FieldDataMap[cf.Id])
+				}
+				lenBuf, err := buildLengthIndicator(info.LengthIndicatorEncoding, info.LengthIndicatorSize, tempBuf.Len())
+				if err != nil {
+					return err
+				}
+				log.Debugf("assembled data for variable field %s = %s:%s\n", fieldData.Field.Name, hex.EncodeToString(lenBuf.Bytes()), hex.EncodeToString(fieldData.Data))
+				buf.Write(lenBuf.Bytes())
+				buf.Write(tempBuf.Bytes())
+				fieldData.Data = tempBuf.Bytes()
+
 			}
 		}
 
@@ -84,17 +91,17 @@ func writeIntToBuf(lenBuf *bytes.Buffer, intVal uint64, noOfBytes int) {
 
 	case 1:
 		{
-			var n uint8 = uint8(intVal)
+			var n = uint8(intVal)
 			binary.Write(lenBuf, binary.BigEndian, &n)
 		}
 	case 2:
 		{
-			var n uint16 = uint16(intVal)
+			var n = uint16(intVal)
 			binary.Write(lenBuf, binary.BigEndian, &n)
 		}
 	case 4:
 		{
-			var n uint32 = uint32(intVal)
+			var n = uint32(intVal)
 			binary.Write(lenBuf, binary.BigEndian, &n)
 		}
 	case 8:
@@ -109,4 +116,31 @@ func writeIntToBuf(lenBuf *bytes.Buffer, intVal uint64, noOfBytes int) {
 
 	}
 
+}
+
+func buildLengthIndicator(lenEncoding Encoding, lenEncodingSize int, fieldLength int) (*bytes.Buffer, error) {
+
+	//info := fieldData.Field.FieldInfo
+	lenBuf := &bytes.Buffer{}
+	fmtStr := "%0" + strconv.FormatInt(int64(lenEncodingSize), 10) + "d"
+	lenStr := fmt.Sprintf(fmtStr, fieldLength)
+	switch lenEncoding {
+	case BCD:
+		{
+			if intVal, err := strconv.ParseUint(lenStr, 10, 32); err != nil {
+				return nil, err
+			} else {
+				writeIntToBuf(lenBuf, intVal, lenEncodingSize)
+			}
+
+		}
+	case BINARY:
+		writeIntToBuf(lenBuf, uint64(fieldLength), lenEncodingSize)
+	case ASCII:
+		lenBuf.Write([]byte(lenStr))
+	case EBCDIC:
+		lenBuf.Write(ebcdic.Decode(lenStr))
+	}
+
+	return lenBuf, nil
 }

@@ -32,12 +32,13 @@ func Test_GenerateBitmap(t *testing.T) {
 	bmp.SetOn(3)
 	bmp.SetOn(4)
 	bmp.SetOn(5)
-	//bmp.SetOn(6)
+	bmp.SetOn(6)
+	bmp.SetOn(7)
 	bmp.SetOn(55)
 	bmp.SetOn(56)
 	bmp.SetOn(60)
 	bmp.SetOn(91)
-	assert.Equal(t, "f8000000000003100000002000000000", hex.EncodeToString(bmp.Bytes()))
+	assert.Equal(t, "fe000000000003100000002000000000", hex.EncodeToString(bmp.Bytes()))
 
 }
 

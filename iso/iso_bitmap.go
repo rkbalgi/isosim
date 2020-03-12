@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"log"
+	log "github.com/sirupsen/logrus"
 )
 
 type Bitmap struct {
@@ -42,7 +42,7 @@ func (bmp *Bitmap) Get(pos int) *FieldData {
 
 }
 
-func (bmp *Bitmap) Set(pos int, val string) {
+func (bmp *Bitmap) Set(pos int, val string) error {
 
 	field := bmp.field.fieldsByPosition[pos]
 	if field == nil {
@@ -62,17 +62,30 @@ func (bmp *Bitmap) Set(pos int, val string) {
 		bmp.SetOn(pos)
 	}
 
+	var err error
 	// if the field is has children, then we should ensure that they're
 	// initialized  too
 	if field.HasChildren() {
+		log.Traceln("Attempting to set child fields during set parse for parent field -" + field.Name)
 		if field.FieldInfo.Type == Fixed {
-			log.Println("Attempting to set child field via parse .. ")
-			parseFixed(bytes.NewBuffer(rawFieldData), bmp.parsedMsg, field)
+			err = parseFixed(bytes.NewBuffer(rawFieldData), bmp.parsedMsg, field)
 		} else if field.FieldInfo.Type == Variable {
-			//FIXME:: for parsing variable type fields, prepend a constructed length indicator
-			parseVariable(bytes.NewBuffer(rawFieldData), bmp.parsedMsg, field)
+			fullField, err := buildLengthIndicator(field.FieldInfo.LengthIndicatorEncoding, field.FieldInfo.LengthIndicatorSize, len(fieldData.Data))
+			if err != nil {
+				log.Errorln("Failed to build length indicator for variable field", err)
+				return err
+			}
+			fullField.Write(rawFieldData)
+			err = parseVariable(fullField, bmp.parsedMsg, field)
+		}
+
+		if err != nil {
+			log.Errorln("Failed to set nested/child fields for parent field - "+field.Name, err)
+			return err
 		}
 	}
+
+	return err
 }
 
 //Returns a copy of the Bitmap

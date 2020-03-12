@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -103,13 +104,31 @@ func (msg *Message) ParseJSON(jsonMsg string) (*ParsedMsg, error) {
 
 		fieldData := new(FieldData)
 		fieldData.Field = field
+
 		if field.FieldInfo.Type == Bitmapped {
 			fieldData.Bitmap = isoBitmap
 			isoBitmap.field = field
 			parsedMsg.FieldDataMap[field.Id] = fieldData
 		} else {
-			//fieldValue := nil;
 			fieldData.Data = field.ValueFromString(pFieldIdValue.Value)
+
+			if field.FieldInfo.Type == Fixed && len(fieldData.Data) != field.FieldInfo.FieldSize {
+				//this is an error, field length exceeds max length
+				return nil, fmt.Errorf("fixed field - [%s] exceeds fixed length of %d (supplied length  = %d)",
+					field.Name, field.FieldInfo.FieldSize, len(fieldData.Data))
+			} else if field.FieldInfo.Type == Variable {
+				if field.FieldInfo.MaxSize != 0 && len(fieldData.Data) > field.FieldInfo.MaxSize {
+					//error
+					return nil, fmt.Errorf("variable field - [%s] exceeds max length of %d (supplied length  = %d)",
+						field.Name, field.FieldInfo.MaxSize, len(fieldData.Data))
+				}
+				if field.FieldInfo.MinSize != 0 && len(fieldData.Data) < field.FieldInfo.MinSize {
+					//error
+					return nil, fmt.Errorf("variable field - [%s] exceeds min length of %d (supplied length  = %d)",
+						field.Name, field.FieldInfo.MinSize, len(fieldData.Data))
+				}
+			}
+
 			if field.ParentId != -1 {
 				parentField := msg.fieldByIdMap[field.ParentId]
 				if parentField.FieldInfo.Type == Bitmapped {
