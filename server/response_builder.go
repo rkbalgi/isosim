@@ -1,14 +1,14 @@
-package iso_server
+package server
 
 import (
-	"github.com/rkbalgi/isosim/web/spec"
+	"github.com/rkbalgi/isosim/iso"
 	"github.com/rkbalgi/isosim/web/ui_data"
-	"log"
+	log "github.com/sirupsen/logrus"
 )
 
-func buildResponse(iso *spec.Iso, pc *ui_data.ProcessingCondition) {
+func buildResponse(isoMsg *iso.Iso, pc *ui_data.ProcessingCondition) {
 
-	parsedMsg := iso.ParsedMsg()
+	parsedMsg := isoMsg.ParsedMsg()
 
 	for _, offId := range pc.OffFields {
 		offField := parsedMsg.Msg.GetFieldById(offId)
@@ -31,7 +31,7 @@ func buildResponse(iso *spec.Iso, pc *ui_data.ProcessingCondition) {
 
 		field := parsedMsg.Msg.GetFieldById(vf.FieldId)
 		fieldData := parsedMsg.GetById(vf.FieldId)
-		log.Print("Setting field value ..", field.Name, " to ", vf.FieldValue)
+		log.Debugf("Setting field %s: ==> %s\n", field.Name, vf.FieldValue)
 
 		if field.Position > 0 {
 			if field.ParentId > 0 {
@@ -42,7 +42,6 @@ func buildResponse(iso *spec.Iso, pc *ui_data.ProcessingCondition) {
 			}
 
 		} else {
-
 			fieldData.Set(vf.FieldValue)
 		}
 

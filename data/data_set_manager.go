@@ -4,15 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
 
-	"github.com/rkbalgi/isosim/web/spec"
 	"github.com/rkbalgi/isosim/web/ui_data"
 )
 
@@ -122,10 +121,7 @@ func (dsm *dataSetManager) Get(specId string, msgId string, dsName string) ([]by
 
 func (dsm *dataSetManager) Add(specId string, msgId string, name string, data string) error {
 
-	if spec.DebugEnabled {
-		log.Print("Adding data set - " + name + " data = " + data)
-	}
-
+	log.Debugln("Adding data set - " + name + " data = " + data)
 	exists, err := checkIfExists(specId, msgId, name)
 	if err != nil {
 		return err
@@ -143,9 +139,7 @@ func (dsm *dataSetManager) Add(specId string, msgId string, name string, data st
 
 func (dsm *dataSetManager) AddServerDef(defString string) (string, error) {
 
-	if spec.DebugEnabled {
-		log.Print("Adding server definition - .. JSON = " + defString)
-	}
+	log.Debugln("Adding server definition - .. JSON = " + defString)
 
 	serverDef := &ui_data.ServerDef{}
 	err := json.NewDecoder(bytes.NewBufferString(defString)).Decode(serverDef)
@@ -170,7 +164,7 @@ func (dsm *dataSetManager) AddServerDef(defString string) (string, error) {
 	fileName = strings.Replace(fileName, ",", "", -1)
 	fileName = fileName + ".srvdef.json"
 
-	log.Print("Writing spec def to file = " + fileName)
+	log.Debugln("Writing spec def to file = " + fileName)
 
 	defFile, err := os.Open(filepath.Join(dataDir, strSpecId, fileName))
 	if err == nil {
@@ -185,7 +179,7 @@ func (dsm *dataSetManager) AddServerDef(defString string) (string, error) {
 	return fileName, nil
 }
 
-func (dsm *dataSetManager) GetServerDefs(specId string) ([]string, error) {
+func (dsm *dataSetManager) ServerDefinitions(specId string) ([]string, error) {
 
 	dir, err := os.Open(filepath.Join(dataDir, specId))
 	if err != nil {
@@ -203,7 +197,8 @@ func (dsm *dataSetManager) GetServerDefs(specId string) ([]string, error) {
 
 }
 
-func (dsm *dataSetManager) GetServerDef(specId string, name string) ([]byte, error) {
+// ServerDef returns a server definition by its name
+func (dsm *dataSetManager) ServerDef(specId string, name string) ([]byte, error) {
 
 	file, err := os.Open(filepath.Join(dataDir, specId, name))
 	if err != nil {
@@ -214,11 +209,10 @@ func (dsm *dataSetManager) GetServerDef(specId string, name string) ([]byte, err
 
 }
 
+// Update updates a server definition
 func (dsm *dataSetManager) Update(specId string, msgId string, name string, data string) error {
 
-	if spec.DebugEnabled {
-		log.Print("Updating data set - " + name + " data = " + data)
-	}
+	log.Debugln("Updating data set - " + name + " data = " + data)
 
 	err := ioutil.WriteFile(filepath.Join(dataDir, specId, msgId, name), []byte(data), 0755)
 	if err != nil {

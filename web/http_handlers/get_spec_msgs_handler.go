@@ -2,12 +2,12 @@ package http_handlers
 
 import (
 	"encoding/json"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
 	"strings"
 
-	"github.com/rkbalgi/isosim/web/spec"
+	"github.com/rkbalgi/isosim/iso"
 )
 
 func getSpecMessagesHandler() {
@@ -23,11 +23,11 @@ func getSpecMessagesHandler() {
 			return
 		} else {
 
-			log.Print("Getting messages for Spec Id ", specId)
-			sp := spec.GetSpec(int(specId))
+			log.Debugln("Getting messages for Spec Id ", specId)
+			sp := iso.SpecByID(int(specId))
 			if sp != nil {
 				rw.Header().Add("Access-Control-Allow-Origin", "http://localhost:3000")
-				_ = json.NewEncoder(rw).Encode(sp.GetMessages())
+				_ = json.NewEncoder(rw).Encode(sp.Messages())
 			} else {
 				sendError(rw, "no such sp id ")
 			}

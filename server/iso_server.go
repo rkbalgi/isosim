@@ -1,4 +1,4 @@
-package iso_server
+package server
 
 import (
 	"bytes"
@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/rkbalgi/isosim/web/ui_data"
+	log "github.com/sirupsen/logrus"
 	"io"
-	"log"
 	"net"
 	"strconv"
 	"sync"
@@ -39,7 +39,7 @@ type activeServer struct {
 
 //Returns a list of running servers along with listener port info
 //To be used while displaying information o UI
-func GetActiveServers() string {
+func ActiveServers() string {
 
 	if len(activeServers) == 0 {
 		return "{\"msg\": \"No server instances running.\"}"
@@ -59,7 +59,8 @@ func addServer(serverName string, port int, listener net.Listener) {
 
 	activeServersLock.Lock()
 	defer activeServersLock.Unlock()
-	activeServers[serverName+strconv.Itoa(port)] = &serverInstance{serverName,
+	serverID := serverName + strconv.Itoa(port)
+	activeServers[serverID] = &serverInstance{serverName,
 		port, listener}
 
 }
@@ -88,7 +89,7 @@ func StartIsoServer(specId string, serverDefName string, port int) error {
 
 	go func() {
 
-		log.Print("Starting ISO Server.. .. Port = ", port)
+		log.Infoln("Starting ISO Server.. .. Port = ", port)
 		listener, err := net.Listen("tcp", ":"+strconv.Itoa(port))
 		if err != nil {
 			retVal <- err
@@ -98,11 +99,7 @@ func StartIsoServer(specId string, serverDefName string, port int) error {
 		addServer(serverDefName, port, listener)
 		vServerDef, err := getDef(specId, serverDefName)
 
-		//if err != nil {
 		retVal <- err
-		//	return
-		//}
-
 		for {
 			connection, err := listener.Accept()
 			if err != nil {
@@ -156,7 +153,7 @@ func handleConnection(connection net.Conn, pServerDef *ui_data.ServerDef) {
 
 		}
 		if n > 0 {
-			log.Print("Read = " + hex.EncodeToString(mli))
+			log.Traceln("Read = " + hex.EncodeToString(mli))
 		}
 		if n == 2 {
 
@@ -178,9 +175,9 @@ func handleConnection(connection net.Conn, pServerDef *ui_data.ServerDef) {
 				}
 
 				if n > 0 {
-					log.Print("Read = " + hex.EncodeToString(tmp[0:n]))
+					log.WithFields(log.Fields{"type": "server"}).Traceln("Read = " + hex.EncodeToString(tmp[0:n]))
 					buf.Write(tmp[0:n])
-					log.Print("msgLen = ", msgLen, " Read = ", n)
+					log.WithFields(log.Fields{"type": "server"}).Traceln("msgLen = ", msgLen, " Read = ", n)
 					if uint16(len(buf.Bytes())) == msgLen {
 						//we have a complete msg
 						complete = true
@@ -218,11 +215,11 @@ func handleRequest(connection net.Conn, msgData []byte, pServerDef *ui_data.Serv
 	buf := new(bytes.Buffer)
 	err = binary.Write(buf, binary.BigEndian, respLen)
 	if err != nil {
-		log.Print("Failed to construct response . Error = " + err.Error())
+		log.Errorln("Failed to construct response . Error = " + err.Error())
 		return
 	}
 	buf.Write(responseData)
-	log.Print("Writing Response. Data = " + hex.EncodeToString(buf.Bytes()))
+	log.WithFields(log.Fields{"type": "server"}).Debugln("Writing Response. Data = " + hex.EncodeToString(buf.Bytes()))
 	_, _ = connection.Write(buf.Bytes())
 
 }

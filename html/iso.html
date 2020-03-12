@@ -2,1360 +2,1411 @@
 
 <head>
 
-    <link href="https://fonts.googleapis.com/css?family=Crimson+Text|Reem+Kufi|Cormorant+Garamond|Gloria+Hallelujah|Lora" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="isosim_styles.css">
-    <script type="text/javascript" src="isosim_common.js"></script>
-    <script type="text/javascript" src="isosim_ajax.js"></script>
+  <link
+      href="https://fonts.googleapis.com/css?family=Crimson+Text|Reem+Kufi|Cormorant+Garamond|Gloria+Hallelujah|Lora"
+      rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="isosim_styles.css">
+  <script type="text/javascript" src="isosim_common.js"></script>
+  <script type="text/javascript" src="isosim_ajax.js"></script>
 
 
-    <script language="javascript">
-        //globals
+  <script language="javascript">
+    //globals
 
+    var emptyBitmap = '0000000000000000000000000000000000000000000000000000000000000000';
 
+    var gFieldEdited = {
+      fieldId: "",
+      fieldSegment: 'request'
+    };
+    var idToField = {};
 
-        var emptyBitmap = '0000000000000000000000000000000000000000000000000000000000000000';
+    function init() {
 
+      //console.log(window.chrome + '' + window.chrome.webstore)
+      if (window.chrome) {
+        jsLoadSpecs();
 
-        var gFieldEdited = {
-            fieldId: "",
-            fieldSegment: 'request'
-        };
+      } else {
+        alert('This application has been tested only on chrome browser.');
+      }
 
-        function init() {
+    }
 
-            //console.log(window.chrome + '' + window.chrome.webstore)
-            if (window.chrome) {
-                jsLoadSpecs();
+    /**
+     This function fetches all the specs and populates the specs comboxes
+     */
 
-            } else {
-                alert('This application has been tested only on chrome browser.');
-            }
+    function jsLoadSpecs() {
 
+      var onSuccessFuncCall = function (jsonData) {
 
-        }
-
-        /**
-        This function fetches all the specs and populates the specs comboxes
-        */
-
-        function jsLoadSpecs() {
-
-            var onSuccessFuncCall = function (jsonData) {
-
-                    var specsObj = JSON.parse(jsonData);
-                    var htmlContent = '';
-                    for (i = 0; i < specsObj.length; i++) {
-                        specObj = specsObj[i];
-                        htmlContent += "<option class=\"cl_cb_opt\" id=\"" + specObj.Id + "\">" + specObj.Name + "</option>";
-
-                    }
-                    elem = document.getElementById('idJsSpec');
-                    elem.innerHTML = htmlContent;
-                    jsLoadSpecMessages();
-
-                } //end onSuccessFuncCall
-
-            doAjaxCall('/iso/v0/specs', onSuccessFuncCall);
-
-
-        } //end jsLoadSpecs
-
-        /**
-        Loads all the messages for the currently chosen spec.
-        */
-
-        function jsLoadSpecMessages(loadTemplate = false) {
-
-            document.getElementById('idJsResponseTable').innerHTML = '';
-
-            var specsElem = document.getElementById('idJsSpec');
-            var selectedOption = specsElem.options[specsElem.selectedIndex];
-            if (selectedOption) {
-                var specId = selectedOption.id;
-
-                var url = '/iso/v0/msgs/' + specId;
-                var onSuccessFunc = function (jsonData) {
-                        var msgsObj = JSON.parse(jsonData);
-                        var htmlContent = '';
-                        for (i = 0; i < msgsObj.length; i++) {
-                            msgObj = msgsObj[i];
-                            var selectedStatus = "";
-                            if (i == 0) {
-                                selectedStatus = "selected";
-                            }
-                            htmlContent += "<option class=\"cl_small_text\" id=\"" + msgObj.Id + "\"" +
-                                selectedStatus + ">" + msgObj.Name + "</option>";
-
-                        }
-                        var elem = document.getElementById('idJsSpecMsgs');
-                        elem.innerHTML = htmlContent;
-
-                        if (loadTemplate) {
-                            jsLoadTemplate();
-                        }
-
-
-                    } //end onSuccessFunc call
-
-                doAjaxCall(url, onSuccessFunc)
-
-            } else {
-                console.log('please select a spec');
-            }
-
-
-
+        var specsObj = JSON.parse(jsonData);
+        var htmlContent = '';
+        for (i = 0; i < specsObj.length; i++) {
+          specObj = specsObj[i];
+          htmlContent += "<option class=\"cl_cb_opt\" id=\"" + specObj.Id + "\">" + specObj.Name
+              + "</option>";
 
         }
+        elem = document.getElementById('idJsSpec');
+        elem.innerHTML = htmlContent;
+        jsLoadSpecMessages();
 
+      } //end onSuccessFuncCall
 
-        /**
-        For the currently selected Spec and Spec Message gets the layout and 
-        displays it.
-        
-        */
-        function jsLoadTemplate(dataSet, callback) {
+      doAjaxCall('/iso/v0/specs', onSuccessFuncCall);
 
-            var specsElem = document.getElementById('idJsSpec');
-            var selectedSpecOption = specsElem.options[specsElem.selectedIndex];
-            if (selectedSpecOption) {
-                var specId = selectedSpecOption.id;
+    } //end jsLoadSpecs
 
-                var msgsElem = document.getElementById('idJsSpecMsgs');
-                var selectedMsgOption = msgsElem.options[msgsElem.selectedIndex];
+    /**
+     Loads all the messages for the currently chosen spec.
+     */
 
-                if (selectedMsgOption) {
-                    var msgId = selectedMsgOption.id;
+    function jsLoadSpecMessages(loadTemplate = false) {
 
-                    //now do the AJAX call
-                    var url = '/iso/v0/template/' + specId + '/' + msgId;
-                    var onSuccessFunc = function (jsonData) {
+      document.getElementById('idJsResponseTable').innerHTML = '';
 
+      var specsElem = document.getElementById('idJsSpec');
+      var selectedOption = specsElem.options[specsElem.selectedIndex];
+      if (selectedOption) {
+        var specId = selectedOption.id;
 
-                        //alert(jsonData);
-                        var obj = JSON.parse(jsonData);
-                        var fieldsObj = obj.Fields;
-                        currentMsgFields = fieldsObj;
-
-                        var htmlContent = '';
-                        htmlContent += '<tr><td colspan=\"4\" align="center"><div class="cl_segment_header_req">Message Request</div></td><tr>';
-                        htmlContent += "<tr class=\"cl_table_heading\"><th > Selected? </th> <th> Field </th> <th> Value </th></tr>\n";
-                        for (i = 0; i < fieldsObj.length; i++) {
-                            var fieldObj = fieldsObj[i];
-                            htmlContent += getFieldHtml(fieldObj, "", isRequest = true);
-                            htmlContent += appendChildFields(fieldObj, isRequest = true);
-                        }
-
-                        var elem = document.getElementById('idJsRequestTable');
-                        elem.innerHTML = htmlContent;
-
-                        var elems = document.getElementsByClassName('cl_vsmall_btn_edit');
-                        for (var i = 0; i < elems.length; i++) {
-                            elems[i].addEventListener('click', function (event) {
-
-                                var fieldVal = "";
-                                var index = event.target.id.indexOf('_');
-                                var fieldId = event.target.id.substring(index + 1, event.target.id.length);
-                                console.log('fieldid =' + fieldId);
-                                fieldVal = getRequestFieldValElem(fieldId).value;
-
-
-                                jsShowUserInputDialog(event, fieldId, fieldVal, true, false);
-                            }, true);
-                        }
-
-
-                        gPageState.layoutLoaded = true;
-
-                        if (dataSet) {
-
-                            for (var i = 0; i < dataSet.length; i++) {
-
-                                var fieldDataObj = dataSet[i];
-                                //alert(fieldDataObj.Id + ' ' + fieldDataObj.Value);
-                                var elem = getRequestFieldValElem(fieldDataObj.Id);
-                                elem.value = fieldDataObj.Value;
-
-                                document.getElementById(reqFieldsPrefixId0 + fieldDataObj.Id).checked = true;
-
-                            }
-
-                            if (callback) {
-                                callback();
-                            }
-
-
-                        } else {
-                            updateCurrentDs();
-                        }
-
-
-
-                    }
-
-                    doAjaxCall(url, onSuccessFunc)
-                } else {
-                    console.log('please select a msg..');
-                }
-
-
-            } else {
-                console.log('please select a spec and msg');
+        var url = '/iso/v0/msgs/' + specId;
+        var onSuccessFunc = function (jsonData) {
+          var msgsObj = JSON.parse(jsonData);
+          var htmlContent = '';
+          for (var i = 0; i < msgsObj.length; i++) {
+            msgObj = msgsObj[i];
+            var selectedStatus = "";
+            if (i === 0) {
+              selectedStatus = "selected";
             }
+            htmlContent += "<option class=\"cl_small_text\" id=\"" + msgObj.Id + "\"" +
+                selectedStatus + ">" + msgObj.Name + "</option>";
 
-        } //end jsLoadTemplate
+          }
+          var elem = document.getElementById('idJsSpecMsgs');
+          elem.innerHTML = htmlContent;
 
+          if (loadTemplate) {
+            jsLoadTemplate();
+          }
 
+        }; //end onSuccessFunc call
 
-        /**
-        Constructs a HTML fragment for field 'fieldObj'
-        */
-        function getFieldHtml(fieldObj, fieldData = "", isRequest = true) {
+        doAjaxCall(url, onSuccessFunc)
 
+      } else {
+        console.log('please select a spec');
+      }
 
+    }
 
-            var fieldPosition = "";
-            if (fieldObj.Position > 0) {
-                fieldPosition = "[" + fieldObj.Position + "]";
-            } else {
-                fieldPosition = "";
-            }
-
-
-
-            //console.log('isreq ' + isRequest);
-            var id0 = reqFieldsPrefixId0;
-            var id1 = reqFieldsPrefixId1;
-            var id2 = reqFieldsPrefixId2;
-
-            if (isRequest == false) {
-                id0 = respFieldsPrefixId0;
-                id1 = respFieldsPrefixId1;
-                id2 = respFieldsPrefixId2;
-            }
-            //console.log(id0 + id1 + id2)
-
-            var htmlContent = '<tr>';
-
-            var disabledFlag = "";
-            if (isRequest == false) {
-                disabledFlag = "disabled";
-
-            }
-
-            var reqBmpDisabled = "";
-
-            var reqBmpDisabled = "";
-            if (isRequest && fieldObj.Type == "BITMAP") {
-                reqBmpDisabled = "disabled";
-
-            }
-
-
-
-
-
-            htmlContent += "<td class=\"cl_field_pos\"> <input class=\"cl_req_field_sel_cb\" id=\"" + id0 + fieldObj.Id + "\" type=\"checkbox\"" + " onchange = \"fireReqFieldChanged(" + fieldObj.Id + ")\"" + disabledFlag + "/>" + fieldPosition + " </td>"
-            htmlContent += "<td class=\"cl_field_name\" id=\"" + id1 + fieldObj.Id + "\">" + fieldObj.Name + "</td>";
-
-
-
-            if (isRequest) {
-
-                htmlContent += "<td>" + "<input id=\"" + id2 + fieldObj.Id + "\" class=\"cl_field_value\" type=\"text\" " + reqBmpDisabled + " class=\"cl_small_text\" value=\"" + fieldData + "\"/>";
-                htmlContent += "<div class=\"cl_val_error\" style=\"display:none;\" id=\"" + reqFieldsValErrorIdPrefix + fieldObj.Id + "\"> </div></td>";
-                htmlContent += '<td><input class="cl_vsmall_btn_edit" type="button" value="Edit" id="idReqFieldEdit_' + fieldObj.Id + '\") ' + reqBmpDisabled + '/> </td>';
-
-            } else {
-                htmlContent += "<td>" + "<input id=\"" + id2 + fieldObj.Id + "\" class=\"cl_field_value\" type=\"text\" class=\"cl_small_text\" value=\"" + fieldData + "\" disabled/>";
-                htmlContent += '</td>'
-                htmlContent += '<td><input class="cl_vsmall_btn_view" type="button" value="View" id="idRespFieldView_' + fieldObj.Id + '\"/> </td>';
-            }
-
-            htmlContent += "</tr>";
-
-            return htmlContent;
-
-
+    function registerField(field) {
+      idToField[field.Id] = field;
+      if (field.Children.length > 0) {
+        for (var i = 0; i < field.Children.length; i++) {
+          registerField(field.Children[i]);
         }
+      }
+    }
 
-        function appendChildFields(pFieldObj, isRequest = true) {
+    /**
+     For the currently selected Spec and Spec Message gets the layout and
+     displays it.
 
-            var htmlContent = '';
-            if (pFieldObj.Children.length > 0) {
-                for (var i = 0; i < pFieldObj.Children.length; i++) {
-                    var fieldObj = pFieldObj.Children[i];
-                    htmlContent += getFieldHtml(fieldObj, "", isRequest);
-                    htmlContent += appendChildFields(fieldObj, isRequest);
-                }
+     */
+    function jsLoadTemplate(dataSet, callback) {
 
-            }
-            return htmlContent;
+      var specsElem = document.getElementById('idJsSpec');
+      var selectedSpecOption = specsElem.options[specsElem.selectedIndex];
+      if (selectedSpecOption) {
+        var specId = selectedSpecOption.id;
 
-        }
+        var msgsElem = document.getElementById('idJsSpecMsgs');
+        var selectedMsgOption = msgsElem.options[msgsElem.selectedIndex];
 
-        /**
-        Returns the field object from the template/layout
-        
-        
-        
-        */
-        function getFieldObj(fieldId) {
+        if (selectedMsgOption) {
+          var msgId = selectedMsgOption.id;
+
+          //now do the AJAX call
+          var url = '/iso/v0/template/' + specId + '/' + msgId;
+
+          var onSuccessFunc = function (jsonData) {
+            var obj = JSON.parse(jsonData);
+            var fieldsObj = obj.Fields;
+            currentMsgFields = fieldsObj;
 
             for (var i = 0; i < currentMsgFields.length; i++) {
-                var fieldObj = currentMsgFields[i];
-                //console.log(fieldId + ' ' + fieldObj.Id)
-                if (fieldObj.Id == fieldId) {
-                    return fieldObj;
-                }
-
-                if (fieldObj.Children.length > 0) {
-
-                    for (var j = 0; j < fieldObj.Children.length; j++) {
-                        var cFieldObj = fieldObj.Children[j];
-                        if (cFieldObj.Id == fieldId) {
-                            return cFieldObj;
-                        }
-                    }
-
-                }
-
+              registerField(currentMsgFields[i]);
             }
 
-        }
+            console.log(jsonData);
 
-
-        /**
-        This function will change the bitmap if a child field
-        is selected or deselected
-        */
-        function fireReqFieldChanged(fieldId) {
-
-            //alert(fieldId);
-            var fieldObj = getFieldObj(fieldId);
-            //alert(fieldObj);
-
-            if (fieldObj.ParentId > 0) {
-                //alert(fieldObj.ParentId);
-                var pFieldObj = getFieldObj(fieldObj.ParentId);
-                //alert(pFieldObj.Name);
-                if (pFieldObj && pFieldObj.Type == 'BITMAP') {
-
-                    //alert(pFieldObj.Name);
-                    if (isReqFieldSelected(fieldId)) {
-                        setBmpBit(pFieldObj, fieldObj.Position, true);
-                    } else {
-                        setBmpBit(pFieldObj, fieldObj.Position, false);
-                    }
-
-                }
-
-
+            var htmlContent = '';
+            htmlContent += '<tr><td colspan=\"4\" align="center"><div class="cl_segment_header_req">Message Request</div></td><tr>';
+            htmlContent += "<tr class=\"cl_table_heading\"><th > Selected? </th> <th> Field </th> <th> Value </th></tr>\n";
+            for (i = 0; i < fieldsObj.length; i++) {
+              var fieldObj = fieldsObj[i];
+              htmlContent += getFieldHtml(fieldObj, "", isRequest = true);
+              htmlContent += appendChildFields(fieldObj, isRequest = true);
             }
 
+            var elem = document.getElementById('idJsRequestTable');
+            elem.innerHTML = htmlContent;
 
-        }
+            var elems = document.getElementsByClassName('cl_vsmall_btn_edit');
+            for (i = 0; i < elems.length; i++) {
+              elems[i].addEventListener('click', function (event) {
 
-        function isReqFieldSelected(fieldId) {
+                var fieldVal = "";
+                var index = event.target.id.indexOf('_');
+                var fieldId = event.target.id.substring(index + 1, event.target.id.length);
+                console.log('fieldid =' + fieldId);
+                fieldVal = getRequestFieldValElem(fieldId).value;
 
-            return document.getElementById(reqFieldsPrefixId0 + fieldId).checked;
-        }
-
-
-        function setReqFieldSelected(fieldId) {
-
-            document.getElementById(reqFieldsPrefixId0 + fieldId).checked = true;
-        }
-
-        function setBmpBit(bmpFieldObj, position, on) {
-
-            var bitVal = '0';
-            if (on) {
-                bitVal = '1';
-
+                jsShowUserInputDialog(event, fieldId, fieldVal, true, false);
+              }, true);
             }
 
-            var bmpElem = getRequestFieldValElem(bmpFieldObj.Id);
-            if (bmpElem.value) {
+            gPageState.layoutLoaded = true;
 
+            if (dataSet) {
+
+              for (var i = 0; i < dataSet.length; i++) {
+
+                var fieldDataObj = dataSet[i];
+                //alert(fieldDataObj.Id + ' ' + fieldDataObj.Value);
+                var elem = getRequestFieldValElem(fieldDataObj.Id);
+                elem.value = fieldDataObj.Value;
+
+                document.getElementById(reqFieldsPrefixId0 + fieldDataObj.Id).checked = true;
+
+              }
+
+              if (callback) {
+                callback();
+              }
 
             } else {
-                //TODO:: this doesn't seem to be the best way to deal with this
-                //so some improvement is required
-                bmpElem.value = '0000000000000000000000000000000000000000000000000000000000000000';
-                bmpElem.value += '0000000000000000000000000000000000000000000000000000000000000000';
-                bmpElem.value += '0000000000000000000000000000000000000000000000000000000000000000';
+              updateCurrentDs();
             }
 
+          };
+
+          doAjaxCall(url, onSuccessFunc)
+        } else {
+          console.log('please select a msg..');
+        }
+
+      } else {
+        console.log('please select a spec and msg');
+      }
+
+    } //end jsLoadTemplate
+
+    /**
+     Constructs a HTML fragment for field 'fieldObj'
+     */
+    function getFieldHtml(fieldObj, fieldData = "", isRequest = true) {
+
+      var fieldPosition = "";
+      if (fieldObj.Position > 0) {
+        fieldPosition = "[" + fieldObj.Position + "]";
+      } else {
+        fieldPosition = "";
+      }
+
+      //console.log('isreq ' + isRequest);
+      var id0 = reqFieldsPrefixId0;
+      var id1 = reqFieldsPrefixId1;
+      var id2 = reqFieldsPrefixId2;
+
+      if (isRequest === false) {
+        id0 = respFieldsPrefixId0;
+        id1 = respFieldsPrefixId1;
+        id2 = respFieldsPrefixId2;
+      }
+      //console.log(id0 + id1 + id2)
+
+      var htmlContent = '<tr>';
+
+      var disabledFlag = "";
+      if (isRequest === false) {
+        disabledFlag = "disabled";
+
+      }
+
+      //bitmap and message type are mandatory fields that are always required
+      var reqBmpDisabled = "";
+      if (isRequest && fieldObj.Type === "Bitmapped") {
+        reqBmpDisabled = "disabled";
+        disabledFlag = "disabled";
+      }
+      if (isRequest && (fieldObj.Name === "Message Type" || fieldObj.Name === "MTI")) {
+        disabledFlag = "disabled";
+      }
 
 
-            var pre = bmpElem.value.substring(0, position - 1);
-            var post = bmpElem.value.substring(position + 1, bmpElem.value.length);
-            bmpElem.value = pre + bitVal + post;
-            setReqFieldSelected(bmpFieldObj.Id);
+      if (isRequest) {
 
-            if (position > 64 && position < 128) {
-                if (on) {
-                    //setBmpBit(bmpFieldObj, 1, true);
-                    bmpElem.value = '1' + bmpElem.value.substring(1, bmpElem.value.length);
+        htmlContent += "<td class=\"cl_field_pos\"> <input class=\"cl_req_field_sel_cb\" id=\"" + id0
+            + fieldObj.Id + "\" type=\"checkbox\"" + " onchange = \"fireReqFieldChanged("
+            + fieldObj.Id + ")\"" + disabledFlag + "/>" + fieldPosition + " </td>";
+        htmlContent += "<td class=\"cl_field_name\" id=\"" + id1 + fieldObj.Id + "\">" + fieldObj.Name
+            + "</td>";
+
+        htmlContent += "<td>" + "<input id=\"" + id2 + fieldObj.Id
+            + "\" class=\"cl_field_value\" type=\"text\" " + reqBmpDisabled
+            + " class=\"cl_small_text\" value=\"" + fieldData + "\"/>";
+        htmlContent += "<div class=\"cl_val_error\" style=\"display:none;\" id=\""
+            + reqFieldsValErrorIdPrefix + fieldObj.Id + "\"> </div></td>";
+        htmlContent += '<td><input class="cl_vsmall_btn_edit" type="button" value="Edit" id="idReqFieldEdit_'
+            + fieldObj.Id + '\") ' + reqBmpDisabled + '/> </td>';
+
+      } else {
+
+        htmlContent += "<td class=\"cl_field_pos\"> <input class=\"cl_resp_field_sel_cb\" id=\"" + id0
+            + fieldObj.Id + "\" type=\"checkbox\"" + " onchange = \"fireReqFieldChanged("
+            + fieldObj.Id + ")\"" + disabledFlag + "/>" + fieldPosition + " </td>";
+        htmlContent += "<td class=\"cl_field_name\" id=\"" + id1 + fieldObj.Id + "\">" + fieldObj.Name
+            + "</td>";
+
+
+        htmlContent += "<td>" + "<input id=\"" + id2 + fieldObj.Id
+            + "\" class=\"cl_field_value\" type=\"text\" class=\"cl_small_text\" value=\""
+            + fieldData + "\" disabled/>";
+        htmlContent += '</td>';
+        htmlContent += '<td><input class="cl_vsmall_btn_view" type="button" value="View" id="idRespFieldView_'
+            + fieldObj.Id + '\"/> </td>';
+      }
+
+      htmlContent += "</tr>";
+
+      return htmlContent;
+
+    }
+
+    function appendChildFields(pFieldObj, isRequest = true) {
+
+      var htmlContent = '';
+      if (pFieldObj.Children.length > 0) {
+        for (var i = 0; i < pFieldObj.Children.length; i++) {
+          var fieldObj = pFieldObj.Children[i];
+          htmlContent += getFieldHtml(fieldObj, "", isRequest);
+          htmlContent += appendChildFields(fieldObj, isRequest);
+        }
+
+      }
+      return htmlContent;
+
+    }
+
+    /**
+     Returns the field object from the template/layout
+
+
+
+     */
+    function getFieldObj(fieldId) {
+
+      return idToField[fieldId]
+      /*
+            for (var i = 0; i < currentMsgFields.length; i++) {
+              var fieldObj = currentMsgFields[i];
+              //console.log(fieldId + ' ' + fieldObj.Id)
+              if (fieldObj.Id === fieldId) {
+                return fieldObj;
+              }
+
+              if (fieldObj.Children.length > 0) {
+
+                for (var j = 0; j < fieldObj.Children.length; j++) {
+                  var cFieldObj = fieldObj.Children[j];
+                  if (cFieldObj.Id === fieldId) {
+                    return cFieldObj;
+                  }
                 }
-            } else if (position > 128) {
-                if (on) {
-                    setBmpBit(bmpFieldObj, 65, true);
-                }
+
+              }
 
             }
+      */
 
-            if (on == false) {
-                if (bmpElem.value.substring(65 - 1, 129 - 1) == emptyBitmap) {
-                    bmpElem.value = '0' + bmpElem.value.substring(1, bmpElem.value.length);
-                }
-                if (bmpElem.value.substring(129 - 1, 193 - 1) == emptyBitmap) {
-                    bmpElem.value = bmpElem.value.substring(1 - 1, 66 - 1) + '0' + bmpElem.value.substring(66 - 1, bmpElem.value.length);
-                }
+    }
 
-            }
+    function selectRecursive(fieldObj) {
+      setReqFieldSelected(fieldObj.Id);
+      for (var i = 0; i < fieldObj.Children.length; i++) {
+        var cObj = fieldObj.Children[i];
+        selectRecursive(cObj)
 
+      }
+    }
 
+    function unselectRecursive(fieldObj) {
+      setReqFieldUnselected(fieldObj.Id);
+      for (var i = 0; i < fieldObj.Children.length; i++) {
+        var cObj = fieldObj.Children[i];
+        unselectRecursive(cObj)
 
-        }
+      }
+    }
 
+    function setReqFieldSelectedRecurive(fieldId) {
 
-        function jsShowTraceDialog() {
+      setReqFieldSelected(fieldId);
+      var nextUp = getFieldObj(fieldId.ParentId)
+      for (var k = 0; k < nextUp.Children.length; k++) {
+        setReqFieldSelected(nextUp.Children[k].Id);
+      }
+    }
 
-            if (!gPageState.layoutLoaded) {
-                showErrorMessage('Please load a template before parsing.');
-                return;
+    /**
+     This function will change the bitmap if a child field
+     is selected or deselected
+     */
+    function fireReqFieldChanged(fieldId) {
 
-            }
+      var fieldObj = getFieldObj(fieldId);
 
-            enableOverlay();
-            var elem = document.getElementById('idJsTraceDiv');
-            elem.style.display = "block";
-            elem.style.position = "fixed";
-            elem.style.left = "35%";
-            elem.style.top = "50%";
+      if (fieldObj.ParentId > 0) {
 
+        var pFieldObj = getFieldObj(fieldObj.ParentId);
+        if (pFieldObj && pFieldObj.Type === 'Bitmapped') {
 
+          if (isReqFieldSelected(fieldId)) {
+            setBmpBit(pFieldObj, fieldObj.Position, true);
+          } else {
+            setBmpBit(pFieldObj, fieldObj.Position, false);
+          }
 
-            //elem.style['z-index'] = "2";
+          //if this field itself has children turn them all on
 
-        }
+          if (fieldObj.Children.length > 0) {
 
-        function jsCancelTraceParseAction() {
-            disableOverlay();
-            var elem = document.getElementById('idJsTraceDiv');
-            elem.style.display = "none";
-
-
-        }
-
-
-
-
-        function editRequestField(fieldId) {
-
-            var fieldElem = getRequestFieldValElem(fieldId);
-            var initialValue = fieldElem.value;
-            jsShowUserInputDialog();
-
-        }
-
-        function jsShowUserInputDialog(e, fieldId, initialValue, isrequest = true, readonly = false) {
-
-            enableOverlay();
-            var x = e.clientX;
-            var y = e.pageY - e.screenY;
-            if (fieldId) {
-                //var elem = getRequestFieldValElem(fieldId);
-                var divElem = document.getElementById('idJsFieldEditViewDiv');
-                var textAreaElem = document.getElementById('idJsFieldEditInput');
-
-                //global vars to indicate what was being edited
-                if (isrequest) {
-                    gFieldEdited.fieldId = fieldId;
-                    gFieldEdited.fieldSegment = 'res';
-                }
-                //done global
-                textAreaElem.value = initialValue;
-                if (!readonly) {
-                    textAreaElem.disabled = false;
-                } else {
-                    textAreaElem.disabled = true;
-                }
-
-                x = 10;
-                //console.log('screenY = ' + e.pageY);
-                y = e.pageY - 500;
-                //show the div
-                divElem.style.display = "block";
-                //divElem.style.left = x;
-                //divElem.style.top = y;
-                //console.log("right = " + divElem.style.right);
-                if (isrequest == false) {
-                    divElem.style.right = '0%';
-                } else {
-                    divElem.style.right = '';
-                }
-                divElem.style.bottom = '0%';
-                divElem.style.position = "fixed";
-
-            }
-
-        }
-
-        function getFieldValElem(fieldId, segment) {
-
-            var elemId = "";
-            if (segment == 'request') {
-                elemId = reqFieldsPrefixId2 + fieldId;
+            if (isReqFieldSelected(fieldId)) {
+              //turn all on
+              selectRecursive(fieldObj)
             } else {
-                elemId = respFieldsPrefixId2 + fieldId;
+              //turn all off
+              unselectRecursive(fieldObj)
             }
 
-            return document.getElementById(elemId);
+          }
+
+        }
+        else if (pFieldObj) {
+          // there is a parent but is not a bitmapped field, so this is a composite
+          // field with nested fields
+          // task 1. find parent, all siblings and turn them on
+          // task 2. coalesce child fields and populate the data into the parent field
+
+          //find the whole tree of objects until this point (including children)
+          //and turn them all on or off
+
+          if (isReqFieldSelected(fieldId)) {
+            //select all the way until "Bitmap" and in between
+            var currFieldId = fieldId;
+            while (true) {
+              var parentId = getFieldObj(currFieldId).ParentId;
+              var nextUp = getFieldObj(parentId);
+              //at each level turn everything on
+              //go all way up to the bitmap field
+              setReqFieldSelected(nextUp.Id);
+              if (nextUp.Type === "Bitmapped") {
+                break;
+              }
+
+              selectRecursive(nextUp);
+              currFieldId = parentId;
+            }
+
+          } else if (!isReqFieldSelected(fieldId)) {
+            //setReqFieldUnselected(pFieldObj.Id);
+            //select all the way until "Bitmap" and in between
+            var currFieldId = fieldId;
+            while (true) {
+              var parentId = getFieldObj(currFieldId).ParentId;
+              var nextUp = getFieldObj(parentId);
+              //at each level turn everything on
+              //go all way up to the bitmap field
+              if (nextUp.Type === "Bitmapped") {
+                break;
+              }
+              setReqFieldUnselected(nextUp.Id);
+
+              unselectRecursive(nextUp);
+              currFieldId = parentId;
+            }
+          }
 
         }
 
-        function getFieldSelectedElem(fieldId, segment) {
+      }
 
-            var elemId = "";
-            if (segment == 'request') {
-                elemId = reqFieldsPrefixId0 + fieldId;
-            } else {
-                elemId = respFieldsPrefixId0 + fieldId;
+    }
+
+    function isReqFieldSelected(fieldId) {
+
+      return document.getElementById(reqFieldsPrefixId0 + fieldId).checked;
+    }
+
+    function setReqFieldUnselected(fieldId) {
+
+      document.getElementById(reqFieldsPrefixId0 + fieldId).checked = false;
+    }
+
+    function setReqFieldSelected(fieldId) {
+
+      document.getElementById(reqFieldsPrefixId0 + fieldId).checked = true;
+    }
+
+    function setBmpBit(bmpFieldObj, position, on) {
+
+      var bitVal = '0';
+      if (on) {
+        bitVal = '1';
+      }
+
+      var bmpElem = getRequestFieldValElem(bmpFieldObj.Id);
+      if (bmpElem.value) {
+
+      } else {
+        //TODO:: this doesn't seem to be the best way to deal with this
+        //so some improvement is required
+        bmpElem.value = '0000000000000000000000000000000000000000000000000000000000000000';
+        bmpElem.value += '0000000000000000000000000000000000000000000000000000000000000000';
+        bmpElem.value += '0000000000000000000000000000000000000000000000000000000000000000';
+      }
+
+      var pre = bmpElem.value.substring(0, position - 1);
+      var post = bmpElem.value.substring(position + 1, bmpElem.value.length);
+      bmpElem.value = pre + bitVal + post;
+      setReqFieldSelected(bmpFieldObj.Id);
+
+      if (position > 64 && position < 128) {
+        if (on) {
+          //setBmpBit(bmpFieldObj, 1, true);
+          bmpElem.value = '1' + bmpElem.value.substring(1, bmpElem.value.length);
+        }
+      } else if (position > 128) {
+        if (on) {
+          setBmpBit(bmpFieldObj, 65, true);
+        }
+
+      }
+
+      if (on === false) {
+        if (bmpElem.value.substring(65 - 1, 129 - 1) === emptyBitmap) {
+          bmpElem.value = '0' + bmpElem.value.substring(1, bmpElem.value.length);
+        }
+        if (bmpElem.value.substring(129 - 1, 193 - 1) === emptyBitmap) {
+          bmpElem.value = bmpElem.value.substring(1 - 1, 66 - 1) + '0' + bmpElem.value.substring(
+              66 - 1, bmpElem.value.length);
+        }
+
+      }
+
+    }
+
+    function jsShowTraceDialog() {
+
+      if (!gPageState.layoutLoaded) {
+        showErrorMessage('Please load a template before parsing.');
+        return;
+
+      }
+
+      enableOverlay();
+      var elem = document.getElementById('idJsTraceDiv');
+      elem.style.display = "block";
+      elem.style.position = "fixed";
+      elem.style.left = "35%";
+      elem.style.top = "50%";
+
+      //elem.style['z-index'] = "2";
+
+    }
+
+    function jsCancelTraceParseAction() {
+      disableOverlay();
+      var elem = document.getElementById('idJsTraceDiv');
+      elem.style.display = "none";
+
+    }
+
+    function editRequestField(fieldId) {
+
+      var fieldElem = getRequestFieldValElem(fieldId);
+      var initialValue = fieldElem.value;
+      jsShowUserInputDialog();
+
+    }
+
+    function jsShowUserInputDialog(e, fieldId, initialValue, isrequest = true, readonly = false) {
+
+      enableOverlay();
+      var x = e.clientX;
+      var y = e.pageY - e.screenY;
+      if (fieldId) {
+        //var elem = getRequestFieldValElem(fieldId);
+        var divElem = document.getElementById('idJsFieldEditViewDiv');
+        var textAreaElem = document.getElementById('idJsFieldEditInput');
+
+        //global vars to indicate what was being edited
+        if (isrequest) {
+          gFieldEdited.fieldId = fieldId;
+          gFieldEdited.fieldSegment = 'res';
+        }
+        //done global
+        textAreaElem.value = initialValue;
+        textAreaElem.disabled = readonly;
+
+        x = 10;
+        //console.log('screenY = ' + e.pageY);
+        y = e.pageY - 500;
+        //show the div
+        divElem.style.display = "block";
+        //divElem.style.left = x;
+        //divElem.style.top = y;
+        //console.log("right = " + divElem.style.right);
+        if (isrequest === false) {
+          divElem.style.right = '0%';
+        } else {
+          divElem.style.right = '';
+        }
+        divElem.style.bottom = '0%';
+        divElem.style.position = "fixed";
+
+      }
+
+    }
+
+    function getFieldValElem(fieldId, segment) {
+
+      var elemId = "";
+      if (segment == 'request') {
+        elemId = reqFieldsPrefixId2 + fieldId;
+      } else {
+        elemId = respFieldsPrefixId2 + fieldId;
+      }
+
+      return document.getElementById(elemId);
+
+    }
+
+    function getFieldSelectedElem(fieldId, segment) {
+
+      var elemId = "";
+      if (segment == 'request') {
+        elemId = reqFieldsPrefixId0 + fieldId;
+      } else {
+        elemId = respFieldsPrefixId0 + fieldId;
+      }
+
+      return document.getElementById(elemId);
+
+    }
+
+    function jsProcessFieldEditView() {
+
+      //enableOverlay();
+      var elem = document.getElementById('idJsFieldEditViewDiv');
+
+      var textAreaElem = document.getElementById('idJsFieldEditInput');
+
+      if (textAreaElem.disabled) {
+        //response field being viewed, do nothing
+        textAreaElem.value = "";
+        textAreaElem.disabled = false;
+        elem.style.display = "none";
+        disableOverlay();
+        return;
+
+      }
+
+      var fieldId = gFieldEdited.fieldId;
+      console.log('field being edited -' + fieldId);
+      var fieldValElem = getFieldValElem(fieldId, 'request');
+      var fieldSelectedElem = getFieldSelectedElem(fieldId, 'request');
+      fieldValElem.value = textAreaElem.value;
+      if (fieldValElem.value) {
+        fieldSelectedElem.checked = true;
+      } else {
+        fieldSelectedElem.checked = false;
+      }
+      textAreaElem.value = "";
+      elem.style.display = "none";
+      disableOverlay();
+    }
+
+    function jsCancelFieldEditViewDialog() {
+      var elem = document.getElementById('idJsFieldEditViewDiv');
+      elem.style.display = "none";
+      disableOverlay();
+
+    }
+
+    function jsParseTrace() {
+
+      if (!gPageState.layoutLoaded) {
+        showErrorMessage("Please load a template before parsing trace.");
+        return;
+
+      }
+
+      var specsElem = document.getElementById('idJsSpec');
+      var selectedSpecOption = specsElem.options[specsElem.selectedIndex];
+      if (selectedSpecOption) {
+        var specId = selectedSpecOption.id;
+
+        var msgsElem = document.getElementById('idJsSpecMsgs');
+        var selectedMsgOption = msgsElem.options[msgsElem.selectedIndex];
+
+        if (selectedMsgOption) {
+
+          var elem = document.getElementById('idJsTrace');
+          url = '/iso/v0/parse/' + specId + '/' + selectedMsgOption.id;
+          doAjaxCall(url, function (responseText) {
+
+            console.log('parsed msg (json)' + responseText);
+            var parsedMsgObj = JSON.parse(responseText);
+            //alert(parsedMsgObj.length)
+            for (var i = 0; i < parsedMsgObj.length; i++) {
+
+              var fieldDataObj = parsedMsgObj[i];
+              var elemId = reqFieldsPrefixId2 + fieldDataObj.Id;
+              //alert(elemId);
+              document.getElementById(elemId).value = fieldDataObj.Value;
+              document.getElementById(reqFieldsPrefixId0 + fieldDataObj.Id).checked = true;
+
             }
+            updateCurrentDs();
+            jsCancelTraceParseAction();
+          }, elem.value, 'POST');
 
-            return document.getElementById(elemId);
+        }
+      }
+
+    }
+
+    function newErrObj(fieldObj, errorText) {
+      var errObj = new Object();
+      errObj.Id = fieldObj.Id;
+      errObj.FieldName = fieldObj.Name;
+      errObj.ErrorText = errorText;
+      return errObj;
+    }
+
+    function validateField(fieldObj, errors) {
+
+      var elem = document.getElementById(reqFieldsPrefixId2 + fieldObj.Id);
+      var valErroElem = document.getElementById(reqFieldsValErrorIdPrefix + fieldObj.Id);
+      valErroElem.style.display = "none";
+      valErroElem.innerHTML = "";
+
+      elem.style.color = '#090933';
+      var fieldVal = elem.value;
+      var isSelected = document.getElementById(reqFieldsPrefixId0 + fieldObj.Id).checked;
+
+      //console.log('validating ' + fieldObj.Name + ' Id = ' + fieldObj.Id + ' field type = ' + fieldObj.Type + ' fieldVal = ' + fieldVal + ' is selected = ' + isSelected);
+      if (isSelected) {
+
+        if (fieldObj.Type === 'Variable') {
+          validateVariableField(fieldObj, fieldVal, errors);
+
+        } else if (fieldObj.Type === 'Fixed') {
+          validateFixedField(fieldObj, fieldVal, errors);
+        }
+      }
+
+      if (fieldObj.Children.length > 0) {
+
+        for (var i = 0; i < fieldObj.Children.length; i++) {
+          validateField(fieldObj.Children[i], errors);
+        }
+
+      }
+
+    }
+
+    function validateFixedField(fieldObj, fieldVal, errors) {
+
+      if (!fieldVal) {
+        errors.push(newErrObj(fieldObj, 'Field selected but no value provided.'));
+        return;
+
+      }
+
+      switch (fieldObj.DataEncoding) {
+
+        case 'ASCII':
+        case 'EBCDIC': {
+
+          if (fieldVal.length != fieldObj.FixedSize) {
+            errors.push(newErrObj(fieldObj,
+                'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = '
+                + fieldVal.length));
+          }
+
+          validateFieldContentConstraints(fieldObj, fieldVal, errors);
+
+          break;
+        }
+        case 'BINARY': {
+          if (!validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors)) {
+            var len = fieldVal.length / 2;
+            if (len != fieldObj.FixedSize) {
+              errors.push(newErrObj(fieldObj,
+                  'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = ' + len));
+            }
+          }
+          //validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
+          validateBinaryFieldForContent(fieldObj, fieldVal, errors);
+          break;
+        }
+        case 'BCD': {
+          if (!validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors)) {
+            var len = fieldVal.length / 2;
+            if (len != fieldObj.FixedSize) {
+              errors.push(newErrObj(fieldObj,
+                  'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = ' + len));
+            }
+          }
+          validateBcdFieldForContent(fieldObj, fieldVal, errors);
+          break;
+        }
+
+      }
+
+    }
+
+    function validateVariableField(fieldObj, fieldVal, errors) {
+
+      if (!fieldVal) {
+        errors.push(newErrObj(fieldObj, 'Field selected but no value provided.'));
+        return;
+
+      }
+
+      switch (fieldObj.DataEncoding) {
+
+        case 'ASCII':
+        case 'EBCDIC': {
+          validateFieldContentConstraints(fieldObj, fieldVal, errors);
+          validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors);
+
+          break;
+        }
+        case 'BINARY': {
+          validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
+          validateBinaryFieldForContent(fieldObj, fieldVal, errors);
+          validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors);
+          break;
+        }
+        case 'BCD': {
+          validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
+          validateBcdFieldForContent(fieldObj, fieldVal, errors);
+          validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors);
+        }
+
+      }
+
+    }
+
+    function validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors) {
+
+      if (fieldObj.Type == 'VARIABLE') {
+
+        var fieldLen = 0;
+        if (fieldObj.DataEncoding == 'ASCII' || fieldObj.DataEncoding == 'EBCDIC') {
+          fieldLen = fieldVal.length;
+        } else {
+          fieldLen = fieldVal.length / 2;
+        }
+
+        //console.log('field length: ' + fieldLen);
+        //console.log('field min: ' + fieldObj.MinSize);
+        // console.log('field max: ' + fieldObj.MaxSize);
+
+        if (fieldObj.MinSize > 0 && fieldLen < fieldObj.MinSize) {
+          errors.push(newErrObj(fieldObj,
+              'Field length less than minimum allowed length of ' + fieldObj.MinSize));
+        }
+
+        if (fieldObj.MaxSize > 0 && fieldLen > fieldObj.MaxSize) {
+          errors.push(newErrObj(fieldObj,
+              'Field length exceeds maximum allowed length of ' + fieldObj.MaxSize));
+        }
+
+      }
+
+    }
+
+    function validateFieldContentConstraints(fieldObj, fieldVal, errors) {
+
+      switch (fieldObj.ContentType) {
+        case 'Alpha': {
+
+          if (!alphaRE.exec(fieldVal)) {
+            errors.push(newErrObj(fieldObj, 'Field content should be alphabets only.'));
+            return true;
+
+          }
+          break;
+
+        }
+        case 'AlphaNumeric': {
+
+          if (!alphaRE.exec(fieldVal)) {
+            errors.push(newErrObj(fieldObj, 'Field content should be alpha-numeric only.'));
+            return true;
+
+          }
+          break;
+
+        }
+        case 'Numeric': {
+
+          if (!numericRE.exec(fieldVal)) {
+            errors.push(newErrObj(fieldObj, 'Field content should be numeric only.'));
+            return true;
+
+          }
+          break;
+        }
+      }
+
+    }
+
+    function validateBinaryFieldForContent(fieldObj, fieldVal, errors) {
+      var re = /^[0123456789abcdefABCDEF]+$/;
+      if (!re.exec(fieldVal)) {
+        errors.push(newErrObj(fieldObj, 'BINARY fields should contain hex characters only.'));
+        return true;
+      }
+      return false;
+
+    }
+
+    function validateBcdFieldForContent(fieldObj, fieldVal, errors) {
+      var re = /^[0123456789]+$/;
+      if (!re.exec(fieldVal)) {
+        errors.push(newErrObj(fieldObj, 'BCD fields should contain decimal characters only.'));
+        return true;
+      }
+      return false;
+
+    }
+
+    function validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors) {
+      if (fieldVal.length % 2 != 0) {
+        errors.push(newErrObj(fieldObj,
+            'BCD/BINARY fields required to have even number of characters - field has only '
+            + fieldVal.length));
+        return true;
+      }
+      return false;
+
+    }
+
+    /**
+     This function does basic validations on all request fields (user supplied). Example - content, length, constraints if any (Numeric, Alpha, AlphaNumeric
+     ..MinLength, MaxLength) etc..
+
+
+     */
+
+    function validateFields() {
+
+      var errors = []
+      for (var i = 0, j = 0; i < currentMsgFields.length; i++) {
+        var fieldObj = currentMsgFields[i];
+        validateField(fieldObj, errors);
+
+      }
+
+      var errMsg = 'Please fix the following errors -\n<ol>';
+      for (var i = 0; i < errors.length; i++) {
+        var errObj = errors[i];
+        var elem = document.getElementById(reqFieldsPrefixId2 + errObj.Id);
+        elem.style.color = 'red';
+
+        var errorTextElem = document.getElementById(reqFieldsValErrorIdPrefix + errObj.Id);
+        errorTextElem.innerHTML = errObj.ErrorText;
+        errorTextElem.style.display = "block";
+        errMsg += '<li>' + 'Field: [' + errObj.FieldName + '] Error:  ' + errObj.ErrorText
+            + '</li>\n';
+
+      }
+      errMsg += '</ol>';
+      if (errors.length > 0) {
+        showErrorMessage(errMsg);
+      }
+
+      return errors;
+
+    }
+
+    /**
+     This function will send a msg to the 'Host:Ip'
+     */
+    function jsSendMsg() {
+
+      if (!gPageState.layoutLoaded) {
+        showErrorMessage("Please load a template, construct a message before sending to host.");
+        return;
+
+      }
+
+      document.getElementById('idJsResponseTable').innerHTML = "";
+
+      var validationErrors = validateFields();
+      if (validationErrors.length > 0) {
+        console.log('unable to send msg because of validation errors');
+        return;
+      }
+
+      var hostElem = document.getElementById('idJsHost');
+      var portElem = document.getElementById('idJsPort');
+
+      if (!hostElem.value) {
+        showErrorMessage('please provide a valid host name/ip address');
+        return;
+
+      }
+      var re = /^[0-9]+$/;
+      if (!re.exec(portElem.value)) {
+        showErrorMessage('please provide a valid port number');
+        return;
+
+      }
+
+      var host = hostElem.value;
+      var port = portElem.value;
+
+      var dataPresent = false;
+      var resultObj = constructReqObj();
+      if (resultObj.length > 0) {
+        dataPresent = true;
+      }
+
+      if (!dataPresent) {
+        showErrorMessage('Please construct a message (or parse a trace) before sending to host.');
+        return;
+
+      }
+
+      var specId = getCurrentSpecId();
+      var msgId = getCurrentSpecMsgId();
+
+      var msg = JSON.stringify(resultObj);
+      var mliElem = document.getElementById('idJsMli').options;
+      var mli = mliElem[mliElem.selectedIndex].value
+
+      //var mli;
+      console.log('sending message - ' + msg);
+
+      console.log('spec id = ' + specId + 'msg id = ' + msgId);
+      var postData = 'host=' +
+          host + '&' + 'port=' + port + '&' + 'mli=' +
+          mli + '&' + 'specId=' + specId + "&" + 'msgId=' + msgId + "&" + "msg=" + msg;
+      //var postData = 'specId=' + specId + "&" + 'msgId=' + msgId + "&" + "msg=" + msg;
+
+      console.log('postData = ' + postData);
+      doAjaxCall('/iso/v0/send', function (responseText) {
+        //alert(responseText);
+        var responseData = JSON.parse(responseText);
+
+        var htmlContent = '';
+        htmlContent += '<tr><td colspan=\"4\" align="center"><div class="cl_segment_header_resp">Message Response</div></td><tr>';
+        htmlContent += "<tr class=\"cl_table_heading\"><th > Selected? </th> <th> Field </th> <th> Value </th></tr>\n";
+        for (var i = 0; i < currentMsgFields.length; i++) {
+          var fieldObj = currentMsgFields[i];
+          htmlContent += getFieldHtml(fieldObj, fieldValue = "", isRequest = false);
+          htmlContent += appendChildFields(fieldObj, isRequest = false);
+        }
+
+        //alert(htmlContent);
+
+        var elem = document.getElementById('idJsResponseTable');
+        elem.innerHTML = htmlContent;
+
+        for (var i = 0; i < responseData.length; i++) {
+
+          //console.log('setting ' + responseData[i].Id + ' ' + responseData[i].Value);
+
+          var id = respFieldsPrefixId0 + responseData[i].Id;
+          var fieldId = respFieldsPrefixId2 + responseData[i].Id;
+          document.getElementById(id).checked = true;
+          document.getElementById(fieldId).value = responseData[i].Value;
+        }
+
+        var elems = document.getElementsByClassName('cl_vsmall_btn_view');
+        for (var i = 0; i < elems.length; i++) {
+          elems[i].addEventListener('click', function (event) {
+
+            var fieldVal = "";
+            var index = event.target.id.indexOf('_');
+            var fieldId = event.target.id.substring(index + 1, event.target.id.length);
+            console.log('fieldid =' + fieldId);
+            fieldVal = getResponseFieldValElem(fieldId).value;
+
+            jsShowUserInputDialog(event, fieldId, fieldVal, false, true);
+          }, true);
+        }
+
+      }, postData, 'POST', encoding = 'application/x-www-form-urlencoded');
+
+    }
+
+    function constructReqObj() {
+
+      var selectedObjs = document.getElementsByClassName('cl_req_field_sel_cb');
+      var resultObj = [];
+      //var dataPresent = false;
+      for (var i = 0, j = 0; i < selectedObjs.length; i++) {
+
+        var childNode = selectedObjs[i];
+        //alert(JSON.stringify(childNode));
+        if (childNode.id) {
+
+          //alert(childNode.id)
+
+          if (childNode.checked) {
+            var index = childNode.id.indexOf('_');
+            var childNodeId = childNode.id.substring(index + 1, childNode.id.length);
+            var fieldValue = document.getElementById(reqFieldsPrefixId2 + childNodeId).value;
+            var obj = {};
+            obj.Id = parseInt(childNodeId);
+            obj.Value = fieldValue;
+            resultObj[j++] = obj;
+
+          }
 
         }
 
-        function jsProcessFieldEditView() {
-
-            //enableOverlay();
-            var elem = document.getElementById('idJsFieldEditViewDiv');
-
-            var textAreaElem = document.getElementById('idJsFieldEditInput');
-
-            if (textAreaElem.disabled) {
-                //response field being viewed, do nothing
-                textAreaElem.value = "";
-                textAreaElem.disabled = false;
-                elem.style.display = "none";
-                disableOverlay();
-                return;
-
-            }
-
-            var fieldId = gFieldEdited.fieldId;
-            console.log('field being edited -' + fieldId);
-            var fieldValElem = getFieldValElem(fieldId, 'request');
-            var fieldSelectedElem = getFieldSelectedElem(fieldId, 'request');
-            fieldValElem.value = textAreaElem.value;
-            if (fieldValElem.value) {
-                fieldSelectedElem.checked = true;
-            } else {
-                fieldSelectedElem.checked = false;
-            }
-            textAreaElem.value = "";
-            elem.style.display = "none";
-            disableOverlay();
-        }
-
-
-        function jsCancelFieldEditViewDialog() {
-            var elem = document.getElementById('idJsFieldEditViewDiv');
-            elem.style.display = "none";
-            disableOverlay();
-
-        }
-
-
-
-        function jsParseTrace() {
-
-            if (!gPageState.layoutLoaded) {
-                showErrorMessage("Please load a template before parsing trace.");
-                return;
-
-            }
-
-
-            var specsElem = document.getElementById('idJsSpec');
-            var selectedSpecOption = specsElem.options[specsElem.selectedIndex];
-            if (selectedSpecOption) {
-                var specId = selectedSpecOption.id;
-
-                var msgsElem = document.getElementById('idJsSpecMsgs');
-                var selectedMsgOption = msgsElem.options[msgsElem.selectedIndex];
-
-                if (selectedMsgOption) {
-
-                    var elem = document.getElementById('idJsTrace');
-                    url = '/iso/v0/parse/' + specId + '/' + selectedMsgOption.id;
-                    doAjaxCall(url, function (responseText) {
-
-                        console.log('parsed msg (json)' + responseText);
-                        var parsedMsgObj = JSON.parse(responseText);
-                        //alert(parsedMsgObj.length)
-                        for (var i = 0; i < parsedMsgObj.length; i++) {
-
-                            var fieldDataObj = parsedMsgObj[i];
-                            var elemId = reqFieldsPrefixId2 + fieldDataObj.Id;
-                            //alert(elemId);
-                            document.getElementById(elemId).value = fieldDataObj.Value;
-                            document.getElementById(reqFieldsPrefixId0 + fieldDataObj.Id).checked = true;
-
-                        }
-                        updateCurrentDs();
-                        jsCancelTraceParseAction();
-                    }, elem.value, 'POST');
-
-
-
-                }
-            }
-
-
-
-        }
-
-        function newErrObj(fieldObj, errorText) {
-            var errObj = new Object();
-            errObj.Id = fieldObj.Id;
-            errObj.FieldName = fieldObj.Name;
-            errObj.ErrorText = errorText;
-            return errObj;
-        }
-
-        function validateField(fieldObj, errors) {
-
-
-
-            var elem = document.getElementById(reqFieldsPrefixId2 + fieldObj.Id);
-            var valErroElem = document.getElementById(reqFieldsValErrorIdPrefix + fieldObj.Id);
-            valErroElem.style.display = "none";
-            valErroElem.innerHTML = "";
-
-            elem.style.color = '#090933';
-            var fieldVal = elem.value;
-            var isSelected = document.getElementById(reqFieldsPrefixId0 + fieldObj.Id).checked;
-
-
-            //console.log('validating ' + fieldObj.Name + ' Id = ' + fieldObj.Id + ' field type = ' + fieldObj.Type + ' fieldVal = ' + fieldVal + ' is selected = ' + isSelected);
-            if (isSelected) {
-
-
-                if (fieldObj.Type == 'VARIABLE') {
-                    validateVariableField(fieldObj, fieldVal, errors);
-
-                } else if (fieldObj.Type == 'FIXED') {
-                    validateFixedField(fieldObj, fieldVal, errors);
-                }
-            }
-
-
-            if (fieldObj.Children.length > 0) {
-
-                for (var i = 0; i < fieldObj.Children.length; i++) {
-                    validateField(fieldObj.Children[i], errors);
-                }
-
-            }
-
-        }
-
-
-        function validateFixedField(fieldObj, fieldVal, errors) {
-
-            if (!fieldVal) {
-                errors.push(newErrObj(fieldObj, 'Field selected but no value provided.'));
-                return;
-
-            }
-
-            console.log('vali = ' + fieldObj.Name);
-
-            switch (fieldObj.DataEncoding) {
-
-            case 'ASCII':
-            case 'EBCDIC':
-                {
-
-                    if (fieldVal.length != fieldObj.FixedSize) {
-                        errors.push(newErrObj(fieldObj, 'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = ' + fieldVal.length));
-                    }
-
-                    validateFieldContentConstraints(fieldObj, fieldVal, errors);
-
-
-                    break;
-                }
-            case 'BINARY':
-                {
-                    if (!validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors)) {
-                        var len = fieldVal.length / 2;
-                        if (len != fieldObj.FixedSize) {
-                            errors.push(newErrObj(fieldObj, 'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = ' + len));
-                        }
-                    }
-                    //validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
-                    validateBinaryFieldForContent(fieldObj, fieldVal, errors);
-                    break;
-                }
-            case 'BCD':
-                {
-                    if (!validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors)) {
-                        var len = fieldVal.length / 2;
-                        if (len != fieldObj.FixedSize) {
-                            errors.push(newErrObj(fieldObj, 'Field length mismatch. Required = ' + fieldObj.FixedSize + ' Found = ' + len));
-                        }
-                    }
-                    validateBcdFieldForContent(fieldObj, fieldVal, errors);
-                    break;
-                }
-
-            }
-
-
-        }
-
-
-
-        function validateVariableField(fieldObj, fieldVal, errors) {
-
-            if (!fieldVal) {
-                errors.push(newErrObj(fieldObj, 'Field selected but no value provided.'));
-                return;
-
-            }
-
-            switch (fieldObj.DataEncoding) {
-
-            case 'ASCII':
-            case 'EBCDIC':
-                {
-                    validateFieldContentConstraints(fieldObj, fieldVal, errors);
-                    validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors);
-
-                    break;
-                }
-            case 'BINARY':
-                {
-                    validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
-                    validateBinaryFieldForContent(fieldObj, fieldVal, errors);
-                    validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors);
-                    break;
-                }
-            case 'BCD':
-                {
-                    validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors);
-                    validateBcdFieldForContent(fieldObj, fieldVal, errors);
-                    validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors);
-                }
-
-            }
-
-
-        }
-
-        function validateVariableFieldLengthConstraints(fieldObj, fieldVal, errors) {
-
-
-            if (fieldObj.Type == 'VARIABLE') {
-
-                var fieldLen = 0;
-                if (fieldObj.DataEncoding == 'ASCII' || fieldObj.DataEncoding == 'EBCDIC') {
-                    fieldLen = fieldVal.length;
-                } else {
-                    fieldLen = fieldVal.length / 2;
-                }
-
-                //console.log('field length: ' + fieldLen);
-                //console.log('field min: ' + fieldObj.MinSize);
-                // console.log('field max: ' + fieldObj.MaxSize);
-
-
-                if (fieldObj.MinSize > 0 && fieldLen < fieldObj.MinSize) {
-                    errors.push(newErrObj(fieldObj, 'Field length less than minimum allowed length of ' + fieldObj.MinSize));
-                }
-
-                if (fieldObj.MaxSize > 0 && fieldLen > fieldObj.MaxSize) {
-                    errors.push(newErrObj(fieldObj, 'Field length exceeds maximum allowed length of ' + fieldObj.MaxSize));
-                }
-
-            }
-
-        }
-
-        function validateFieldContentConstraints(fieldObj, fieldVal, errors) {
-
-
-
-            switch (fieldObj.ContentType) {
-            case 'Alpha':
-                {
-
-                    if (!alphaRE.exec(fieldVal)) {
-                        errors.push(newErrObj(fieldObj, 'Field content should be alphabets only.'));
-                        return true;
-
-                    }
-                    break;
-
-                }
-            case 'AlphaNumeric':
-                {
-
-                    if (!alphaRE.exec(fieldVal)) {
-                        errors.push(newErrObj(fieldObj, 'Field content should be alpha-numeric only.'));
-                        return true;
-
-                    }
-                    break;
-
-                }
-            case 'Numeric':
-                {
-
-                    if (!numericRE.exec(fieldVal)) {
-                        errors.push(newErrObj(fieldObj, 'Field content should be numeric only.'));
-                        return true;
-
-                    }
-                    break;
-                }
-            }
-
-
-
-        }
-
-
-        function validateBinaryFieldForContent(fieldObj, fieldVal, errors) {
-            var re = /^[0123456789abcdefABCDEF]+$/;
-            if (!re.exec(fieldVal)) {
-                errors.push(newErrObj(fieldObj, 'BINARY fields should contain hex characters only.'));
-                return true;
-            }
-            return false;
-
-        }
-
-        function validateBcdFieldForContent(fieldObj, fieldVal, errors) {
-            var re = /^[0123456789]+$/;
-            if (!re.exec(fieldVal)) {
-                errors.push(newErrObj(fieldObj, 'BCD fields should contain decimal characters only.'));
-                return true;
-            }
-            return false;
-
-        }
-
-        function validateBcdBinaryFieldForLength(fieldObj, fieldVal, errors) {
-            if (fieldVal.length % 2 != 0) {
-                errors.push(newErrObj(fieldObj, 'BCD/BINARY fields required to have even number of characters - field has only ' + fieldVal.length));
-                return true;
-            }
-            return false;
-
-        }
-
-        /**
-        This function does basic validations on all request fields (user supplied). Example - content, length, constraints if any (Numeric, Alpha, AlphaNumeric
-        ..MinLength, MaxLength) etc..
-        
-        
-        */
-
-        function validateFields() {
-
-            var errors = new Array();
-            for (var i = 0, j = 0; i < currentMsgFields.length; i++) {
-                var fieldObj = currentMsgFields[i];
-                validateField(fieldObj, errors);
-
-            }
-
-            var errMsg = 'Please fix the following errors -\n<ol>';
-            for (var i = 0; i < errors.length; i++) {
-                var errObj = errors[i];
-                var elem = document.getElementById(reqFieldsPrefixId2 + errObj.Id);
-                elem.style.color = 'red';
-
-
-                var errorTextElem = document.getElementById(reqFieldsValErrorIdPrefix + errObj.Id);
-                errorTextElem.innerHTML = errObj.ErrorText;
-                errorTextElem.style.display = "block";
-                errMsg += '<li>' + 'Field: [' + errObj.FieldName + '] Error:  ' + errObj.ErrorText + '</li>\n';
-
-            }
-            errMsg += '</ol>';
-            if (errors.length > 0) {
-                showErrorMessage(errMsg);
-            }
-
-
-            return errors;
-
-        }
-
-
-        /**
-        This function will send a msg to the 'Host:Ip'
-        */
-        function jsSendMsg() {
-
-            if (!gPageState.layoutLoaded) {
-                showErrorMessage("Please load a template, construct a message before sending to host.");
-                return;
-
-            }
-
-            document.getElementById('idJsResponseTable').innerHTML = "";
-
-            var validationErrors = validateFields();
-            if (validationErrors.length > 0) {
-                console.log('unable to send msg because of validation errors');
-                return;
-            }
-
-            var hostElem = document.getElementById('idJsHost');
-            var portElem = document.getElementById('idJsPort');
-
-            if (!hostElem.value) {
-                showErrorMessage('please provide a valid host name/ip address');
-                return;
-
-            }
-            var re = /^[0-9]+$/;
-            if (!re.exec(portElem.value)) {
-                showErrorMessage('please provide a valid port number');
-                return;
-
-            }
-
-            var host = hostElem.value;
-            var port = portElem.value;
-
-
-
-
-            var dataPresent = false;
-            var resultObj = constructReqObj();
-            if (resultObj.length > 0) {
-                dataPresent = true;
-            }
-
-
-
-            if (!dataPresent) {
-                showErrorMessage('Please construct a message (or parse a trace) before sending to host.');
-                return;
-
-            }
-
-            var specId = getCurrentSpecId();
-            var msgId = getCurrentSpecMsgId();
-
-            var msg = JSON.stringify(resultObj);
-            var mliElem = document.getElementById('idJsMli').options;
-            var mli = mliElem[mliElem.selectedIndex].value
-
-
-            //var mli;
-            console.log('sending message - ' + msg);
-
-            console.log('spec id = ' + specId + 'msg id = ' + msgId);
-            var postData = 'host=' +
-                host + '&' + 'port=' + port + '&' + 'mli=' +
-                mli + '&' + 'specId=' + specId + "&" + 'msgId=' + msgId + "&" + "msg=" + msg;
-            //var postData = 'specId=' + specId + "&" + 'msgId=' + msgId + "&" + "msg=" + msg;
-
-            console.log('postData = ' + postData);
-            doAjaxCall('/iso/v0/send', function (responseText) {
-                //alert(responseText);
-                var responseData = JSON.parse(responseText);
-
-                var htmlContent = '';
-                htmlContent += '<tr><td colspan=\"4\" align="center"><div class="cl_segment_header_resp">Message Response</div></td><tr>';
-                htmlContent += "<tr class=\"cl_small_text\"><th > Selected? </th> <th> Field </th> <th> Value </th></tr>\n";
-                for (var i = 0; i < currentMsgFields.length; i++) {
-                    var fieldObj = currentMsgFields[i];
-                    htmlContent += getFieldHtml(fieldObj, fieldValue = "", isRequest = false);
-                    htmlContent += appendChildFields(fieldObj, isRequest = false);
-                }
-
-                //alert(htmlContent);
-
-                var elem = document.getElementById('idJsResponseTable');
-                elem.innerHTML = htmlContent;
-
-                for (var i = 0; i < responseData.length; i++) {
-
-                    //console.log('setting ' + responseData[i].Id + ' ' + responseData[i].Value);
-
-                    var id = respFieldsPrefixId0 + responseData[i].Id;
-                    var fieldId = respFieldsPrefixId2 + responseData[i].Id;
-                    document.getElementById(id).checked = true;
-                    document.getElementById(fieldId).value = responseData[i].Value;
-                }
-
-                var elems = document.getElementsByClassName('cl_vsmall_btn_view');
-                for (var i = 0; i < elems.length; i++) {
-                    elems[i].addEventListener('click', function (event) {
-
-                        var fieldVal = "";
-                        var index = event.target.id.indexOf('_');
-                        var fieldId = event.target.id.substring(index + 1, event.target.id.length);
-                        console.log('fieldid =' + fieldId);
-                        fieldVal = getResponseFieldValElem(fieldId).value;
-
-
-                        jsShowUserInputDialog(event, fieldId, fieldVal, false, true);
-                    }, true);
-                }
-
-
-            }, postData, 'POST', encoding = 'application/x-www-form-urlencoded');
-
-
-
-
-        }
-
-        function constructReqObj() {
-
-            var selectedObjs = document.getElementsByClassName('cl_req_field_sel_cb');
-            var resultObj = new Array();
-            //var dataPresent = false;
-            for (var i = 0, j = 0; i < selectedObjs.length; i++) {
-
-                var childNode = selectedObjs[i];
-                //alert(JSON.stringify(childNode));
-                if (childNode.id) {
-
-                    //alert(childNode.id)
-
-                    if (childNode.checked) {
-                        var index = childNode.id.indexOf('_');
-                        var childNodeId = childNode.id.substring(index + 1, childNode.id.length);
-                        var fieldValue = document.getElementById(reqFieldsPrefixId2 + childNodeId).value;
-                        var obj = new Object();
-                        obj.Id = parseInt(childNodeId);
-                        obj.Value = fieldValue;
-                        resultObj[j++] = obj;
-
-                    }
-
-                }
-
-
-            }
-            return resultObj;
-        }
-
-        function showErrorMessage(errMsg) {
-
-            enableOverlay();
-            document.getElementById('idJsErrorMsg').innerHTML = errMsg;
-
-            var elem = document.getElementById('idJsErrorDiv');
-            elem.style.display = "block";
-            elem.style.position = "fixed";
-            elem.style.left = "35%";
-            elem.style.top = "50%";
-            //elem.style['z-index'] = "2";
-
-        }
-
-        function closeErrorDialog() {
-            document.getElementById('idJsErrorDiv').style.display = "none";
-            disableOverlay();
-        }
-
-        function showAboutDialog() {
-            var elem = document.getElementById('idAboutIsoWebSim');
-            elem.style.display = "block";
-            elem.style.left = "35%";
-            elem.style.top = "50%";
-        }
-
-
-        function closeAboutDialog() {
-            document.getElementById('idAboutIsoWebSim').style.display = "none";
-        }
-    </script>
+      }
+      return resultObj;
+    }
+
+    function showErrorMessage(errMsg) {
+
+      enableOverlay();
+      document.getElementById('idJsErrorMsg').innerHTML = errMsg;
+
+      var elem = document.getElementById('idJsErrorDiv');
+      elem.style.display = "block";
+      elem.style.position = "fixed";
+      elem.style.left = "35%";
+      elem.style.top = "50%";
+      //elem.style['z-index'] = "2";
+
+    }
+
+    function closeErrorDialog() {
+      document.getElementById('idJsErrorDiv').style.display = "none";
+      disableOverlay();
+    }
+
+    function showAboutDialog() {
+      var elem = document.getElementById('idAboutIsoWebSim');
+      elem.style.display = "block";
+      elem.style.left = "35%";
+      elem.style.top = "50%";
+    }
+
+    function closeAboutDialog() {
+      document.getElementById('idAboutIsoWebSim').style.display = "none";
+    }
+  </script>
 
 
 </head>
 
 <body onload="init()">
 
-    <div id="overlay"></div>
+<div id="overlay"></div>
 
-    <div id="headerDiv">
-        <div class="cl_cursive_heading"> ISO WebSim </div>
-        [<a href="/iso/home">Home</a> | <a href="/iso/v0/server">Manage Servers</a> ]
+<div id="headerDiv">
+  <div class="cl_cursive_heading"> ISO WebSim</div>
+  [<a href="/iso/home">Home</a> | <a href="/iso/v0/server">Manage Servers</a> ]
 
-    </div>
-
-
-
-    <div id="navDiv" style="content-align:left;">
+</div>
 
 
-        <ul style="list-style-type: none; margin:0;padding:0;">
-            <li>
-                <input class="cl_small_btn" type="button" value="Load Template" onClick="jsLoadTemplate()" />
-            </li>
-            <li>
-                <input class="cl_small_btn" type="button" value="Parse Message" onClick="jsShowTraceDialog()" />
-            </li>
-            <li>
-                <input class="cl_small_btn" type="button" value="Validate Message" onClick="validateFields()" />
-            </li>
-            <li>
-                <input class="cl_small_btn" type="button" value="Send Message" onClick="jsSendMsg()" />
-            </li>
-            <li>
-                <input class="cl_small_btn" type="button" value="Save Message" onClick="jsSaveReqData()" />
-            </li>
-            <li>
-                <input class="cl_small_btn" type="button" value="Load Message" onClick="jsLoadReqData()" />
-            </li>
-            <li>
-                <input class="cl_small_btn" type="button" value="About" onClick="showAboutDialog()" />
-            </li>
-        </ul>
-
-    </div>
+<div id="navDiv" style="align-content:flex-start;">
 
 
+  <ul style="list-style-type: none; margin:0;padding:0;">
+    <li>
+      <input class="cl_small_btn" type="button" value="Load Template" onClick="jsLoadTemplate()"/>
+    </li>
+    <li>
+      <input class="cl_small_btn" type="button" value="Parse Message"
+             onClick="jsShowTraceDialog()"/>
+    </li>
+    <li>
+      <input class="cl_small_btn" type="button" value="Validate Message"
+             onClick="validateFields()"/>
+    </li>
+    <li>
+      <input class="cl_small_btn" type="button" value="Send Message" onClick="jsSendMsg()"/>
+    </li>
+    <li>
+      <input class="cl_small_btn" type="button" value="Save Message" onClick="jsSaveReqData()"/>
+    </li>
+    <li>
+      <input class="cl_small_btn" type="button" value="Load Message" onClick="jsLoadReqData()"/>
+    </li>
+    <li>
+      <input class="cl_small_btn" type="button" value="About" onClick="showAboutDialog()"/>
+    </li>
+  </ul>
 
-    <div id="bodyDiv">
-
-        <table style="position: relative;">
-            <tr>
-                <td align="center">
-                    <div class="cl_text_label">Specs</div>
-                    <!--<input class="cl_small_btn" type="button" value="Load Specs" onClick="jsLoadSpecs()" /> -->
-                </td>
-
-                <td>
-                    <select onchange="jsLoadSpecMessages(true)" id="idJsSpec" name="jsSpec" class="cl_std_cbox" style="width: 200px;">
-                    </select>
-                </td>
-
-            </tr>
-
-
-            <! -- second row -->
-
-            <tr>
-                <td align="center">
-                    <!--<input class="cl_small_btn" type="button" value="Load Messages" onClick="jsLoadSpecMessages()" />-->
-                    <div class="cl_text_label">Spec Messages</div>
-                </td>
-
-                <td>
-                    <select onchange="jsLoadTemplate()" id="idJsSpecMsgs" class="cl_std_cbox" name="jsSpecMsgs" style="width: 200px;"></select>
-                </td>
-
-            </tr>
-
-            <tr>
-                <table>
-
-                    <tr>
-
-                        <td align="center">
-                            <div class="cl_text_label">Host</div>
-                        </td>
-                        <td align="center">
-                            <input class="cl_std_text_box" id="idJsHost" type="text" value="127.0.0.1" />
-                        </td>
-                        <td align="center">
-                            <div class="cl_text_label">Port</div>
-                        </td>
-                        <td>
-                            <input class="cl_std_text_box" id="idJsPort" type="text" value="7777" />
-                        </td>
-
-                    </tr>
-                    <tr>
-
-                        <td align="center">
-                            <div class="cl_text_label">MLI</div>
-                        </td>
-                        <td>
-                            <select class="cl_std_cbox" style="width: 50px;" id="idJsMli">
-                                <option class="cl_cb_opt" name="2I">2I</option>
-                                <option class="cl_cb_opt" name="2E">2E</option>
-                            </select>
-                        </td>
+</div>
 
 
-                        <td></td>
-                    </tr>
+<div id="bodyDiv">
 
-                    <tr>
-                        <td align="center">
-                            <div class="cl_text_label">Message Name</div>
-                        </td>
-                        <td>
-                            <input class="cl_std_text_box" id="idJsCurrentDs" type="text" value="" disabled/>
-                        </td>
-                        <td>
-                            <input id="idJsUpdateMsgBtn" class="cl_small_btn_disabled" type="button" value="Update Message" onClick="jsUpdateMessage()" disabled/>
-                        </td>
-                    </tr>
+  <table style="position: relative;">
+    <tr>
+      <td align="center">
+        <div class="cl_text_label">Specs</div>
+        <!--<input class="cl_small_btn" type="button" value="Load Specs" onClick="jsLoadSpecs()" /> -->
+      </td>
 
-
-                </table>
-            </tr>
-        </table>
-
-        <br/>
-        <br/>
-        <table>
-            <tr>
-                <td>
-                    <!-- Request Table -->
-                    <table id="idJsRequestTable">
-
-                    </table>
-                </td>
-
-                <td style="width: 80px;"></td>
-
-
-                <td>
-                    <!-- Response Table -->
-                    <table id="idJsResponseTable">
-
-                    </table>
-                </td>
-            </tr>
-        </table>
-    </div>
-
-
-
-    <div id="idJsTraceDiv" class="cl_trace_dlg">
-
-        <div class="cl_dlg_header"> Hex Trace Input Dialog </div>
-        <textarea class="cl_trace_value" id="idJsTrace" rows="5" cols="40" style=" resize: none; margin: 10px; margin:5px; width: 440px; height:140px;">1100....</textarea>
-
-
-        <br/>
-        <br/>
-        <div align="center" style="align-content:center;">
-            <input type="button" class="cl_small_btn" value="OK " onclick="jsParseTrace()" />
-            <input type="button" class="cl_small_btn" value="Cancel " onclick="jsCancelTraceParseAction()" />
-        </div>
-    </div>
-
-
-    <div id="idJsErrorDiv" class="cl_trace_dlg">
-
-        <div class="cl_dlg_header"> WebSim Error Message</div>
-        <div id="idJsErrorMsg" class="cl_small_text " style="overflow:auto; margin: 5px; margin:5px; width: 440px; height:140px; color: red;"></div>
-
-        <br/>
-        <br/>
-        <div align="center" style="align-content:center; ">
-            <input type="button" class="cl_small_btn" value="OK" onclick="closeErrorDialog()" />
-
-        </div>
-    </div>
-
-    <div id="idJsFieldEditViewDiv" class="cl_trace_dlg">
-
-        <div class="cl_dlg_header"> Field Edit/View Dialog </div>
-        <textarea class="cl_trace_value" id="idJsFieldEditInput" rows="5" cols="40" style=" resize: none; margin: 10px; margin:5px; width: 440px; height:140px;"></textarea>
-
-
-        <br/>
-        <br/>
-        <div align="center" style="align-content:center;">
-            <input type="button" class="cl_small_btn" value="OK " onclick="jsProcessFieldEditView()" />
-            <input type="button" class="cl_small_btn" value="Cancel " onclick="jsCancelFieldEditViewDialog()" />
-        </div>
-    </div>
-
-    <div id="idJsUserInputDiv" class="cl_trace_dlg" style="height: 100px;">
-
-        <div class="cl_dlg_header"> User Input Dialog</div>
-        <input class="cl_user_input_text" id="idJsUserInput" style="resize: none; margin: 10px; margin:5px; width: 440px; height:20px;" />
-
-
-        <br/>
-        <br/>
-        <div align="center" style="align-content:center; height: 400px;">
-            <input type="button" class="cl_small_btn" value="OK " onclick="jsProcessUserInput()" />
-            <input type="button" class="cl_small_btn" value="Cancel " onclick="jsCancelUserInputDialog()" />
-        </div>
-    </div>
-
-
-    <div id="idJsUserSelectionDiv" class="cl_trace_dlg" style="height:200px;">
-
-        <div class="cl_dlg_header"> ISO Websim - User Selection Dialog</div>
-        <select class="cl_user_input_text" id="idJsUserSelection" size="5" style="resize:none; margin: 10px; margin:5px; width: 440px;">
-
-
+      <td>
+        <select onchange="jsLoadSpecMessages(true)" id="idJsSpec" name="jsSpec" class="cl_std_cbox"
+                style="width: 200px;">
         </select>
+      </td>
+
+    </tr>
 
 
-        <br/>
-        <br/>
-        <div align="center" style="align-content:center; height: 200px;">
-            <input type="button" class="cl_small_btn" value="OK " onclick="jsProcessUserSelection()" />
-            <input type="button" class="cl_small_btn" value="Cancel " onclick="jsCancelUserSelectionDialog()" />
-        </div>
-    </div>
+    <! -- second row -->
+
+    <tr>
+      <td align="center">
+        <!--<input class="cl_small_btn" type="button" value="Load Messages" onClick="jsLoadSpecMessages()" />-->
+        <div class="cl_text_label">Spec Messages</div>
+      </td>
+
+      <td>
+        <select onchange="jsLoadTemplate()" id="idJsSpecMsgs" class="cl_std_cbox" name="jsSpecMsgs"
+                style="width: 200px;"></select>
+      </td>
+
+    </tr>
+
+    <tr>
+      <table>
+
+        <tr>
+
+          <td align="center">
+            <div class="cl_text_label">Host</div>
+          </td>
+          <td align="center">
+            <input class="cl_std_text_box" id="idJsHost" type="text" value="127.0.0.1"/>
+          </td>
+          <td align="center">
+            <div class="cl_text_label">Port</div>
+          </td>
+          <td>
+            <input class="cl_std_text_box" id="idJsPort" type="text" value="6666"/>
+          </td>
+
+        </tr>
+        <tr>
+
+          <td align="center">
+            <div class="cl_text_label">MLI</div>
+          </td>
+          <td>
+            <select class="cl_std_cbox" style="width: 50px;" id="idJsMli">
+              <option class="cl_cb_opt" name="2I">2I</option>
+              <option class="cl_cb_opt" name="2E">2E</option>
+            </select>
+          </td>
 
 
-    <div id="idAboutIsoWebSim" class="cl_about_dlg" style="width: 490px; height:350px;">
+          <td></td>
+        </tr>
 
-        <div class="cl_dlg_header"> About ISO WebSim </div>
-        <div class="cl_small_text" style=" resize: none; margin: 10px; margin:5px; width: 480px; height:200px;">
-            <p>
-                Iso Websim is a ISO8583 simulator built using golang (http://golang.org). It provides a simple interface to load ISO specifications. The specifications themselves are defined in text file (more information on developing your own specs can be found here - <a href="https://github.com/rkbalgi/isosim/blob/master/specs/isoSpecs.spec">https://github.com/rkbalgi/isosim/blob/master/specs/isoSpecs.spec</a>.
-                <br/>
-                <br/> The page you are viewing is hosted by a golang program that is supplied the spec definitions file to use. You can load an existing trace or create a message from scratch and send it to a ISO host (identified by host and a port).
-                <br/>
-                <br/> Note: Please note that this application has been tested on chrome browser only.
-
-                <br/>
-
-                <br/> For more information please visit <a href="https://github.com/rkbalgi/isosim">https://github.com/rkbalgi/isosim</a>
-            </p>
-        </div>
+        <tr>
+          <td align="center">
+            <div class="cl_text_label">Message Name</div>
+          </td>
+          <td>
+            <input class="cl_std_text_box" id="idJsCurrentDs" type="text" value="" disabled/>
+          </td>
+          <td>
+            <input id="idJsUpdateMsgBtn" class="cl_small_btn_disabled" type="button"
+                   value="Update Message" onClick="jsUpdateMessage()" disabled/>
+          </td>
+        </tr>
 
 
-        <br/>
-        <br/>
-        <br/>
-        <div align="center" style="align-content:center;">
-            <input type="button" class="cl_small_btn" value="OK" onclick="closeAboutDialog()" />
-        </div>
-    </div>
+      </table>
+    </tr>
+  </table>
 
-    <div id="idJsUserMsgDiv" class="cl_trace_dlg">
+  <br/>
+  <br/>
+  <table>
+    <tr>
+      <td>
+        <!-- Request Table -->
+        <table id="idJsRequestTable">
 
-        <div class="cl_dlg_header"> WebSim Message</div>
-        <div id="idJsUserMsg" class="cl_small_text " style="overflow:auto; margin: 5px; margin:5px; width: 440px; height:140px; color: #2a2a7e;"></div>
+        </table>
+      </td>
 
-        <br/>
-        <br/>
-        <div align="center" style="align-content:center; ">
-            <input type="button" class="cl_small_btn" value="OK" onclick="jsCloseUserMsgDialog()" />
+      <td style="width: 80px;"></td>
 
-        </div>
-    </div>
 
+      <td>
+        <!-- Response Table -->
+        <table id="idJsResponseTable">
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</div>
+
+
+<div id="idJsTraceDiv" class="cl_trace_dlg">
+
+  <div class="cl_dlg_header"> Hex Trace Input Dialog</div>
+  <textarea class="cl_trace_value" id="idJsTrace" rows="5" cols="40"
+            style=" resize: none; margin: 10px; margin:5px; width: 440px; height:140px;">1100....</textarea>
+
+
+  <br/>
+  <br/>
+  <div align="center" style="align-content:center;">
+    <input type="button" class="cl_small_btn" value="OK " onclick="jsParseTrace()"/>
+    <input type="button" class="cl_small_btn" value="Cancel " onclick="jsCancelTraceParseAction()"/>
+  </div>
+</div>
+
+
+<div id="idJsErrorDiv" class="cl_trace_dlg">
+
+  <div class="cl_dlg_header"> WebSim Error Message</div>
+  <div id="idJsErrorMsg" class="cl_small_text "
+       style="overflow:auto; margin: 5px; margin:5px; width: 440px; height:140px; color: red;"></div>
+
+  <br/>
+  <br/>
+  <div align="center" style="align-content:center; ">
+    <input type="button" class="cl_small_btn" value="OK" onclick="closeErrorDialog()"/>
+
+  </div>
+</div>
+
+<div id="idJsFieldEditViewDiv" class="cl_trace_dlg">
+
+  <div class="cl_dlg_header"> Field Edit/View Dialog</div>
+  <textarea class="cl_trace_value" id="idJsFieldEditInput" rows="5" cols="40"
+            style=" resize: none; margin: 10px; margin:5px; width: 440px; height:140px;"></textarea>
+
+
+  <br/>
+  <br/>
+  <div align="center" style="align-content:center;">
+    <input type="button" class="cl_small_btn" value="OK " onclick="jsProcessFieldEditView()"/>
+    <input type="button" class="cl_small_btn" value="Cancel "
+           onclick="jsCancelFieldEditViewDialog()"/>
+  </div>
+</div>
+
+<div id="idJsUserInputDiv" class="cl_trace_dlg" style="height: 100px;">
+
+  <div class="cl_dlg_header"> User Input Dialog</div>
+  <input class="cl_user_input_text" id="idJsUserInput"
+         style="resize: none; margin: 10px; margin:5px; width: 440px; height:20px;"/>
+
+
+  <br/>
+  <br/>
+  <div align="center" style="align-content:center; height: 400px;">
+    <input type="button" class="cl_small_btn" value="OK " onclick="jsProcessUserInput()"/>
+    <input type="button" class="cl_small_btn" value="Cancel " onclick="jsCancelUserInputDialog()"/>
+  </div>
+</div>
+
+
+<div id="idJsUserSelectionDiv" class="cl_trace_dlg" style="height:200px;">
+
+  <div class="cl_dlg_header"> ISO Websim - User Selection Dialog</div>
+  <select class="cl_user_input_text" id="idJsUserSelection" size="5"
+          style="resize:none; margin: 10px; margin:5px; width: 440px;">
+
+
+  </select>
+
+
+  <br/>
+  <br/>
+  <div align="center" style="align-content:center; height: 200px;">
+    <input type="button" class="cl_small_btn" value="OK " onclick="jsProcessUserSelection()"/>
+    <input type="button" class="cl_small_btn" value="Cancel "
+           onclick="jsCancelUserSelectionDialog()"/>
+  </div>
+</div>
+
+
+<div id="idAboutIsoWebSim" class="cl_about_dlg" style="width: 490px; height:350px;">
+
+  <div class="cl_dlg_header"> About ISO WebSim</div>
+  <div class="cl_small_text"
+       style=" resize: none; margin: 10px; margin:5px; width: 480px; height:200px;">
+    <p>
+      Iso Websim is a ISO8583 simulator built using golang (http://golang.org). It provides a simple
+      interface to load ISO specifications. The specifications themselves are defined in text file
+      (more information on developing your own specs can be found here - <a
+        href="https://github.com/rkbalgi/isosim/blob/master/specs/isoSpecs.spec">https://github.com/rkbalgi/isosim/blob/master/specs/isoSpecs.spec</a>.
+      <br/>
+      <br/> The page you are viewing is hosted by a golang program that is supplied the spec
+      definitions file to use. You can load an existing trace or create a message from scratch and
+      send it to a ISO host (identified by host and a port).
+      <br/>
+      <br/> Note: Please note that this application has been tested on chrome browser only.
+
+      <br/>
+
+      <br/> For more information please visit <a href="https://github.com/rkbalgi/isosim">https://github.com/rkbalgi/isosim</a>
+    </p>
+  </div>
+
+
+  <br/>
+  <br/>
+  <br/>
+  <div align="center" style="align-content:center;">
+    <input type="button" class="cl_small_btn" value="OK" onclick="closeAboutDialog()"/>
+  </div>
+</div>
+
+<div id="idJsUserMsgDiv" class="cl_trace_dlg">
+
+  <div class="cl_dlg_header"> WebSim Message</div>
+  <div id="idJsUserMsg" class="cl_small_text "
+       style="overflow:auto; margin: 5px; margin:5px; width: 440px; height:140px; color: #2a2a7e;"></div>
+
+  <br/>
+  <br/>
+  <div align="center" style="align-content:center; ">
+    <input type="button" class="cl_small_btn" value="OK" onclick="jsCloseUserMsgDialog()"/>
+
+  </div>
+</div>
 
 
 </body>

@@ -1,14 +1,14 @@
-package spec
+package iso
 
 import (
 	"bytes"
 	"fmt"
-	_ "io"
-	"log"
+	log "github.com/sirupsen/logrus"
+	"sync"
 )
 
-var specMap map[string]*Spec = make(map[string]*Spec, 10)
-var DebugEnabled bool
+var specMapMu sync.RWMutex
+var specMap = make(map[string]*Spec, 10)
 
 type Spec struct {
 	Id       int
@@ -18,28 +18,38 @@ type Spec struct {
 
 func (spec *Spec) GetOrAddMsg(msgName string) *Message {
 
+	specMapMu.Lock()
+	defer specMapMu.Unlock()
+
 	msg, ok := spec.messages[msgName]
 	if !ok {
-		msg = &Message{Name: msgName, Id: NextId(), fields: make([]*Field, 0, 10), fieldByIdMap: make(map[int]*Field, 10)}
+		msg = &Message{Name: msgName, Id: nextId(),
+			fields:       make([]*Field, 0, 10),
+			fieldByIdMap: make(map[int]*Field, 10),
+			fieldByName:  make(map[string]*Field),
+		}
 		spec.messages[msgName] = msg
 	}
 	return msg
 
 }
 
-func (spec *Spec) GetMessages() []*Message {
+func (spec *Spec) Messages() []*Message {
 
-	//msg, ok := spec.messages[msgName]
+	specMapMu.RLock()
+	defer specMapMu.RUnlock()
+
 	msgs := make([]*Message, 0, len(spec.messages))
 	for _, msg := range spec.messages {
 		msgs = append(msgs, msg)
 	}
-
 	return msgs
-
 }
 
-func (spec *Spec) GetMessageById(msgId int) *Message {
+func (spec *Spec) MessageByID(msgId int) *Message {
+
+	specMapMu.RLock()
+	defer specMapMu.RUnlock()
 
 	for _, msg := range spec.messages {
 		if msg.Id == msgId {
@@ -51,16 +61,12 @@ func (spec *Spec) GetMessageById(msgId int) *Message {
 	return nil
 }
 
-func (spec *Spec) GetMessageByName(msgName string) *Message {
+func (spec *Spec) MessageByName(msgName string) *Message {
 
-	for _, msg := range spec.messages {
-		if msg.Name == msgName {
-			return msg
-		}
+	specMapMu.RLock()
+	defer specMapMu.RUnlock()
 
-	}
-
-	return nil
+	return spec.messages[msgName]
 
 }
 
@@ -79,7 +85,7 @@ func printAllSpecsInfo() {
 
 			}
 		}
-		log.Print(buf.String() + "\n")
+		log.Debugln(buf.String() + "\n")
 		buf.Reset()
 	}
 }
@@ -98,7 +104,7 @@ func displayField(buf *bytes.Buffer, field *Field, level int) {
 	}
 }
 
-func GetSpecs() []*Spec {
+func Specs() []*Spec {
 
 	specs := make([]*Spec, 0, len(specMap))
 	for _, spec := range specMap {
@@ -108,37 +114,37 @@ func GetSpecs() []*Spec {
 
 }
 
-func GetSpec(specId int) *Spec {
+func SpecByID(specId int) *Spec {
+
+	specMapMu.RLock()
+	defer specMapMu.RUnlock()
 
 	for _, spec := range specMap {
-
 		if spec.Id == specId {
 			return spec
 		}
-
 	}
 	return nil
 
 }
 
-func GetSpecByName(specName string) *Spec {
+func SpecByName(specName string) *Spec {
 
-	for _, spec := range specMap {
+	specMapMu.RLock()
+	defer specMapMu.RUnlock()
 
-		if spec.Name == specName {
-			return spec
-		}
-
-	}
-	return nil
+	return specMap[specName]
 
 }
 
 func getOrCreateNewSpec(specName string) (spec *Spec) {
 
+	specMapMu.Lock()
+	defer specMapMu.Unlock()
+
 	spec, ok := specMap[specName]
 	if !ok {
-		spec = &Spec{Name: specName, Id: NextId(), messages: make(map[string]*Message, 2)}
+		spec = &Spec{Name: specName, Id: nextId(), messages: make(map[string]*Message, 2)}
 		specMap[specName] = spec
 	}
 	return spec

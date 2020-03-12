@@ -1,32 +1,28 @@
-package spec
+package iso
 
 import (
 	"bufio"
 	"errors"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 )
 
-func init() {
-	DebugEnabled = false
-}
-
-/*Init initializes the spec defined in the file specDefFile
- */
-func Init(specDefFile string) error {
+// ReadSpecs initializes the spec defined in the file specDefFile
+func ReadSpecs(specDefFile string) error {
 
 	file, err := os.Open(filepath.Join(specDefFile))
 	if err != nil {
 		err = errors.New("Initialization error. Unable to open specDefFile - " + err.Error())
 		return err
 	}
+	defer file.Close()
 	reader := bufio.NewReader(file)
 	scanner := bufio.NewScanner(reader)
 	for scanner.Scan() {
 		line := scanner.Text()
-		//fmt.Println("line = ", line)
 		if len(strings.TrimSpace(line)) == 0 {
 			continue
 		}
@@ -51,7 +47,7 @@ func Init(specDefFile string) error {
 				spec := getOrCreateNewSpec(specName)
 				msgName, fieldName := keyPart[2], keyPart[3]
 				specMsg := spec.GetOrAddMsg(msgName)
-				specMsg.AddField(fieldName, fieldInfo)
+				specMsg.addField(fieldName, fieldInfo)
 
 			}
 		case 6:
@@ -63,21 +59,17 @@ func Init(specDefFile string) error {
 				parentField := specMsg.GetField(parentFieldName)
 				tmp, err := strconv.ParseInt(position, 10, 0)
 				if err != nil {
-					return errors.New("Syntax error. " + "Invalid field position. Line = " + line)
+					return errors.New("isosim: Syntax Error. " + "Invalid field position. Line = " + line)
 				}
-				parentField.AddChildField(childFieldName, int(tmp), fieldInfo)
+				parentField.addChild(childFieldName, int(tmp), fieldInfo)
 
 			}
 		default:
-			{
-				return errors.New("Syntax error. Line = " + line)
-			}
+			return errors.New("isosim: Syntax error in spec definition file. Line = " + line)
 		}
 	}
 
-	file.Close()
-
-	if DebugEnabled {
+	if log.GetLevel() == log.DebugLevel {
 		printAllSpecsInfo()
 	}
 

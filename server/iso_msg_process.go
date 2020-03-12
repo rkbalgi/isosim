@@ -1,11 +1,11 @@
-package iso_server
+package server
 
 import (
 	"encoding/hex"
 	"errors"
-	"github.com/rkbalgi/isosim/web/spec"
+	"github.com/rkbalgi/isosim/iso"
 	"github.com/rkbalgi/isosim/web/ui_data"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"strconv"
 	"strings"
 )
@@ -16,54 +16,45 @@ var ErrNoProcessingConditionMatch = errors.New("isosim: no processing conditions
 
 func process0(data []byte, pServerDef *ui_data.ServerDef, msgSelConfig ui_data.MsgSelectionConfig) ([]byte, bool, error) {
 
-	var isoSpec = spec.GetSpec(pServerDef.SpecId)
-	msg := isoSpec.GetMessageById(msgSelConfig.Msg)
+	var isoSpec = iso.SpecByID(pServerDef.SpecId)
+	msg := isoSpec.MessageByID(msgSelConfig.Msg)
 	parsedMsg, err := msg.Parse(data)
 	if err != nil {
 		log.Print("Parsing error. ", err.Error())
 		return nil, false, nil
 	}
 
-	iso := spec.NewIso(parsedMsg)
-	iso.Bitmap()
+	isoMsg := iso.FromParsedMsg(parsedMsg)
+	isoMsg.Bitmap()
 
 	for _, pc := range msgSelConfig.ProcessingConditions {
 
-		//field:=msg.GetFieldById(pc.FieldId);
 		fieldData := parsedMsg.GetById(pc.FieldId)
 		if fieldData == nil {
-			log.Print("Processing Condition failed. Field not present - ")
+			log.Debugln("Processing Condition failed. Field not present - ", pc.FieldId)
 			return nil, false, nil
 		}
 
-		if spec.DebugEnabled {
-			log.Print("[", pc.MatchConditionType, "] ", " Comparing field value ..", fieldData.Value(), " to ", pc.FieldValue)
-		}
+		log.Debugln("[", pc.MatchConditionType, "] ", " Comparing field value ..", fieldData.Value(), " to ", pc.FieldValue)
 
 		switch pc.MatchConditionType {
 
 		case "Any":
-			{
 
-				if spec.DebugEnabled {
-					log.Print("[", pc.MatchConditionType+"] Processing condition matched.")
-				}
-				//set the response fields
-				buildResponse(iso, &pc)
-				return iso.Assemble(), true, nil
-
-			}
+			log.Debugln("[", pc.MatchConditionType+"] Processing condition matched.")
+			buildResponse(isoMsg, &pc)
+			response, err := isoMsg.Assemble()
+			return response, true, err
 
 		case "StringEquals":
 			{
 
 				if fieldData.Value() == pc.FieldValue {
-					if spec.DebugEnabled {
-						log.Print("[", pc.MatchConditionType+"] Processing condition matched.")
-					}
+					log.Debugln("[", pc.MatchConditionType+"] Processing condition matched.")
 					//set the response fields
-					buildResponse(iso, &pc)
-					return iso.Assemble(), true, nil
+					buildResponse(isoMsg, &pc)
+					response, err := isoMsg.Assemble()
+					return response, true, err
 				}
 
 			}
@@ -87,9 +78,7 @@ func process0(data []byte, pServerDef *ui_data.ServerDef, msgSelConfig ui_data.M
 					return nil, false, err
 				}
 
-				if spec.DebugEnabled {
-					log.Print("[", pc.MatchConditionType, "] ", " Comparing int field value ..", compareFrom, " to ", compareTo)
-				}
+				log.Debugln("[", pc.MatchConditionType, "] ", " Comparing int field value ..", compareFrom, " to ", compareTo)
 
 				matched := false
 				if pc.MatchConditionType == "IntEquals" {
@@ -109,12 +98,11 @@ func process0(data []byte, pServerDef *ui_data.ServerDef, msgSelConfig ui_data.M
 				}
 
 				if matched {
-					if spec.DebugEnabled {
-						log.Print(pc.MatchConditionType + "] Processing condition matched.")
-					}
+					log.Debugln(pc.MatchConditionType + "] Processing condition matched.")
 					//set the response fields
-					buildResponse(iso, &pc)
-					return iso.Assemble(), true, nil
+					buildResponse(isoMsg, &pc)
+					response, err := isoMsg.Assemble()
+					return response, true, err
 				}
 
 			}
@@ -136,7 +124,7 @@ func processMsg(data []byte, pServerDef *ui_data.ServerDef) ([]byte, error) {
 		msgSelectorData := data[msgSelectionConfig.BytesFrom:msgSelectionConfig.BytesTo]
 		msgSelector := strings.ToUpper(hex.EncodeToString(msgSelectorData))
 		expectedVal := strings.ToUpper(msgSelectionConfig.BytesValue)
-		log.Print("MsgSelector: Comparing ", msgSelector, " to ", expectedVal)
+		log.Debugln("Comparing ", msgSelector, " to ", expectedVal)
 		if msgSelector == expectedVal {
 			responseData, processed, err := process0(data, pServerDef, msgSelectionConfig)
 			if processed && err == nil {

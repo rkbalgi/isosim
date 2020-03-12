@@ -1,15 +1,14 @@
-package spec
+package iso
 
 import (
 	"log"
-	"sync"
+	"sync/atomic"
 )
 
 const componentSeparator = "."
 const sizeSeparator = ":"
 
-var currentId int = 0
-var idLock sync.Mutex
+var id int32 = 0
 
 type Encoding int
 type FieldType int
@@ -25,22 +24,13 @@ func GetEncodingName(encoding Encoding) string {
 
 	switch encoding {
 	case ASCII:
-		{
-			return "ASCII"
-		}
+		return "ASCII"
 	case EBCDIC:
-		{
-			return "EBCDIC"
-
-		}
+		return "EBCDIC"
 	case BCD:
-		{
-			return "BCD"
-		}
+		return "BCD"
 	case BINARY:
-		{
-			return "BINARY"
-		}
+		return "BINARY"
 	}
 
 	return ""
@@ -48,18 +38,15 @@ func GetEncodingName(encoding Encoding) string {
 }
 
 const (
-	BITMAP FieldType = iota
-	FIXED
-	VARIABLE
+	Bitmapped FieldType = iota
+	Fixed
+	Variable
 )
 
-//Returns the next id to be used for a Spec, Message or Field
-func NextId() int {
-	idLock.Lock()
-	currentId++
-	idLock.Unlock()
-	return currentId
-
+// nextId returns the next id to be used for a Spec, Message or Field
+func nextId() int {
+	atomic.AddInt32(&id, 1)
+	return int(atomic.LoadInt32(&id))
 }
 
 func logAndExit(logMessage string) {

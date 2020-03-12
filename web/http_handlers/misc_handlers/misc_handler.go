@@ -4,8 +4,8 @@ import (
 	"encoding/hex"
 	"github.com/rkbalgi/go/hsm"
 	"github.com/rkbalgi/go/net"
-	"github.com/rkbalgi/isosim/web/spec"
-	"log"
+	"github.com/rkbalgi/isosim/iso"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"path/filepath"
 	"strconv"
@@ -25,7 +25,7 @@ func AddMiscHandlers() {
 
 	http.HandleFunc("/iso/misc", func(rw http.ResponseWriter, req *http.Request) {
 
-		http.ServeFile(rw, req, filepath.Join(spec.HtmlDir, "misc.html"))
+		http.ServeFile(rw, req, filepath.Join(iso.HtmlDir, "misc.html"))
 
 	})
 
@@ -41,9 +41,7 @@ func AddMiscHandlers() {
 
 		req.ParseForm()
 		port := req.Form.Get("hsmPort")
-		if spec.DebugEnabled {
-			log.Print("Request to start HSM @ port = ", port)
-		}
+		log.Debugln("Request to start HSM @ port = ", port)
 		intPort, err := strconv.Atoi(port)
 		if port == "" || err != nil {
 			rw.WriteHeader(500)
@@ -90,9 +88,7 @@ func AddMiscHandlers() {
 			return
 		}
 
-		if spec.DebugEnabled {
-			log.Print("[sendraw] params = ", pHost+":"+pPort, " mli= ", pMli, " data = ", pData)
-		}
+		log.Debugln("[send-raw] params = ", pHost+":"+pPort, " mli= ", pMli, " data = ", pData)
 
 		data, err := hex.DecodeString(pData)
 		if err != nil {
@@ -121,9 +117,7 @@ func AddMiscHandlers() {
 			return
 		}
 
-		if spec.DebugEnabled {
-			log.Print("[sendraw] Response received = " + hex.EncodeToString(data))
-		}
+		log.Debugln("[send-raw] Response received = " + hex.EncodeToString(data))
 		client.Close()
 		rw.Write([]byte(hex.EncodeToString(response)))
 
@@ -138,7 +132,7 @@ func AddMiscHandlers() {
 			i := strings.LastIndex(req.RequestURI, "/")
 			fileName := req.RequestURI[i+1 : len(req.RequestURI)]
 			//log.Print("Requested File = " + fileName)
-			http.ServeFile(rw, req, filepath.Join(spec.HtmlDir, fileName))
+			http.ServeFile(rw, req, filepath.Join(iso.HtmlDir, fileName))
 
 		}
 

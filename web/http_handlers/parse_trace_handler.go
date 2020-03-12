@@ -5,15 +5,67 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
-	"github.com/rkbalgi/isosim/web/spec"
+	"github.com/rkbalgi/isosim/iso"
 	"github.com/rkbalgi/isosim/web/ui_data"
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strconv"
 )
 
 func parseTraceHandler() {
+
+	http.HandleFunc(ParseTraceExternalUrl, func(rw http.ResponseWriter, req *http.Request) {
+
+		reqObj := struct {
+			SpecName string `json:"spec_name"`
+			MsgName  string `json:"msg_name"`
+			Data     string `json:"data"`
+		}{}
+
+		defer req.Body.Close()
+		if err := json.NewDecoder(req.Body).Decode(&reqObj); err != nil {
+			log.Errorln("Failed to unmarshal from JSON", err)
+			rw.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		if reqObj.SpecName == "" || reqObj.MsgName == "" || reqObj.Data == "" {
+			log.Errorf("Bad request. Invalid data in request")
+			rw.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		spec := iso.SpecByName(reqObj.SpecName)
+		if spec == nil {
+			log.Errorf("No such spec found - %s\n", reqObj.SpecName)
+			rw.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		msg := spec.MessageByName(reqObj.MsgName)
+		if msg == nil {
+			log.Errorf("No msg [%s] found for spec - %s\n", reqObj.MsgName, reqObj.SpecName)
+			rw.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		data, err := hex.DecodeString(reqObj.Data)
+		if err != nil {
+			log.Errorf("Invalid trace data in request. Should be valid hex. Provided data = %s", reqObj.Data)
+			rw.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		if parsedMsg, err := msg.Parse(data); err != nil {
+			json.NewEncoder(rw).Encode(struct {
+				Error            string `json:"error"`
+				ErrorDescription string `json:"error_description"`
+			}{Error: "ERR_PARSE_FAIL", ErrorDescription: err.Error()})
+		} else {
+			fieldDataList := ToJsonList(parsedMsg)
+			json.NewEncoder(rw).Encode(fieldDataList)
+		}
+
+	})
 
 	http.HandleFunc(ParseTraceUrl, func(rw http.ResponseWriter, req *http.Request) {
 
@@ -27,7 +79,7 @@ func parseTraceHandler() {
 			}
 		}
 
-		log.Print(urlComponents)
+		log.Traceln("UrlComponents in HTTP request", urlComponents)
 
 		if len(urlComponents) != 5 {
 			sendError(rw, "invalid url - "+reqUri)
@@ -49,20 +101,18 @@ func parseTraceHandler() {
 			return
 		}
 
-		isoSpec := spec.GetSpec(int(specId))
+		isoSpec := iso.SpecByID(int(specId))
 		if isoSpec != nil {
-			msg := isoSpec.GetMessageById(int(msgId))
+			msg := isoSpec.MessageByID(int(msgId))
 			if msg != nil {
-				log.Printf("Fetching Template for Spec: %s and Message: %s", isoSpec.Name, msg.Name)
+				log.Debugln("Fetching Template for Spec: %s and Message: %s", isoSpec.Name, msg.Name)
 				//TODO::
 				reqData, err := ioutil.ReadAll(req.Body)
 				if err != nil {
 					sendError(rw, err.Error())
 					return
 				}
-				if spec.DebugEnabled {
-					log.Print("Processing Trace = " + string(reqData))
-				}
+				log.Debugln("Processing Trace = " + string(reqData))
 				msgData, err := hex.DecodeString(string(reqData))
 				//log.Print("decoded ...", err, msgData)
 				if err != nil {
@@ -71,12 +121,11 @@ func parseTraceHandler() {
 				} else {
 					parsedMsg, err := msg.Parse(msgData)
 					if err != nil {
-						sendError(rw, "Parse error "+err.Error())
+						sendError(rw, "parse error "+err.Error())
 						return
 					}
 
 					fieldDataList := ToJsonList(parsedMsg)
-					//log.Print(fieldDataMap)
 					json.NewEncoder(rw).Encode(fieldDataList)
 
 				}
@@ -95,13 +144,12 @@ func parseTraceHandler() {
 
 }
 
-func ToJsonList(parsedMsg *spec.ParsedMsg) []ui_data.JsonFieldDataRep {
+func ToJsonList(parsedMsg *iso.ParsedMsg) []ui_data.JsonFieldDataRep {
 
 	fieldDataList := make([]ui_data.JsonFieldDataRep, 0, 10)
 	for id, fieldData := range parsedMsg.FieldDataMap {
-		//log.Print(fieldData.Field.Name, fieldData.Value())
-		dataRep := ui_data.JsonFieldDataRep{Id: id, Value: fieldData.Field.ValueToString(fieldData.Data)}
-		if fieldData.Field.FieldInfo.Type == spec.BITMAP {
+		dataRep := ui_data.JsonFieldDataRep{Id: id, Name: fieldData.Field.Name, Value: fieldData.Field.ValueToString(fieldData.Data)}
+		if fieldData.Field.FieldInfo.Type == iso.Bitmapped {
 			dataRep.Value = fieldData.Bitmap.BinaryString()
 
 		}
