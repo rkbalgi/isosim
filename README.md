@@ -3,19 +3,21 @@
 * **Update: 22nd August 2016 - Included ability to define servers (see last bottom image)**  
 * **Update: 30th August 2016 - Moved images to wiki**
 * **Update: 17th June 2019 -   Now run isosim on Docker**
+* **Update: 13th March 2020 - Multiple bug fixes and support for nested fields**
 
-Docker Info - https://github.com/rkbalgi/isosim/wiki/Running-on-Docker
+* A quick demo - https://github.com/rkbalgi/isosim/wiki/Test-Examples
+* Running on Docker - https://github.com/rkbalgi/isosim/wiki/Running-on-Docker
 
 
 Iso Websim is a ISO8583 simulator built using golang (http://golang.org). It provides a simple interface to load ISO specifications. 
-The specifications themselves are defined in text file (more information on developing your own specs can be found in [here] (https://github.com/rkbalgi/isosim/blob/master/specs/isoSpecs.spec) file which you can use as a template to start with.
+The specifications themselves are defined in text file (more information on developing your own specs can be found in (https://github.com/rkbalgi/isosim/blob/master/specs/isoSpecs.spec) file which you can use as a template to start with.
 
 You can load an existing trace or create an ISO message from scratch and send it to an ISO host (identified by host and a port). 
 
 
 The main program is started by the file cmd/isosim/isosim.go
 
-###Disclaimers and bugs that I know of 
+### Disclaimers and bugs that I know of 
 * __:warning: Please note that this application has been tested on chrome only (version 51.0.2704.103).__
 
 ### Usage: 
@@ -36,7 +38,7 @@ exit status 2
 
 ### Starting Isosim 
 ```
-$> set GOPATH=
+$> set GOPATH=<Your Directory>
 $> cd src\github.com\rkbalgi\isosim\cmd\isosim
 $> go run isosim.go -httpPort 8080 -specDefFile ..\..\specs\isoSpecs.spec -htmlDir ..\..\html --dataDir ..\..\testdata
 ```
