@@ -1,0 +1,16 @@
+name: build-isosim-workflow
+on:
+  schedule:
+  - cron: "0 6 15 * *"
+  braches:
+    - master
+
+jobs:
+  checks:
+    name: run
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+
+    - name: run
+      uses: cedrickring/golang-action@1.5.1
