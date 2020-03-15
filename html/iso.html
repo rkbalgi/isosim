@@ -240,21 +240,25 @@
 
       //bitmap and message type are mandatory fields that are always required
       var reqBmpDisabled = "";
+      var checked = "";
       if (isRequest && fieldObj.Type === "Bitmapped") {
         reqBmpDisabled = "disabled";
         disabledFlag = "disabled";
+        checked = "checked";
       }
       if (isRequest && (fieldObj.Name === "Message Type" || fieldObj.Name === "MTI")) {
         disabledFlag = "disabled";
+        checked = "checked";
       }
-
 
       if (isRequest) {
 
-        htmlContent += "<td class=\"cl_field_pos\"> <input class=\"cl_req_field_sel_cb\" id=\"" + id0
+        htmlContent += "<td class=\"cl_field_pos\"> <input class=\"cl_req_field_sel_cb\" id=\""
+            + id0
             + fieldObj.Id + "\" type=\"checkbox\"" + " onchange = \"fireReqFieldChanged("
-            + fieldObj.Id + ")\"" + disabledFlag + "/>" + fieldPosition + " </td>";
-        htmlContent += "<td class=\"cl_field_name\" id=\"" + id1 + fieldObj.Id + "\">" + fieldObj.Name
+            + fieldObj.Id + ")\"" + checked + " "+disabledFlag + "/>" + fieldPosition + " </td>";
+        htmlContent += "<td class=\"cl_field_name\" id=\"" + id1 + fieldObj.Id + "\">"
+            + fieldObj.Name
             + "</td>";
 
         htmlContent += "<td>" + "<input id=\"" + id2 + fieldObj.Id
@@ -267,12 +271,13 @@
 
       } else {
 
-        htmlContent += "<td class=\"cl_field_pos\"> <input class=\"cl_resp_field_sel_cb\" id=\"" + id0
+        htmlContent += "<td class=\"cl_field_pos\"> <input class=\"cl_resp_field_sel_cb\" id=\""
+            + id0
             + fieldObj.Id + "\" type=\"checkbox\"" + " onchange = \"fireReqFieldChanged("
             + fieldObj.Id + ")\"" + disabledFlag + "/>" + fieldPosition + " </td>";
-        htmlContent += "<td class=\"cl_field_name\" id=\"" + id1 + fieldObj.Id + "\">" + fieldObj.Name
+        htmlContent += "<td class=\"cl_field_name\" id=\"" + id1 + fieldObj.Id + "\">"
+            + fieldObj.Name
             + "</td>";
-
 
         htmlContent += "<td>" + "<input id=\"" + id2 + fieldObj.Id
             + "\" class=\"cl_field_value\" type=\"text\" class=\"cl_small_text\" value=\""
