@@ -1,10 +1,6 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/rkbalgi/isosim)](https://goreportcard.com/report/github.com/rkbalgi/isosim)
+
 ![](https://github.com/rkbalgi/isosim/blob/master/docs/images/home.png)
-
-* **Update: 22nd August 2016 - Included ability to define servers (see last bottom image)**  
-* **Update: 30th August 2016 - Moved images to wiki**
-* **Update: 17th June 2019 -   Now run isosim on Docker**
-* **Update: 13th March 2020 - Multiple bug fixes and support for nested fields**
-
 
 
 * A quick demo - https://github.com/rkbalgi/isosim/wiki/Test-Examples
