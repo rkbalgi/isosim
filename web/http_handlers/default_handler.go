@@ -26,11 +26,12 @@ func Init(htmlDir string) error {
 	}
 
 	file, err := os.Open(isoHtmlFile)
-
 	if err != nil {
 		return errors.New("htmlDir doesn't contain required files. File = iso.html")
 	}
-	file.Close()
+
+	defer file.Close()
+
 	setRoutes()
 	return nil
 
@@ -71,6 +72,7 @@ func setRoutes() {
 		if req.RequestURI == "/" || req.RequestURI == "/index.html" {
 			http.ServeFile(rw, req, filepath.Join(iso.HtmlDir, "react-fe", "build", "index.html"))
 		}
+
 		if strings.HasSuffix(req.RequestURI, ".css") {
 
 			i := strings.LastIndex(req.RequestURI, "/")
