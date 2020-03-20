@@ -5,17 +5,19 @@ package ui_data
 import "github.com/rkbalgi/isosim/iso"
 
 type JsonFieldTemplate struct {
-	Name         string
-	Id           int
-	ParentId     int
-	Children     []*JsonFieldTemplate
-	Position     int
-	Type         string
-	MinSize      int
-	MaxSize      int
-	ContentType  string
-	FixedSize    int
-	DataEncoding string
+	Name                string
+	Id                  int
+	ParentId            int
+	Children            []*JsonFieldTemplate
+	Position            int
+	Type                string
+	MinSize             int
+	MaxSize             int
+	ContentType         string
+	FixedSize           int
+	LengthIndicatorSize int
+	DataEncoding        string
+	LengthEncoding      string
 }
 
 type JsonFieldDataRep struct {
@@ -55,7 +57,8 @@ func newJsonFieldTemplate(field *iso.Field) *JsonFieldTemplate {
 	case iso.Variable:
 		{
 			jsonFieldTemplate.Type = "Variable"
-
+			jsonFieldTemplate.LengthIndicatorSize = fieldInfo.LengthIndicatorSize
+			jsonFieldTemplate.LengthEncoding = iso.GetEncodingName(fieldInfo.LengthIndicatorEncoding)
 			if len(fieldInfo.Content) > 0 {
 				jsonFieldTemplate.ContentType = fieldInfo.Content
 			} else {

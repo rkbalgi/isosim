@@ -24,7 +24,7 @@ func sendMsgHandler() {
 	http.HandleFunc(SendMsgUrl, func(rw http.ResponseWriter, req *http.Request) {
 
 		log.Debugln("Handling - " + SendMsgUrl)
-
+		rw.Header().Add("Access-Control-Allow-Origin", "http://localhost:3000")
 		var (
 			specId int
 			msgId  int
@@ -133,6 +133,7 @@ func sendMsgHandler() {
 		}
 		netClient.Close()
 		fieldDataList := ToJsonList(responseMsg)
+
 		if err = json.NewEncoder(rw).Encode(fieldDataList); err != nil {
 			log.Errorln("Failed to encode response message into JSON", err)
 		}

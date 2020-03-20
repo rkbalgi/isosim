@@ -7,6 +7,7 @@ import (
 	"github.com/rkbalgi/isosim/web/http_handlers"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"strconv"
 )

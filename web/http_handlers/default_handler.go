@@ -63,6 +63,42 @@ func setRoutes() {
 
 	})
 
+	//react front-end resources
+
+	//for static resources
+	http.HandleFunc("/", func(rw http.ResponseWriter, req *http.Request) {
+
+		if req.RequestURI == "/" || req.RequestURI == "/index.html" {
+			http.ServeFile(rw, req, filepath.Join(iso.HtmlDir, "react-fe", "build", "index.html"))
+		}
+		if strings.HasSuffix(req.RequestURI, ".css") {
+
+			i := strings.LastIndex(req.RequestURI, "/")
+			fileName := req.RequestURI[i+1 : len(req.RequestURI)]
+			//log.Print("Requested File = " + fileName)
+			http.ServeFile(rw, req, filepath.Join(iso.HtmlDir, "react-fe", "build", "static", "css", fileName))
+
+		}
+		if strings.HasSuffix(req.RequestURI, ".js") {
+
+			i := strings.LastIndex(req.RequestURI, "/")
+			fileName := req.RequestURI[i+1 : len(req.RequestURI)]
+			//log.Print("Requested File = " + fileName)
+			http.ServeFile(rw, req, filepath.Join(iso.HtmlDir, "react-fe", "build", "static", "js", fileName))
+
+		}
+
+		if strings.HasSuffix(req.RequestURI, ".ttf") {
+
+			i := strings.LastIndex(req.RequestURI, "/")
+			fileName := req.RequestURI[i+1 : len(req.RequestURI)]
+			//log.Print("Requested File = " + fileName)
+			http.ServeFile(rw, req, filepath.Join(iso.HtmlDir, "react-fe", "build", "static", "media", fileName))
+
+		}
+
+	})
+
 	allSpecsHandler()
 	getSpecMessagesHandler()
 	getMessageTemplateHandler()

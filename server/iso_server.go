@@ -158,7 +158,10 @@ func handleConnection(connection net.Conn, pServerDef *ui_data.ServerDef) {
 		if n == 2 {
 
 			var msgLen uint16
-			_ = binary.Read(bytes.NewBuffer(mli), binary.BigEndian, &msgLen)
+			err = binary.Read(bytes.NewBuffer(mli), binary.BigEndian, &msgLen)
+			if err != nil {
+				log.Errorln("Failed to convert to binary", err)
+			}
 
 			if pServerDef.MliType == "2I" {
 				msgLen -= 2
@@ -183,7 +186,7 @@ func handleConnection(connection net.Conn, pServerDef *ui_data.ServerDef) {
 						complete = true
 						var msgData = make([]byte, msgLen)
 						copy(msgData, buf.Bytes())
-
+						buf.Reset()
 						go handleRequest(connection, msgData, pServerDef)
 
 					}
@@ -220,6 +223,9 @@ func handleRequest(connection net.Conn, msgData []byte, pServerDef *ui_data.Serv
 	}
 	buf.Write(responseData)
 	log.WithFields(log.Fields{"type": "server"}).Debugln("Writing Response. Data = " + hex.EncodeToString(buf.Bytes()))
-	_, _ = connection.Write(buf.Bytes())
+	_, err = connection.Write(buf.Bytes())
+	if err != nil {
+		log.Errorln("Error writing response to client: Error", err)
+	}
 
 }

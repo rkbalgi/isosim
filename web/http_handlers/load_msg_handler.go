@@ -14,7 +14,7 @@ func loadMsgHandler() {
 	http.HandleFunc(LoadMsgUrl, func(rw http.ResponseWriter, req *http.Request) {
 
 		log.Debugln("Handling - " + LoadMsgUrl)
-
+		rw.Header().Add("Access-Control-Allow-Origin", "http://localhost:3000")
 		err := req.ParseForm()
 		if err != nil {
 			sendError(rw, err.Error())

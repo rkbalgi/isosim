@@ -29,7 +29,8 @@ func getSpecMessagesHandler() {
 				rw.Header().Add("Access-Control-Allow-Origin", "http://localhost:3000")
 				_ = json.NewEncoder(rw).Encode(sp.Messages())
 			} else {
-				sendError(rw, "no such sp id ")
+				log.Errorf("No spec for id - %d\n", specId)
+				sendError(rw, "No such spec")
 			}
 
 		}

@@ -3,7 +3,7 @@ on:
   schedule:
   - cron: "0 6 15 * *"
   braches:
-    - master
+  - master
 
 jobs:
   checks:
