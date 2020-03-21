@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	log "github.com/sirupsen/logrus"
-	"isosim/data"
 	"isosim/iso"
+	"isosim/server"
 	"isosim/web/handlers"
 	"net/http"
 	_ "net/http/pprof"
@@ -42,7 +42,7 @@ func main() {
 		os.Exit(2)
 	}
 
-	err := data.Init(*dataDir)
+	err := server.Init(*dataDir)
 	if err != nil {
 		log.Fatal(err.Error())
 	}

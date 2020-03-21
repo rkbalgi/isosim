@@ -25,7 +25,7 @@ func AddMiscHandlers() {
 
 	http.HandleFunc("/iso/misc", func(rw http.ResponseWriter, req *http.Request) {
 
-		http.ServeFile(rw, req, filepath.Join(iso.HtmlDir, "misc.html"))
+		http.ServeFile(rw, req, filepath.Join(iso.HTMLDir, "misc.html"))
 
 	})
 
@@ -132,7 +132,7 @@ func AddMiscHandlers() {
 			i := strings.LastIndex(req.RequestURI, "/")
 			fileName := req.RequestURI[i+1 : len(req.RequestURI)]
 			//log.Print("Requested File = " + fileName)
-			http.ServeFile(rw, req, filepath.Join(iso.HtmlDir, fileName))
+			http.ServeFile(rw, req, filepath.Join(iso.HTMLDir, fileName))
 
 		}
 

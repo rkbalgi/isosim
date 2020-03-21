@@ -2,7 +2,7 @@ package isoserver
 
 import (
 	"io/ioutil"
-	"isosim/data"
+	data "isosim/server"
 	"net/http"
 )
 

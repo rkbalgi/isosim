@@ -3,8 +3,8 @@ package isoserver
 import (
 	"encoding/json"
 	log "github.com/sirupsen/logrus"
-	"isosim/data"
 	"isosim/iso"
+	data "isosim/server"
 	"net/http"
 	"os"
 	"strconv"

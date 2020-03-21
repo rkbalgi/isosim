@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"isosim/data"
 	"isosim/iso"
+	data "isosim/server"
 )
 
 func saveMsgHandler() {

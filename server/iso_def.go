@@ -3,8 +3,8 @@ package server
 import (
 	"bytes"
 	"encoding/json"
-	"isosim/data"
 	"isosim/web/data"
+
 	"log"
 	"sync"
 )
@@ -25,7 +25,7 @@ func getDef(specId string, defName string) (*data.ServerDef, error) {
 		defer serverDefsMutex.Unlock()
 		vServerDef = &data.ServerDef{}
 		vServerDef.MsgSelectionConfigs = make([]data.MsgSelectionConfig, 0, 10)
-		serverDef, err := data.DataSetManager().ServerDef(specId, defName)
+		serverDef, err := DataSetManager().ServerDef(specId, defName)
 		if err != nil {
 			log.Print("Unexpected error while reading server definition. ", err.Error())
 			return nil, err

@@ -17,9 +17,9 @@ type IsoHttpHandler struct {
 
 var isoHtmlFile string
 
-func Init(htmlDir string) error {
+func Init(HTMLDir string) error {
 
-	isoHtmlFile = filepath.Join(htmlDir, "iso.html")
+	isoHtmlFile = filepath.Join(HTMLDir, "iso.html")
 
 	if !filepath.IsAbs(isoHtmlFile) {
 		isoHtmlFile, _ = filepath.Abs(isoHtmlFile)
@@ -27,7 +27,7 @@ func Init(htmlDir string) error {
 
 	file, err := os.Open(isoHtmlFile)
 	if err != nil {
-		return errors.New("htmlDir doesn't contain required files. File = iso.html")
+		return errors.New("HTMLDir doesn't contain required files. File = iso.html")
 	}
 
 	defer file.Close()
@@ -58,7 +58,7 @@ func setRoutes() {
 			i := strings.LastIndex(req.RequestURI, "/")
 			fileName := req.RequestURI[i+1 : len(req.RequestURI)]
 			//log.Print("Requested File = " + fileName)
-			http.ServeFile(rw, req, filepath.Join(iso.HtmlDir, fileName))
+			http.ServeFile(rw, req, filepath.Join(iso.HTMLDir, fileName))
 
 		}
 
@@ -70,7 +70,7 @@ func setRoutes() {
 	http.HandleFunc("/", func(rw http.ResponseWriter, req *http.Request) {
 
 		if req.RequestURI == "/" || req.RequestURI == "/index.html" {
-			http.ServeFile(rw, req, filepath.Join(iso.HtmlDir, "react-fe", "build", "index.html"))
+			http.ServeFile(rw, req, filepath.Join(iso.HTMLDir, "react-fe", "build", "index.html"))
 		}
 
 		if strings.HasSuffix(req.RequestURI, ".css") {
@@ -78,7 +78,7 @@ func setRoutes() {
 			i := strings.LastIndex(req.RequestURI, "/")
 			fileName := req.RequestURI[i+1 : len(req.RequestURI)]
 			//log.Print("Requested File = " + fileName)
-			http.ServeFile(rw, req, filepath.Join(iso.HtmlDir, "react-fe", "build", "static", "css", fileName))
+			http.ServeFile(rw, req, filepath.Join(iso.HTMLDir, "react-fe", "build", "static", "css", fileName))
 
 		}
 		if strings.HasSuffix(req.RequestURI, ".js") {
@@ -86,7 +86,7 @@ func setRoutes() {
 			i := strings.LastIndex(req.RequestURI, "/")
 			fileName := req.RequestURI[i+1 : len(req.RequestURI)]
 			//log.Print("Requested File = " + fileName)
-			http.ServeFile(rw, req, filepath.Join(iso.HtmlDir, "react-fe", "build", "static", "js", fileName))
+			http.ServeFile(rw, req, filepath.Join(iso.HTMLDir, "react-fe", "build", "static", "js", fileName))
 
 		}
 
@@ -95,7 +95,7 @@ func setRoutes() {
 			i := strings.LastIndex(req.RequestURI, "/")
 			fileName := req.RequestURI[i+1 : len(req.RequestURI)]
 			//log.Print("Requested File = " + fileName)
-			http.ServeFile(rw, req, filepath.Join(iso.HtmlDir, "react-fe", "build", "static", "media", fileName))
+			http.ServeFile(rw, req, filepath.Join(iso.HTMLDir, "react-fe", "build", "static", "media", fileName))
 
 		}
 
