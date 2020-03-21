@@ -12,7 +12,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/rkbalgi/isosim/web/ui_data"
+	"github.com/rkbalgi/isosim/web/data"
 )
 
 type dataSetManager struct{}
@@ -141,7 +141,7 @@ func (dsm *dataSetManager) AddServerDef(defString string) (string, error) {
 
 	log.Debugln("Adding server definition - .. JSON = " + defString)
 
-	serverDef := &ui_data.ServerDef{}
+	serverDef := &data.ServerDef{}
 	err := json.NewDecoder(bytes.NewBufferString(defString)).Decode(serverDef)
 	if err != nil {
 		return "", err

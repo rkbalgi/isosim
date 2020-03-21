@@ -1,4 +1,4 @@
-package misc_handlers
+package misc
 
 import (
 	"encoding/hex"

@@ -1,11 +1,11 @@
-package http_handlers
+package handlers
 
 import (
 	"bufio"
 	"bytes"
 	"encoding/json"
 	"github.com/rkbalgi/isosim/iso"
-	"github.com/rkbalgi/isosim/web/ui_data"
+	"github.com/rkbalgi/isosim/web/data"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
@@ -55,7 +55,7 @@ func getMessageTemplateHandler() {
 			msg := spec.MessageByID(int(msgId))
 			if msg != nil {
 				log.Debugf("Fetching Template for Spec: [%s] and Message: [%s]\n", spec.Name, msg.Name)
-				jsonMsgTemplate := ui_data.NewJsonMessageTemplate(msg)
+				jsonMsgTemplate := data.NewJsonMessageTemplate(msg)
 				json.NewEncoder(rw).Encode(jsonMsgTemplate)
 
 			} else {

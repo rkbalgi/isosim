@@ -1,4 +1,4 @@
-package isoserv_handlers
+package isoserver
 
 import (
 	"github.com/rkbalgi/isosim/server"
@@ -24,7 +24,7 @@ func startServerHandler() {
 		}
 
 		port_, _ := strconv.Atoi(port)
-		err := server.StartIsoServer(specId, def, port_)
+		err := server.Start(specId, def, port_)
 		if err != nil {
 			sendError(rw, err.Error())
 			return

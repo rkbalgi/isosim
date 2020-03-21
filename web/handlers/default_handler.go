@@ -1,10 +1,10 @@
-package http_handlers
+package handlers
 
 import (
 	"errors"
 	"github.com/rkbalgi/isosim/iso"
-	"github.com/rkbalgi/isosim/web/http_handlers/isoserv_handlers"
-	"github.com/rkbalgi/isosim/web/http_handlers/misc_handlers"
+	"github.com/rkbalgi/isosim/web/handlers/isoserver"
+	"github.com/rkbalgi/isosim/web/handlers/misc"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"os"
@@ -106,10 +106,10 @@ func setRoutes() {
 	getMessageTemplateHandler()
 	parseTraceHandler()
 	sendMsgHandler()
-	isoserv_handlers.AddAll()
+	isoserver.AddAll()
 	saveMsgHandler()
 	loadMsgHandler()
-	misc_handlers.AddMiscHandlers()
+	misc.AddMiscHandlers()
 }
 
 func sendError(rw http.ResponseWriter, errorMsg string) {

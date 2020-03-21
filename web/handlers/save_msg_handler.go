@@ -1,4 +1,4 @@
-package http_handlers
+package handlers
 
 import (
 	log "github.com/sirupsen/logrus"

@@ -1,4 +1,4 @@
-package http_handlers
+package handlers
 
 import (
 	"encoding/hex"

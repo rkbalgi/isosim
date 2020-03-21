@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"github.com/rkbalgi/isosim/iso"
-	"github.com/rkbalgi/isosim/web/ui_data"
+	"github.com/rkbalgi/isosim/web/data"
 	log "github.com/sirupsen/logrus"
 	"strconv"
 	"strings"
@@ -14,7 +14,7 @@ import (
 var ErrNoMessageSelected = errors.New("isosim: no message selected")
 var ErrNoProcessingConditionMatch = errors.New("isosim: no processing conditions matched")
 
-func process0(data []byte, pServerDef *ui_data.ServerDef, msgSelConfig ui_data.MsgSelectionConfig) ([]byte, bool, error) {
+func process0(data []byte, pServerDef *data.ServerDef, msgSelConfig data.MsgSelectionConfig) ([]byte, bool, error) {
 
 	var isoSpec = iso.SpecByID(pServerDef.SpecId)
 	msg := isoSpec.MessageByID(msgSelConfig.Msg)
@@ -116,7 +116,7 @@ func process0(data []byte, pServerDef *ui_data.ServerDef, msgSelConfig ui_data.M
 }
 
 //Process the incoming message using server definition
-func processMsg(data []byte, pServerDef *ui_data.ServerDef) ([]byte, error) {
+func processMsg(data []byte, pServerDef *data.ServerDef) ([]byte, error) {
 
 	//var processed bool= false
 	for _, msgSelectionConfig := range pServerDef.MsgSelectionConfigs {

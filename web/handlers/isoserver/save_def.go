@@ -1,4 +1,4 @@
-package isoserv_handlers
+package isoserver
 
 import (
 	"io/ioutil"

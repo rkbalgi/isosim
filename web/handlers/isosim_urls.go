@@ -1,4 +1,4 @@
-package http_handlers
+package handlers
 
 const homeUrl = "/iso/home"
 const AllSpecsUrl = "/iso/v0/specs"

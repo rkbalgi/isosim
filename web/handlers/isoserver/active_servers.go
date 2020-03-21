@@ -1,4 +1,4 @@
-package isoserv_handlers
+package isoserver
 
 import (
 	"github.com/rkbalgi/isosim/server"

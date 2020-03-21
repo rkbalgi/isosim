@@ -24,7 +24,7 @@ type ParsedMsg struct {
 
 func (pMsg *ParsedMsg) Get(name string) *FieldData {
 
-	field := pMsg.Msg.GetField(name)
+	field := pMsg.Msg.Field(name)
 	if field != nil {
 		return pMsg.FieldDataMap[field.Id]
 	}

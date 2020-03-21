@@ -4,7 +4,7 @@ import (
 	"flag"
 	"github.com/rkbalgi/isosim/data"
 	"github.com/rkbalgi/isosim/iso"
-	"github.com/rkbalgi/isosim/web/http_handlers"
+	"github.com/rkbalgi/isosim/web/handlers"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	_ "net/http/pprof"
@@ -54,7 +54,7 @@ func main() {
 	}
 
 	//check if all the required HTML files are available
-	if err = http_handlers.Init(iso.HtmlDir); err != nil {
+	if err = handlers.Init(iso.HtmlDir); err != nil {
 		log.Fatal(err.Error())
 	}
 

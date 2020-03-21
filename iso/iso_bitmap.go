@@ -24,7 +24,7 @@ func NewBitmap() *Bitmap {
 func emptyBitmap(parsedMsg *ParsedMsg) *Bitmap {
 	bmp := NewBitmap()
 	bmp.parsedMsg = parsedMsg
-	bmp.field = parsedMsg.Msg.GetField("Bitmap")
+	bmp.field = parsedMsg.Msg.Field("Bitmap")
 	return bmp
 }
 

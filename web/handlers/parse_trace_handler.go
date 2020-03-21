@@ -1,4 +1,4 @@
-package http_handlers
+package handlers
 
 import (
 	"bufio"
@@ -6,7 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"github.com/rkbalgi/isosim/iso"
-	"github.com/rkbalgi/isosim/web/ui_data"
+	"github.com/rkbalgi/isosim/web/data"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
@@ -144,11 +144,11 @@ func parseTraceHandler() {
 
 }
 
-func ToJsonList(parsedMsg *iso.ParsedMsg) []ui_data.JsonFieldDataRep {
+func ToJsonList(parsedMsg *iso.ParsedMsg) []data.JsonFieldDataRep {
 
-	fieldDataList := make([]ui_data.JsonFieldDataRep, 0, 10)
+	fieldDataList := make([]data.JsonFieldDataRep, 0, 10)
 	for id, fieldData := range parsedMsg.FieldDataMap {
-		dataRep := ui_data.JsonFieldDataRep{Id: id, Name: fieldData.Field.Name, Value: fieldData.Field.ValueToString(fieldData.Data)}
+		dataRep := data.JsonFieldDataRep{Id: id, Name: fieldData.Field.Name, Value: fieldData.Field.ValueToString(fieldData.Data)}
 		if fieldData.Field.FieldInfo.Type == iso.Bitmapped {
 			dataRep.Value = fieldData.Bitmap.BinaryString()
 

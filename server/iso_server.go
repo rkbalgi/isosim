@@ -6,7 +6,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"github.com/rkbalgi/isosim/web/ui_data"
+	"github.com/rkbalgi/isosim/iso"
+	"github.com/rkbalgi/isosim/web/data"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net"
@@ -54,7 +55,7 @@ func ActiveServers() string {
 
 }
 
-//Adds a server to the list of active servers
+// addServer a server to the list of active servers
 func addServer(serverName string, port int, listener net.Listener) {
 
 	activeServersLock.Lock()
@@ -65,7 +66,7 @@ func addServer(serverName string, port int, listener net.Listener) {
 
 }
 
-//Adds a server to the list of active servers
+// Stop stops a running server given its name
 func Stop(serverName string) error {
 
 	activeServersLock.Lock()
@@ -83,13 +84,14 @@ func Stop(serverName string) error {
 
 }
 
-func StartIsoServer(specId string, serverDefName string, port int) error {
+// Start starts a ISO server at port, the behaviour of which is defined by the server definition
+func Start(specId string, serverDefName string, port int) error {
 
 	retVal := make(chan error)
 
 	go func() {
 
-		log.Infoln("Starting ISO Server.. .. Port = ", port)
+		log.Infoln("Starting ISO Server @ Port = ", port)
 		listener, err := net.Listen("tcp", ":"+strconv.Itoa(port))
 		if err != nil {
 			retVal <- err
@@ -106,7 +108,6 @@ func StartIsoServer(specId string, serverDefName string, port int) error {
 				retVal <- err
 				return
 			}
-
 			go handleConnection(connection, vServerDef)
 		}
 	}()
@@ -126,44 +127,39 @@ func StartIsoServer(specId string, serverDefName string, port int) error {
 
 }
 
-func CloseOnError(connection net.Conn, err error) {
-	log.Print("Error on connection.. Error = " + err.Error() + " Remote Addr =" + connection.RemoteAddr().String())
-	err = connection.Close()
-	if err != nil {
-		log.Print("Error on closing connection - " + err.Error())
+func closeOnError(connection net.Conn, err error) {
+	log.Errorln("Error on connection.. Error = " + err.Error() + " Remote Addr =" + connection.RemoteAddr().String())
+	if err := connection.Close(); err != nil {
+		log.Errorln("Error closing connection ", err)
 	}
 
 }
 
-func handleConnection(connection net.Conn, pServerDef *ui_data.ServerDef) {
+func handleConnection(connection net.Conn, pServerDef *data.ServerDef) {
 
 	buf := new(bytes.Buffer)
 	mli := make([]byte, 2)
 	tmp := make([]byte, 256)
 
 	for {
-
 		n, err := connection.Read(mli)
-
 		if err != nil {
 			if err != io.EOF {
-				CloseOnError(connection, err)
+				closeOnError(connection, err)
 				return
 			}
-
 		}
 		if n > 0 {
-			log.Traceln("Read = " + hex.EncodeToString(mli))
+			log.Traceln("read::mli = " + hex.EncodeToString(mli))
 		}
 		if n == 2 {
-
 			var msgLen uint16
 			err = binary.Read(bytes.NewBuffer(mli), binary.BigEndian, &msgLen)
 			if err != nil {
 				log.Errorln("Failed to convert to binary", err)
 			}
 
-			if pServerDef.MliType == "2I" {
+			if pServerDef.MliType == iso.Mli2I {
 				msgLen -= 2
 			}
 
@@ -172,7 +168,7 @@ func handleConnection(connection net.Conn, pServerDef *ui_data.ServerDef) {
 				n := 0
 				if n, err = connection.Read(tmp); err != nil {
 					if err != io.EOF {
-						CloseOnError(connection, err)
+						closeOnError(connection, err)
 						return
 					}
 				}
@@ -200,7 +196,7 @@ func handleConnection(connection net.Conn, pServerDef *ui_data.ServerDef) {
 
 }
 
-func handleRequest(connection net.Conn, msgData []byte, pServerDef *ui_data.ServerDef) {
+func handleRequest(connection net.Conn, msgData []byte, pServerDef *data.ServerDef) {
 
 	responseData, err := processMsg(msgData, pServerDef)
 	if err != nil {
@@ -209,7 +205,7 @@ func handleRequest(connection net.Conn, msgData []byte, pServerDef *ui_data.Serv
 	}
 	var respLen uint16 = 0
 
-	if pServerDef.MliType == "2I" {
+	if pServerDef.MliType == iso.Mli2I {
 		respLen = 2 + uint16(len(responseData))
 	} else {
 		respLen = uint16(len(responseData))
