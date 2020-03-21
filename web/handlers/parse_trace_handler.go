@@ -69,6 +69,8 @@ func parseTraceHandler() {
 
 	http.HandleFunc(ParseTraceUrl, func(rw http.ResponseWriter, req *http.Request) {
 
+		rw.Header().Add("Access-Control-Allow-Origin", "http://localhost:3000")
+
 		reqUri := req.RequestURI
 		scanner := bufio.NewScanner(bytes.NewBufferString(reqUri))
 		scanner.Split(splitByFwdSlash)
