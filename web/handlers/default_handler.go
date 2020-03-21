@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"errors"
-	"github.com/rkbalgi/isosim/iso"
-	"github.com/rkbalgi/isosim/web/handlers/isoserver"
-	"github.com/rkbalgi/isosim/web/handlers/misc"
 	log "github.com/sirupsen/logrus"
+	"isosim/iso"
+	"isosim/web/handlers/isoserver"
+	"isosim/web/handlers/misc"
 	"net/http"
 	"os"
 	"path/filepath"

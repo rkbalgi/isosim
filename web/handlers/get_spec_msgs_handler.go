@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/rkbalgi/isosim/iso"
+	"isosim/iso"
 )
 
 func getSpecMessagesHandler() {

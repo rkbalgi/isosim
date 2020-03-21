@@ -3,9 +3,9 @@ package server
 import (
 	"encoding/hex"
 	"errors"
-	"github.com/rkbalgi/isosim/iso"
-	"github.com/rkbalgi/isosim/web/data"
 	log "github.com/sirupsen/logrus"
+	"isosim/iso"
+	"isosim/web/data"
 	"strconv"
 	"strings"
 )

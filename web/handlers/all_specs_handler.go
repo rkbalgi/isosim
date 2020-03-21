@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/rkbalgi/isosim/iso"
+	"isosim/iso"
 	"net/http"
 )
 
@@ -25,7 +25,9 @@ func allSpecsHandler() {
 			}{Id: s.Id, Name: s.Name, Messages: s.Messages()})
 		}
 
-		_ = json.NewEncoder(rw).Encode(specs)
+		if err := json.NewEncoder(rw).Encode(specs); err != nil {
+			sendError(rw, err.Error())
+		}
 
 	})
 

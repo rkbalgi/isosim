@@ -2,9 +2,9 @@ package isoserver
 
 import (
 	"encoding/json"
-	"github.com/rkbalgi/isosim/data"
-	"github.com/rkbalgi/isosim/iso"
 	log "github.com/sirupsen/logrus"
+	"isosim/data"
+	"isosim/iso"
 	"net/http"
 	"os"
 	"strconv"

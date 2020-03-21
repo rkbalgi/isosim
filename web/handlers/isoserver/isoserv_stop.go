@@ -1,8 +1,8 @@
 package isoserver
 
 import (
-	"github.com/rkbalgi/isosim/server"
 	log "github.com/sirupsen/logrus"
+	"isosim/server"
 	"net/http"
 )
 

@@ -2,7 +2,7 @@ package iso
 
 import "bytes"
 
-var HtmlDir string
+var HTMLDir string
 
 const (
 	MessageType = "Message Type"

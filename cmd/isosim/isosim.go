@@ -2,10 +2,10 @@ package main
 
 import (
 	"flag"
-	"github.com/rkbalgi/isosim/data"
-	"github.com/rkbalgi/isosim/iso"
-	"github.com/rkbalgi/isosim/web/handlers"
 	log "github.com/sirupsen/logrus"
+	"isosim/data"
+	"isosim/iso"
+	"isosim/web/handlers"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
@@ -21,7 +21,7 @@ var version = "v0.5"
 func main() {
 
 	isDebugEnabled := flag.Bool("debugEnabled", true, "true if debug logging should be enabled.")
-	flag.StringVar(&iso.HtmlDir, "htmlDir", ".", "Directory that contains any HTML's and js/css files etc.")
+	flag.StringVar(&iso.HTMLDir, "htmlDir", ".", "Directory that contains any HTML's and js/css files etc.")
 
 	specDefFile := flag.String("specDefFile", "isoSpec.spec", "The file containing the ISO spec definitions.")
 	httpPort := flag.Int("httpPort", 8080, "Http port to listen on.")
@@ -54,7 +54,7 @@ func main() {
 	}
 
 	//check if all the required HTML files are available
-	if err = handlers.Init(iso.HtmlDir); err != nil {
+	if err = handlers.Init(iso.HTMLDir); err != nil {
 		log.Fatal(err.Error())
 	}
 

@@ -1,7 +1,7 @@
 package isoserver
 
 import (
-	"github.com/rkbalgi/isosim/server"
+	"isosim/server"
 	"net/http"
 )
 

@@ -1,4 +1,4 @@
-package iso
+package iso // github.com/rkbalgi/isosim/iso
 
 import (
 	"bytes"

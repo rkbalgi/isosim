@@ -5,10 +5,10 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
-	"github.com/rkbalgi/isosim/iso"
-	"github.com/rkbalgi/isosim/web/data"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
+	"isosim/iso"
+	"isosim/web/data"
 	"net/http"
 	"strconv"
 )

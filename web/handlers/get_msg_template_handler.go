@@ -4,9 +4,9 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
-	"github.com/rkbalgi/isosim/iso"
-	"github.com/rkbalgi/isosim/web/data"
 	log "github.com/sirupsen/logrus"
+	"isosim/iso"
+	"isosim/web/data"
 	"net/http"
 	"strconv"
 )

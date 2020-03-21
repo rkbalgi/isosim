@@ -2,7 +2,7 @@
 // specs/messages
 package data
 
-import "github.com/rkbalgi/isosim/iso"
+import "isosim/iso"
 
 // JsonFieldInfoRep is a field info that is used in the front end application (sent as a result of
 // API calls)

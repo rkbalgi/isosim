@@ -3,8 +3,8 @@ package server
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/rkbalgi/isosim/data"
-	"github.com/rkbalgi/isosim/web/data"
+	"isosim/data"
+	"isosim/web/data"
 	"log"
 	"sync"
 )

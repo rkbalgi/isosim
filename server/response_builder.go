@@ -1,9 +1,9 @@
 package server
 
 import (
-	"github.com/rkbalgi/isosim/iso"
-	"github.com/rkbalgi/isosim/web/data"
 	log "github.com/sirupsen/logrus"
+	"isosim/iso"
+	"isosim/web/data"
 )
 
 func buildResponse(isoMsg *iso.Iso, pc *data.ProcessingCondition) {

@@ -1,4 +1,4 @@
-package server
+package server //github.com/rkbalgi/isosim/server
 
 import (
 	"bytes"
@@ -6,10 +6,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"github.com/rkbalgi/isosim/iso"
-	"github.com/rkbalgi/isosim/web/data"
 	log "github.com/sirupsen/logrus"
 	"io"
+	"isosim/iso"
+	"isosim/web/data"
 	"net"
 	"strconv"
 	"sync"

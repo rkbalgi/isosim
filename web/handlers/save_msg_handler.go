@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/rkbalgi/isosim/data"
-	"github.com/rkbalgi/isosim/iso"
+	"isosim/data"
+	"isosim/iso"
 )
 
 func saveMsgHandler() {

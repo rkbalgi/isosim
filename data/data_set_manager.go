@@ -12,7 +12,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/rkbalgi/isosim/web/data"
+	"isosim/web/data"
 )
 
 type dataSetManager struct{}

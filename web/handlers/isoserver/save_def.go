@@ -2,9 +2,8 @@ package isoserver
 
 import (
 	"io/ioutil"
+	"isosim/data"
 	"net/http"
-
-	"github.com/rkbalgi/isosim/data"
 )
 
 //This function will register a handler that will save incoming server definitions into a file
