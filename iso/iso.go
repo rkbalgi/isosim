@@ -2,7 +2,7 @@ package iso
 
 import "bytes"
 
-var HtmlDir string
+var HTMLDir string
 
 const (
 	MessageType = "Message Type"
@@ -29,7 +29,7 @@ func FromParsedMsg(parsedMsg *ParsedMsg) *Iso {
 // Set sets a field to the supplied value
 func (iso *Iso) Set(fieldName string, value string) error {
 
-	field := iso.parsedMsg.Msg.GetField(fieldName)
+	field := iso.parsedMsg.Msg.Field(fieldName)
 	if field == nil {
 		return ErrUnknownField
 	}
@@ -50,13 +50,13 @@ func (iso *Iso) Set(fieldName string, value string) error {
 
 func (iso *Iso) Get(fieldName string) *FieldData {
 
-	field := iso.parsedMsg.Msg.GetField(fieldName)
+	field := iso.parsedMsg.Msg.Field(fieldName)
 	return iso.parsedMsg.FieldDataMap[field.Id]
 
 }
 
 func (iso *Iso) Bitmap() *Bitmap {
-	field := iso.parsedMsg.Msg.GetField("Bitmap")
+	field := iso.parsedMsg.Msg.Field("Bitmap")
 	fieldData := iso.parsedMsg.FieldDataMap[field.Id].Bitmap
 	if fieldData != nil && fieldData.parsedMsg == nil {
 		fieldData.parsedMsg = iso.parsedMsg

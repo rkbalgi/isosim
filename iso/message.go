@@ -15,6 +15,7 @@ var ErrUnreadDataRemaining = errors.New("isosim: Unprocessed data remaining")
 // ErrUnknownField is an error when a unknown field is referenced
 var ErrUnknownField = errors.New("isosim: Unknown field")
 
+// Message represents a message within a specification (auth/reversal etc)
 type Message struct {
 	Id           int
 	Name         string
@@ -52,20 +53,23 @@ func (msg *Message) addField(name string, info *FieldInfo) {
 
 }
 
-func (msg *Message) GetFieldById(id int) *Field {
+// FieldById returns a field by its id
+func (msg *Message) FieldById(id int) *Field {
 
 	return msg.fieldByIdMap[id]
 }
 
-func (msg *Message) GetField(fieldName string) *Field {
+// Field returns a field by its name
+func (msg *Message) Field(fieldName string) *Field {
 	return msg.fieldByName[fieldName]
 }
 
-//Returns all fields of this Message
+//Fields returns all fields of this Message
 func (msg *Message) Fields() []*Field {
 	return msg.fields
 }
 
+// Parse parses a a byte slice representing the message into fields
 func (msg *Message) Parse(msgData []byte) (*ParsedMsg, error) {
 
 	buf := bytes.NewBuffer(msgData)
@@ -74,10 +78,10 @@ func (msg *Message) Parse(msgData []byte) (*ParsedMsg, error) {
 		if err := parse(buf, parsedMsg, field); err != nil {
 			return nil, err
 		}
-
 	}
+
 	if buf.Len() > 0 {
-		log.Debugln("Unprocessed Data =" + hex.EncodeToString(buf.Bytes()))
+		log.Warningln("Unprocessed Data =" + hex.EncodeToString(buf.Bytes()))
 		return nil, ErrUnreadDataRemaining
 	}
 
@@ -85,6 +89,7 @@ func (msg *Message) Parse(msgData []byte) (*ParsedMsg, error) {
 
 }
 
+// ParseJSON parses a JSON list of field values (from UI) into a parsed message representation
 func (msg *Message) ParseJSON(jsonMsg string) (*ParsedMsg, error) {
 
 	buf := bytes.NewBufferString(jsonMsg)
@@ -114,7 +119,7 @@ func (msg *Message) ParseJSON(jsonMsg string) (*ParsedMsg, error) {
 
 			if field.FieldInfo.Type == Fixed && len(fieldData.Data) != field.FieldInfo.FieldSize {
 				//this is an error, field length exceeds max length
-				return nil, fmt.Errorf("fixed field - [%s] exceeds fixed length of %d (supplied length  = %d)",
+				return nil, fmt.Errorf("fixed field - [%s] doesn't match fixed length of %d (supplied length  = %d)",
 					field.Name, field.FieldInfo.FieldSize, len(fieldData.Data))
 			} else if field.FieldInfo.Type == Variable {
 				if field.FieldInfo.MaxSize != 0 && len(fieldData.Data) > field.FieldInfo.MaxSize {

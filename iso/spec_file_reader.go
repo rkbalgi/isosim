@@ -56,7 +56,7 @@ func ReadSpecs(specDefFile string) error {
 				spec := getOrCreateNewSpec(keyPart[1])
 				msgName, parentFieldName, position, childFieldName := keyPart[2], keyPart[3], keyPart[4], keyPart[5]
 				specMsg := spec.GetOrAddMsg(msgName)
-				parentField := specMsg.GetField(parentFieldName)
+				parentField := specMsg.Field(parentFieldName)
 				tmp, err := strconv.ParseInt(position, 10, 0)
 				if err != nil {
 					return errors.New("isosim: Syntax Error. " + "Invalid field position. Line = " + line)

@@ -68,6 +68,8 @@ spec.Iso8583-MiniSpec.1420.Bitmap.2.PAN=variable.ebcdic.ebcdic.size:2.constraint
 spec.Iso8583-MiniSpec.1420.Bitmap.3.Processing Code=fixed.ebcdic.size:6.constraints{content:Numeric;}
 spec.Iso8583-MiniSpec.1420.Bitmap.4.Amount=fixed.ascii.size:12
 spec.Iso8583-MiniSpec.1420.Bitmap.11.STAN=fixed.ascii.size:6
+spec.Iso8583-MiniSpec.1420.Bitmap.37.Retrieval Reference Number=variable.ascii.ascii.size:2
 spec.Iso8583-MiniSpec.1420.Bitmap.38.Approval Code=fixed.ebcdic.size:6
 spec.Iso8583-MiniSpec.1420.Bitmap.39.Action Code=fixed.ascii.size:3.constraints{content:Numeric;}
+
 #
