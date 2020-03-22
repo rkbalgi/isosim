@@ -12,15 +12,20 @@
 * Running on Docker - https://github.com/rkbalgi/isosim/wiki/Running-on-Docker
 
 
-Iso Websim is a ISO8583 simulator built using golang (http://golang.org). It provides a simple interface to load ISO specifications. 
-The specifications themselves are defined in text file (more information on developing your own specs can be found in (https://github.com/rkbalgi/isosim/blob/master/specs/isoSpecs.spec) file which you can use as a template to start with.
+Iso Websim is a ISO8583 simulator built using golang (http://golang.org). 
 
-You can load an existing trace or create an ISO message from scratch and send it to an ISO host. 
+It provides 
+* A simple mechanism to define ISO specifications 
+* Define servers based on defined specs to respond to incoming messages (rules based on amount etc)
+* Build and send transactions to servers (as a client)
+* Save messages that be can be replayed later
 
+The specifications themselves are defined in text file (more information on developing your own specs can be found in (https://github.com/rkbalgi/isosim/blob/master/specs/isoSpecs.spec).
+
+A new front end is being developed in react. See [here](#new-development-of-a-frontend-in-React)
 
 The main program is started by the file cmd/isosim/isosim.go
-
-### Disclaimers and bugs that I know of 
+ 
 * __:warning: Please note that this application has been tested on chrome browser only.__
 
 ### Usage: 
@@ -49,5 +54,11 @@ And now open chrome and hit this URL [http://localhost:8080/iso/home](http://loc
 
 Read more about this on the [wiki](https://github.com/rkbalgi/isosim/wiki)
 
+## New development of a frontend in React
+The below is a screenshot of the revamped application with the frontend written in React.
+
+![](https://github.com/rkbalgi/isosim/blob/master/docs/images/ReactApp_Screenshot.png)
+
+The frontend is bundled with the application and can be accessed at [http://localhost:8080/]
 
 
