@@ -3,16 +3,11 @@ package iso
 import (
 	"encoding/hex"
 	"github.com/stretchr/testify/assert"
-	"path/filepath"
 	"testing"
 )
 
 func Test_AssembleMsg(t *testing.T) {
 
-	if err := ReadSpecs(filepath.Join("..", "specs", "isoSpecs.spec")); err != nil {
-		t.Fatal(err)
-		return
-	}
 	spec := SpecByName("TestSpec")
 	if spec != nil {
 

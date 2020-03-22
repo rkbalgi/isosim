@@ -10,7 +10,7 @@ func stopServerHandler() {
 
 	http.HandleFunc("/iso/v0/server/stop", func(rw http.ResponseWriter, req *http.Request) {
 
-		log.Debugln("Requested URI = %s", req.RequestURI)
+		log.Debugf("Requested URI = %s\n", req.RequestURI)
 
 		req.ParseForm()
 		name := req.Form.Get("name")

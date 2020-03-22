@@ -107,7 +107,7 @@ func parseTraceHandler() {
 		if isoSpec != nil {
 			msg := isoSpec.MessageByID(int(msgId))
 			if msg != nil {
-				log.Debugln("Fetching Template for Spec: %s and Message: %s", isoSpec.Name, msg.Name)
+				log.Debugf("Fetching Template for Spec: %s and Message: %s\n", isoSpec.Name, msg.Name)
 				//TODO::
 				reqData, err := ioutil.ReadAll(req.Body)
 				if err != nil {

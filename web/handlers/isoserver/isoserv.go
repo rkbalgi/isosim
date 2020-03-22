@@ -24,7 +24,7 @@ func addIsoServerHandlers() {
 	http.HandleFunc("/iso/v0/server", func(rw http.ResponseWriter, req *http.Request) {
 
 		pattern := "/iso/v0/server"
-		log.Debugln("Pattern: %s . Requested URI = %s", pattern, req.RequestURI)
+		log.Debugf("Pattern: %s . Requested URI = %s", pattern, req.RequestURI)
 
 		file := filepath.Join(iso.HTMLDir, "iso_server.html")
 		log.Debugln("Serving file = " + file)
