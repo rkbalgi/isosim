@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	log "github.com/sirupsen/logrus"
 	"isosim/iso"
-	data "isosim/server"
+	data "isosim/iso/server"
 	"net/http"
 	"os"
 	"strconv"

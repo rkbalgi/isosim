@@ -4,7 +4,7 @@ import (
 	"flag"
 	log "github.com/sirupsen/logrus"
 	"isosim/iso"
-	"isosim/server"
+	"isosim/iso/server"
 	"isosim/web/handlers"
 	"net/http"
 	_ "net/http/pprof"

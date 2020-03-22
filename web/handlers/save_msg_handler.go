@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"isosim/iso"
-	data "isosim/server"
+	data "isosim/iso/server"
 )
 
 func saveMsgHandler() {
@@ -14,7 +14,7 @@ func saveMsgHandler() {
 	http.HandleFunc(SaveMsgUrl, func(rw http.ResponseWriter, req *http.Request) {
 
 		log.Traceln("Handling - " + SaveMsgUrl)
-
+		rw.Header().Add("Access-Control-Allow-Origin", "http://localhost:3000")
 		err := req.ParseForm()
 		if err != nil {
 

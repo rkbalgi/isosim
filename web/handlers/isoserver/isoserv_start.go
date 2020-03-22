@@ -2,7 +2,7 @@ package isoserver
 
 import (
 	log "github.com/sirupsen/logrus"
-	"isosim/server"
+	"isosim/iso/server"
 	"net/http"
 	"regexp"
 	"strconv"

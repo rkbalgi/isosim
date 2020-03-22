@@ -29,7 +29,6 @@ func Init(HTMLDir string) error {
 	if err != nil {
 		return errors.New("HTMLDir doesn't contain required files. File = iso.html")
 	}
-
 	defer file.Close()
 
 	setRoutes()
@@ -65,39 +64,34 @@ func setRoutes() {
 	})
 
 	//react front-end resources
-
 	//for static resources
 	http.HandleFunc("/", func(rw http.ResponseWriter, req *http.Request) {
 
 		if req.RequestURI == "/" || req.RequestURI == "/index.html" {
 			http.ServeFile(rw, req, filepath.Join(iso.HTMLDir, "react-fe", "build", "index.html"))
+			return
 		}
 
-		if strings.HasSuffix(req.RequestURI, ".css") {
+		i := strings.LastIndex(req.RequestURI, "/")
+		fileName := req.RequestURI[i+1 : len(req.RequestURI)]
+		subDir := ""
 
-			i := strings.LastIndex(req.RequestURI, "/")
-			fileName := req.RequestURI[i+1 : len(req.RequestURI)]
-			//log.Print("Requested File = " + fileName)
-			http.ServeFile(rw, req, filepath.Join(iso.HTMLDir, "react-fe", "build", "static", "css", fileName))
+		switch {
 
+		case strings.HasSuffix(req.RequestURI, ".css"):
+			subDir = "css"
+		case strings.HasSuffix(req.RequestURI, ".js"):
+			subDir = "js"
+		case strings.HasSuffix(req.RequestURI, ".ttf"):
+			subDir = "media"
+		default:
+			{
+				log.Errorln("Requested resource not found", req.RequestURI)
+				rw.WriteHeader(http.StatusNotFound)
+				return
+			}
 		}
-		if strings.HasSuffix(req.RequestURI, ".js") {
-
-			i := strings.LastIndex(req.RequestURI, "/")
-			fileName := req.RequestURI[i+1 : len(req.RequestURI)]
-			//log.Print("Requested File = " + fileName)
-			http.ServeFile(rw, req, filepath.Join(iso.HTMLDir, "react-fe", "build", "static", "js", fileName))
-
-		}
-
-		if strings.HasSuffix(req.RequestURI, ".ttf") {
-
-			i := strings.LastIndex(req.RequestURI, "/")
-			fileName := req.RequestURI[i+1 : len(req.RequestURI)]
-			//log.Print("Requested File = " + fileName)
-			http.ServeFile(rw, req, filepath.Join(iso.HTMLDir, "react-fe", "build", "static", "media", fileName))
-
-		}
+		http.ServeFile(rw, req, filepath.Join(iso.HTMLDir, "react-fe", "build", "static", subDir, fileName))
 
 	})
 
