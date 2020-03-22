@@ -1,8 +1,8 @@
 name: build-isosim-workflow
 on:
   schedule:
-  - cron: "0 6 15 * *"
-  braches:
+  - cron: '0/15 * * * *'
+  branches:
   - master
 
 jobs:
