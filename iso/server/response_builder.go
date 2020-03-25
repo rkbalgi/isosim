@@ -10,19 +10,19 @@ func buildResponse(isoMsg *iso.Iso, pc *data.ProcessingCondition) {
 
 	parsedMsg := isoMsg.ParsedMsg()
 
-	for _, offId := range pc.OffFields {
-		offField := parsedMsg.Msg.FieldById(offId)
-		if offField.Position > 0 {
-			if offField.ParentId > 0 {
-				pFieldData := parsedMsg.FieldDataMap[offField.ParentId]
-				if pFieldData.Bitmap != nil {
-					pFieldData.Bitmap.SetOff(offField.Position)
+	for _, id := range pc.OffFields {
+		field := parsedMsg.Msg.FieldById(id)
+		if field.Position > 0 {
+			if field.ParentId > 0 {
+				fd := parsedMsg.FieldDataMap[field.ParentId]
+				if fd.Bitmap != nil {
+					fd.Bitmap.SetOff(field.Position)
 				}
 			}
 
 		} else {
 			///not a bitmapped field
-			parsedMsg.FieldDataMap[offId].Data = nil
+			parsedMsg.FieldDataMap[id].Data = nil
 
 		}
 	}
@@ -30,19 +30,19 @@ func buildResponse(isoMsg *iso.Iso, pc *data.ProcessingCondition) {
 	for _, vf := range pc.ValFields {
 
 		field := parsedMsg.Msg.FieldById(vf.FieldId)
-		fieldData := parsedMsg.GetById(vf.FieldId)
-		log.Debugf("Setting field %s: ==> %s\n", field.Name, vf.FieldValue)
+		fd := parsedMsg.GetById(vf.FieldId)
+		log.Tracef("Setting field %s: ==> %s\n", field.Name, vf.FieldValue)
 
 		if field.Position > 0 {
 			if field.ParentId > 0 {
-				pFieldData := parsedMsg.FieldDataMap[field.ParentId]
-				if pFieldData.Bitmap != nil {
-					pFieldData.Bitmap.Set(field.Position, vf.FieldValue)
+				fd := parsedMsg.FieldDataMap[field.ParentId]
+				if fd.Bitmap != nil {
+					// if the field is a bitmap then turn on the bit
+					fd.Bitmap.Set(field.Position, vf.FieldValue)
 				}
 			}
-
 		} else {
-			fieldData.Set(vf.FieldValue)
+			fd.Set(vf.FieldValue)
 		}
 
 	}

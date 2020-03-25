@@ -1,6 +1,7 @@
 package iso
 
 import (
+	"fmt"
 	"log"
 	"sync/atomic"
 )
@@ -49,6 +50,6 @@ func nextId() int {
 	return int(atomic.LoadInt32(&id))
 }
 
-func logAndExit(logMessage string) {
-	log.Fatal("configuration error. message = " + logMessage)
+func logAndExit(msg string) {
+	log.Fatal(fmt.Errorf("isosim: configuration error. message = %s" + msg))
 }

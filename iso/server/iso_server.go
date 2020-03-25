@@ -1,3 +1,5 @@
+// Package server has types to help define and serve ISO specs, build responses
+// based on server definitions etc
 package server //github.com/rkbalgi/isosim/server
 
 import (
@@ -7,7 +9,6 @@ import (
 	"encoding/json"
 	"errors"
 	log "github.com/sirupsen/logrus"
-	"io"
 	"isosim/iso"
 	"isosim/web/data"
 	"net"
@@ -38,7 +39,7 @@ type activeServer struct {
 	Port int
 }
 
-//Returns a list of running servers along with listener port info
+//ActiveServers returns a list of running servers along with listener port info
 //To be used while displaying information o UI
 func ActiveServers() string {
 
@@ -167,10 +168,9 @@ func handleConnection(connection net.Conn, pServerDef *data.ServerDef) {
 			for !complete {
 				n := 0
 				if n, err = connection.Read(tmp); err != nil {
-					if err != io.EOF {
-						closeOnError(connection, err)
-						return
-					}
+					closeOnError(connection, err)
+					return
+
 				}
 
 				if n > 0 {
@@ -200,7 +200,7 @@ func handleRequest(connection net.Conn, msgData []byte, pServerDef *data.ServerD
 
 	responseData, err := processMsg(msgData, pServerDef)
 	if err != nil {
-		log.Print("Failed to process message . Error = " + err.Error())
+		log.Errorln("Failed to process message . Error = ", err.Error())
 		return
 	}
 	var respLen uint16 = 0
@@ -221,7 +221,7 @@ func handleRequest(connection net.Conn, msgData []byte, pServerDef *data.ServerD
 	log.WithFields(log.Fields{"type": "server"}).Debugln("Writing Response. Data = " + hex.EncodeToString(buf.Bytes()))
 	_, err = connection.Write(buf.Bytes())
 	if err != nil {
-		log.Errorln("Error writing response to client: Error", err)
+		log.Errorln("Error writing response to client ", err)
 	}
 
 }

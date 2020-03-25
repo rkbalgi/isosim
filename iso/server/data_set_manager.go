@@ -20,6 +20,10 @@ type dataSetManager struct{}
 var instance *dataSetManager
 var dataDir string
 
+var initDS = sync.Once{}
+
+// Init verifies and initializes the dataDir passed in during in
+// initialization
 func Init(dirname string) error {
 	dir, err := os.Open(dirname)
 	if err != nil {
@@ -30,95 +34,57 @@ func Init(dirname string) error {
 	return nil
 }
 
+// DataSetManager returns the singleton instance of the DataSetManager
 func DataSetManager() *dataSetManager {
 
-	init := sync.Once{}
-	init.Do(func() {
+	initDS.Do(func() {
 		instance = new(dataSetManager)
 
 	})
 	return instance
 }
 
-var ErrDataSetExists = errors.New("data set exists")
+// ErrDataSetExists is an error that indicates that the dataset by the provided
+// name already exists
+var ErrDataSetExists = errors.New("isosim: data set exists")
 
-func checkIfExists(specId string, msgId string, name string) (bool, error) {
-
-	//check if the dir exists for this spec and msg
-	//and if not create one first
-
-	dir, err := os.Open(filepath.Join(dataDir, specId, msgId))
-	if err != nil && os.IsNotExist(err) {
-		err = os.MkdirAll(filepath.Join(dataDir, specId, msgId), 0755)
-		if err != nil {
-			return false, err
-		}
-		dir, err = os.Open(filepath.Join(dataDir, specId, msgId))
-		if err != nil {
-			return false, err
-		}
-
-	}
-
-	fiSlice, err := dir.Readdir(-1)
-	if err != nil {
-		return false, err
-	}
-	for _, fi := range fiSlice {
-		if fi.Name() == name {
-			return true, nil
-		}
-	}
-
-	return false, nil
-
-}
-
-//Returns a list of all data sets (names only) for the given specId
-//and msgId
+// GetAll returns a list of all data sets (names only) for the given specId
+// and msgId
 func (dsm *dataSetManager) GetAll(specId string, msgId string) ([]string, error) {
 
 	dir, err := os.Open(filepath.Join(dataDir, specId, msgId))
 	if err != nil {
 		return nil, err
-
 	}
 
-	fi, err := dir.Readdir(-1)
-
-	if err != nil {
+	if dirContents, err := dir.Readdir(-1); err != nil {
 		return nil, err
-	}
-
-	var dataSets = make([]string, 0, 10)
-	for _, ds := range fi {
-
-		if !ds.IsDir() {
-			dataSets = append(dataSets, ds.Name())
+	} else {
+		var dataSets = make([]string, 0, 10)
+		for _, ds := range dirContents {
+			if !ds.IsDir() {
+				dataSets = append(dataSets, ds.Name())
+			}
 		}
+
+		return dataSets, nil
+
 	}
-
-	return dataSets, nil
-
 }
 
-//Returns the content of a specific data set
+// Get returns the content of a specific data set
 func (dsm *dataSetManager) Get(specId string, msgId string, dsName string) ([]byte, error) {
 
-	//file,err:=os.Open(filepath.Join(dataDir,specId,msgId,dsName));
-	//if err!=nil{
-	//	//	return nil,err;
-
-	//	}
-	data, err := ioutil.ReadFile(filepath.Join(dataDir, specId, msgId, dsName))
+	dsData, err := ioutil.ReadFile(filepath.Join(dataDir, specId, msgId, dsName))
 	if err != nil {
 		return nil, err
 
 	}
-	return data, nil
+	return dsData, nil
 
 }
 
+// Add add a new data-set for the given spec and msg
 func (dsm *dataSetManager) Add(specId string, msgId string, name string, data string) error {
 
 	log.Debugln("Adding data set - " + name + " data = " + data)
@@ -137,9 +103,10 @@ func (dsm *dataSetManager) Add(specId string, msgId string, name string, data st
 	return nil
 }
 
+// AddServerDef adds a new server definition
 func (dsm *dataSetManager) AddServerDef(defString string) (string, error) {
 
-	log.Debugln("Adding server definition - .. JSON = " + defString)
+	log.Traceln("Adding server definition - .. JSON = " + defString)
 
 	serverDef := &data.ServerDef{}
 	err := json.NewDecoder(bytes.NewBufferString(defString)).Decode(serverDef)
@@ -168,7 +135,7 @@ func (dsm *dataSetManager) AddServerDef(defString string) (string, error) {
 
 	defFile, err := os.Open(filepath.Join(dataDir, strSpecId, fileName))
 	if err == nil {
-		return "", errors.New("server-def file exists")
+		return "", errors.New("isosim: server-def file exists")
 	}
 	defFile.Close()
 
@@ -179,6 +146,7 @@ func (dsm *dataSetManager) AddServerDef(defString string) (string, error) {
 	return fileName, nil
 }
 
+// ServerDefinitions returns all existing server definitions
 func (dsm *dataSetManager) ServerDefinitions(specId string) ([]string, error) {
 
 	dir, err := os.Open(filepath.Join(dataDir, specId))
@@ -204,12 +172,11 @@ func (dsm *dataSetManager) ServerDef(specId string, name string) ([]byte, error)
 	if err != nil {
 		return nil, err
 	}
-	data, err := ioutil.ReadAll(file)
-	return data, err
+	return ioutil.ReadAll(file)
 
 }
 
-// Update updates a server definition
+// Update updates a data set
 func (dsm *dataSetManager) Update(specId string, msgId string, name string, data string) error {
 
 	log.Debugln("Updating data set - " + name + " data = " + data)
@@ -219,4 +186,36 @@ func (dsm *dataSetManager) Update(specId string, msgId string, name string, data
 		return err
 	}
 	return nil
+}
+
+func checkIfExists(specId string, msgId string, name string) (bool, error) {
+
+	//check if the dir exists for this spec and msg
+	//and if not create one first
+
+	dir, err := os.Open(filepath.Join(dataDir, specId, msgId))
+	if err != nil && os.IsNotExist(err) {
+		err = os.MkdirAll(filepath.Join(dataDir, specId, msgId), 0755)
+		if err != nil {
+			return false, err
+		}
+		dir, err = os.Open(filepath.Join(dataDir, specId, msgId))
+		if err != nil {
+			return false, err
+		}
+
+	}
+
+	dirContents, err := dir.Readdir(-1)
+	if err != nil {
+		return false, err
+	}
+	for _, fileInfo := range dirContents {
+		if fileInfo.Name() == name {
+			return true, nil
+		}
+	}
+
+	return false, nil
+
 }

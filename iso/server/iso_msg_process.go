@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/hex"
 	"errors"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"isosim/iso"
 	"isosim/web/data"
@@ -12,16 +13,45 @@ import (
 
 //ErrNoMessageSelected is a error which implies that a message wasn't selected in the  UI
 var ErrNoMessageSelected = errors.New("isosim: no message selected")
+
+// ErrNoProcessingConditionMatch indicates that the message couldn't be processed because
+// none of the processing conditions matched
 var ErrNoProcessingConditionMatch = errors.New("isosim: no processing conditions matched")
 
-func process0(data []byte, pServerDef *data.ServerDef, msgSelConfig data.MsgSelectionConfig) ([]byte, bool, error) {
+// ProcessMsg processes a the incoming message using server definition and
+// returns the response as a []byte
+func processMsg(data []byte, pServerDef *data.ServerDef) ([]byte, error) {
+
+	//var processed bool= false
+	for _, msgSelectionConfig := range pServerDef.MsgSelectionConfigs {
+
+		msgSelectorData := data[msgSelectionConfig.BytesFrom:msgSelectionConfig.BytesTo]
+		msgSelector := strings.ToUpper(hex.EncodeToString(msgSelectorData))
+		expectedVal := strings.ToUpper(msgSelectionConfig.BytesValue)
+		log.Traceln("Comparing ", msgSelector, " to ", expectedVal)
+		if msgSelector == expectedVal {
+			responseData, processed, err := processInternal(data, pServerDef, msgSelectionConfig)
+			if processed && err == nil {
+				return responseData, nil
+			}
+			if err != nil {
+				return nil, err
+			}
+		}
+
+	}
+
+	return nil, ErrNoMessageSelected
+
+}
+
+func processInternal(data []byte, pServerDef *data.ServerDef, msgSelConfig data.MsgSelectionConfig) ([]byte, bool, error) {
 
 	var isoSpec = iso.SpecByID(pServerDef.SpecId)
 	msg := isoSpec.MessageByID(msgSelConfig.Msg)
 	parsedMsg, err := msg.Parse(data)
 	if err != nil {
-		log.Print("Parsing error. ", err.Error())
-		return nil, false, nil
+		return nil, false, fmt.Errorf("isosim: parsing error :%w", err)
 	}
 
 	isoMsg := iso.FromParsedMsg(parsedMsg)
@@ -112,31 +142,5 @@ func process0(data []byte, pServerDef *data.ServerDef, msgSelConfig data.MsgSele
 	}
 
 	return nil, false, ErrNoProcessingConditionMatch
-
-}
-
-//Process the incoming message using server definition
-func processMsg(data []byte, pServerDef *data.ServerDef) ([]byte, error) {
-
-	//var processed bool= false
-	for _, msgSelectionConfig := range pServerDef.MsgSelectionConfigs {
-
-		msgSelectorData := data[msgSelectionConfig.BytesFrom:msgSelectionConfig.BytesTo]
-		msgSelector := strings.ToUpper(hex.EncodeToString(msgSelectorData))
-		expectedVal := strings.ToUpper(msgSelectionConfig.BytesValue)
-		log.Debugln("Comparing ", msgSelector, " to ", expectedVal)
-		if msgSelector == expectedVal {
-			responseData, processed, err := process0(data, pServerDef, msgSelectionConfig)
-			if processed && err == nil {
-				return responseData, nil
-			}
-			if err != nil {
-				return nil, err
-			}
-		}
-
-	}
-
-	return nil, ErrNoMessageSelected
 
 }
