@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	localnet "github.com/rkbalgi/go/net"
+	netutil "github.com/rkbalgi/go/net"
 	log "github.com/sirupsen/logrus"
 	"isosim/iso"
 	"net"
 	"net/http"
 	"strconv"
+	"sync"
 )
 
 var ErrInvalidSpecID = errors.New("isosim: invalid spec id")
@@ -18,6 +19,8 @@ var ErrInvalidMsgID = errors.New("isosim: invalid msg id")
 var ErrParseFailure = errors.New("isosim: parse error")
 
 var InvalidHostOrPortError = errors.New("invalid host or port")
+
+var netCatClient sync.Map
 
 func sendMsgHandler() {
 
@@ -36,12 +39,12 @@ func sendMsgHandler() {
 			return
 		}
 
-		var mli localnet.MliType
+		var mli netutil.MliType
 		switch req.PostForm.Get("mli") {
 		case "2I":
-			mli = localnet.Mli2i
+			mli = netutil.Mli2i
 		case "2E":
-			mli = localnet.Mli2e
+			mli = netutil.Mli2e
 		default:
 			log.Error("Invalid MLI specified in request", req.PostForm)
 			sendError(rw, "Invalid MLI specified in request")
@@ -103,23 +106,54 @@ func sendMsgHandler() {
 		}
 
 		isoServerAddr := fmt.Sprintf("%s:%d", hostIpAddr.String(), port)
-		netClient := localnet.NewNetCatClient(isoServerAddr, mli)
-
-		log.Debugln("Connecting to -" + isoServerAddr)
-		log.Debugf("Assembled request msg = %s, MliType = %v\n", hex.EncodeToString(msgData), mli)
-		if err := netClient.OpenConnection(); err != nil {
+		ncc := netutil.NewNetCatClient(isoServerAddr, mli)
+		if err := ncc.OpenConnection(); err != nil {
 			log.Errorln("Failed to connect to ISO server @ " + isoServerAddr + " Error: " + err.Error())
 			sendError(rw, "failed to connect -"+err.Error())
 			return
 		}
-		log.Debugln("opened connection to ISO server - " + isoServerAddr)
+		defer ncc.Close()
 
-		if err := netClient.Write(msgData); err != nil {
+		//TODO:: Implement below to use pooled netcat client rather than opening
+		// and closing a new one for every request
+
+		//NEW_CLIENT:
+		/*client, ok := netCatClient.Load(isoServerAddr)
+		if !ok {
+
+			ncc := netutil.NewNetCatClient(isoServerAddr, mli)
+			log.Debugln("Connecting to -" + isoServerAddr)
+			if err := ncc.OpenConnection(); err != nil {
+				log.Errorln("Failed to connect to ISO server @ " + isoServerAddr + " Error: " + err.Error())
+				sendError(rw, "failed to connect -"+err.Error())
+				return
+			} else {
+				var loaded bool
+				client, loaded = netCatClient.LoadOrStore(isoServerAddr, ncc)
+				if loaded {
+					// close the new netcat client since some other goroutine
+					// has already created one
+					//ncc.Close()
+				}
+				log.Debugln("Opened connection to ISO server - " + isoServerAddr)
+
+			}
+		}
+		ncc := client.(*netutil.NetCatClient)
+		if !ncc.IsConnected() {
+			log.Debugf("client is not connected, will try a new connection again..")
+			netCatClient.Delete(isoServerAddr)
+			goto NEW_CLIENT
+		}*/
+
+		log.Debugf("Assembled request msg = %s, MliType = %v\n", hex.EncodeToString(msgData), mli)
+
+		if err := ncc.Write(msgData); err != nil {
 			log.Errorln("Failed to send data to ISO server Error= " + err.Error())
 			sendError(rw, "write error -"+err.Error())
 			return
 		}
-		responseData, err := netClient.ReadNextPacket()
+		responseData, err := ncc.ReadNextPacket()
 		if err != nil {
 			log.Errorln("Failed to read response from ISO server. Error = " + err.Error())
 			sendError(rw, "error reading response -"+err.Error())
@@ -131,7 +165,6 @@ func sendMsgHandler() {
 		if err != nil {
 			log.Errorln("Failed to parse response ISO message", err)
 		}
-		netClient.Close()
 		fieldDataList := ToJsonList(responseMsg)
 
 		if err = json.NewEncoder(rw).Encode(fieldDataList); err != nil {

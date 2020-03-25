@@ -144,10 +144,10 @@ func handleConnection(connection net.Conn, pServerDef *data.ServerDef) {
 	for {
 		n, err := connection.Read(mli)
 		if err != nil {
-			if err != io.EOF {
-				closeOnError(connection, err)
-				return
-			}
+			//if err ! io.EOF {
+			closeOnError(connection, err)
+			return
+			//}
 		}
 		if n > 0 {
 			log.Traceln("read::mli = " + hex.EncodeToString(mli))
