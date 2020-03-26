@@ -20,6 +20,8 @@ type dataSetManager struct{}
 var instance *dataSetManager
 var dataDir string
 
+const defFileSuffix = ".srvdef.json"
+
 var initDS = sync.Once{}
 
 // Init verifies and initializes the dataDir passed in during in
@@ -87,7 +89,7 @@ func (dsm *dataSetManager) Get(specId string, msgId string, dsName string) ([]by
 // Add add a new data-set for the given spec and msg
 func (dsm *dataSetManager) Add(specId string, msgId string, name string, data string) error {
 
-	log.Debugln("Adding data set - " + name + " data = " + data)
+	log.Traceln("Adding data set - " + name + " data = " + data)
 	exists, err := checkIfExists(specId, msgId, name)
 	if err != nil {
 		return err
@@ -129,7 +131,7 @@ func (dsm *dataSetManager) AddServerDef(defString string) (string, error) {
 	fileName := serverDef.ServerName
 	fileName = strings.Replace(fileName, " ", "", -1)
 	fileName = strings.Replace(fileName, ",", "", -1)
-	fileName = fileName + ".srvdef.json"
+	fileName = fileName + defFileSuffix
 
 	log.Debugln("Writing spec def to file = " + fileName)
 
@@ -153,11 +155,12 @@ func (dsm *dataSetManager) ServerDefinitions(specId string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	fi, err := dir.Readdir(-1)
-	res := make([]string, 0, 2)
-	for _, fi := range fi {
-		if strings.HasSuffix(fi.Name(), ".srvdef.json") {
-			res = append(res, fi.Name())
+	dirContents, err := dir.Readdir(-1)
+	res := make([]string, 0)
+
+	for _, fileInfo := range dirContents {
+		if strings.HasSuffix(fileInfo.Name(), defFileSuffix) {
+			res = append(res, fileInfo.Name())
 		}
 	}
 

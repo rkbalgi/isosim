@@ -109,6 +109,7 @@ func Start(specId string, serverDefName string, port int) error {
 				retVal <- err
 				return
 			}
+			log.Debugf("New connection accepted:  - %v->%v", connection.RemoteAddr(), connection.RemoteAddr())
 			go handleConnection(connection, vServerDef)
 		}
 	}()
@@ -143,12 +144,11 @@ func handleConnection(connection net.Conn, pServerDef *data.ServerDef) {
 	tmp := make([]byte, 256)
 
 	for {
+		log.Traceln("Reading MLI .. ")
 		n, err := connection.Read(mli)
 		if err != nil {
-			//if err ! io.EOF {
 			closeOnError(connection, err)
 			return
-			//}
 		}
 		if n > 0 {
 			log.Traceln("read::mli = " + hex.EncodeToString(mli))

@@ -5,8 +5,6 @@ github.com/konsorten/go-windows-terminal-sequences v1.0.1 h1:mweAR1A6xJ3oS2pRaGi
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/rkbalgi/go v0.1.0 h1:rp79S/1gMwhk1sNA+vJUVX+aBxWjxmNlwcbWMP7XUXY=
-github.com/rkbalgi/go v0.1.0/go.mod h1:VxW1wf/Z7znlpHhO+zhaAoBsP3n4gh39onf6AJiZx6o=
 github.com/rkbalgi/go v0.1.1 h1:HHLYh855xNLDFetJMvWKKnWs8/Ufb1qzoxINJKYxEFE=
 github.com/rkbalgi/go v0.1.1/go.mod h1:VxW1wf/Z7znlpHhO+zhaAoBsP3n4gh39onf6AJiZx6o=
 github.com/sirupsen/logrus v1.4.2 h1:SPIRibHv4MatM3XXNO2BJeFLZwZ2LvZgfQ5+UNI2im4=
