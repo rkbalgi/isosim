@@ -1,4 +1,4 @@
-name: weekly-build-isosim-workflow
+name: build
 on:
   push:   
     branches: 
