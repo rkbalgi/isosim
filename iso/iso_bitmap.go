@@ -54,6 +54,8 @@ func (bmp *Bitmap) Set(pos int, val string) error {
 	var ok bool
 	if fieldData, ok = bmp.childData[pos]; ok {
 		fieldData.Data = rawFieldData
+		bmp.parsedMsg.FieldDataMap[field.Id] = fieldData
+		bmp.SetOn(pos)
 	} else {
 		fieldData = &FieldData{Field: field}
 		fieldData.Data = rawFieldData

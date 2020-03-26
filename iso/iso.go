@@ -1,6 +1,8 @@
 package iso
 
-import "bytes"
+import (
+	"bytes"
+)
 
 var HTMLDir string
 

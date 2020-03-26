@@ -99,6 +99,7 @@ func (msg *Message) ParseJSON(jsonMsg string) (*ParsedMsg, error) {
 	parsedMsg := &ParsedMsg{Msg: msg, FieldDataMap: make(map[int]*FieldData, 64)}
 
 	isoBitmap := NewBitmap()
+	isoBitmap.parsedMsg = parsedMsg
 
 	for _, pFieldIdValue := range fieldValArr {
 
@@ -106,6 +107,8 @@ func (msg *Message) ParseJSON(jsonMsg string) (*ParsedMsg, error) {
 		if field == nil {
 			return nil, ErrUnknownField
 		}
+
+		log.Tracef("Setting field value %s:=> %s\n", field.Name, pFieldIdValue.Value)
 
 		fieldData := new(FieldData)
 		fieldData.Field = field
@@ -137,7 +140,8 @@ func (msg *Message) ParseJSON(jsonMsg string) (*ParsedMsg, error) {
 			if field.ParentId != -1 {
 				parentField := msg.fieldByIdMap[field.ParentId]
 				if parentField.FieldInfo.Type == Bitmapped {
-					isoBitmap.SetOn(field.Position)
+					log.Tracef("Setting bit-on for field position - %d\n", field.Position)
+					isoBitmap.Set(field.Position, pFieldIdValue.Value)
 				}
 
 			}
