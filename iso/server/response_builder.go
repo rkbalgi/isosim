@@ -42,7 +42,9 @@ func buildResponse(isoMsg *iso.Iso, pc *data.ProcessingCondition) {
 				}
 			}
 		} else {
-			fd.Set(vf.FieldValue)
+			if err := fd.Set(vf.FieldValue); err != nil {
+				log.WithFields(log.Fields{"type": "iso_server"}).Errorf("Failed to set field value for field: %s : provided field value: %s\n", field.Name, vf.FieldValue)
+			}
 		}
 
 	}

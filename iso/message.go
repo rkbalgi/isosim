@@ -101,6 +101,8 @@ func (msg *Message) ParseJSON(jsonMsg string) (*ParsedMsg, error) {
 	isoBitmap := NewBitmap()
 	isoBitmap.parsedMsg = parsedMsg
 
+	var err error
+
 	for _, pFieldIdValue := range fieldValArr {
 
 		field := msg.fieldByIdMap[pFieldIdValue.Id]
@@ -118,7 +120,9 @@ func (msg *Message) ParseJSON(jsonMsg string) (*ParsedMsg, error) {
 			isoBitmap.field = field
 			parsedMsg.FieldDataMap[field.Id] = fieldData
 		} else {
-			fieldData.Data = field.ValueFromString(pFieldIdValue.Value)
+			if fieldData.Data, err = field.ValueFromString(pFieldIdValue.Value); err != nil {
+				return nil, fmt.Errorf("isosim: failed to set value for field :%s :%w", field.Name, err)
+			}
 
 			if field.FieldInfo.Type == Fixed && len(fieldData.Data) != field.FieldInfo.FieldSize {
 				//this is an error, field length exceeds max length
