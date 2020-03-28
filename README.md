@@ -1,7 +1,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/rkbalgi/isosim)](https://goreportcard.com/report/github.com/rkbalgi/isosim)
 [![codecov](https://codecov.io/gh/rkbalgi/isosim/branch/master/graph/badge.svg)](https://codecov.io/gh/rkbalgi/isosim)
 [![GoDev](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square)](https://pkg.go.dev/github.com/rkbalgi/isosim?tab=doc)
-![build-isosim-workflow](https://github.com/rkbalgi/isosim/workflows/build-isosim-workflow/badge.svg?branch=master)
+![build](https://github.com/rkbalgi/isosim/workflows/build/badge.svg)
 
 
 # ISO WebSim
