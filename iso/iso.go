@@ -1,6 +1,8 @@
 package iso
 
-import "bytes"
+import (
+	"bytes"
+)
 
 var HTMLDir string
 
@@ -39,7 +41,10 @@ func (iso *Iso) Set(fieldName string, value string) error {
 		iso.Bitmap().SetOn(field.Position)
 		iso.Bitmap().Set(field.Position, value)
 	} else {
-		fieldData := field.ValueFromString(value)
+		fieldData, err := field.ValueFromString(value)
+		if err != nil {
+			return err
+		}
 		iso.parsedMsg.FieldDataMap[field.Id] = &FieldData{Field: field, Data: fieldData}
 
 	}

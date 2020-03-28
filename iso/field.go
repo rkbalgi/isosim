@@ -35,24 +35,23 @@ func (field *Field) ValueToString(data []byte) string {
 
 }
 
-func (field *Field) ValueFromString(data string) []byte {
+func (field *Field) ValueFromString(data string) ([]byte, error) {
 
 	switch field.FieldInfo.FieldDataEncoding {
 	case BCD, BINARY:
 		str, err := hex.DecodeString(data)
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
-		return str
+		return str, nil
 	case ASCII:
-		return []byte(data)
+		return []byte(data), nil
 	case EBCDIC:
-		return ebcdic.Decode(data)
+		return ebcdic.Decode(data), nil
 	default:
-		log.Errorln("Invalid encoding -", field.FieldInfo.FieldDataEncoding)
+		return nil, fmt.Errorf("isosim: Invalid encoding - %v", field.FieldInfo.FieldDataEncoding)
 
 	}
-	return nil
 
 }
 

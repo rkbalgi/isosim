@@ -1,5 +1,7 @@
 package iso
 
+import "fmt"
+
 type FieldData struct {
 	Field *Field
 	Data  []byte
@@ -15,8 +17,13 @@ func (fieldData *FieldData) Value() string {
 
 }
 
-func (fieldData *FieldData) Set(value string) {
-	fieldData.Data = fieldData.Field.ValueFromString(value)
+func (fieldData *FieldData) Set(value string) error {
+	var err error
+	if fieldData.Data, err = fieldData.Field.ValueFromString(value); err != nil {
+		return fmt.Errorf("isosim: Failed to set value for field :%s to value %s :%w", fieldData.Field.Name, value, err)
+	}
+
+	return err
 
 }
 

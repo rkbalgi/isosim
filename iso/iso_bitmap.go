@@ -49,11 +49,16 @@ func (bmp *Bitmap) Set(pos int, val string) error {
 		log.Fatal("No field at position -", pos)
 	}
 
-	var rawFieldData = field.ValueFromString(val)
+	rawFieldData, err := field.ValueFromString(val)
+	if err != nil {
+		return err
+	}
 	var fieldData *FieldData
 	var ok bool
 	if fieldData, ok = bmp.childData[pos]; ok {
 		fieldData.Data = rawFieldData
+		bmp.parsedMsg.FieldDataMap[field.Id] = fieldData
+		bmp.SetOn(pos)
 	} else {
 		fieldData = &FieldData{Field: field}
 		fieldData.Data = rawFieldData
@@ -62,7 +67,6 @@ func (bmp *Bitmap) Set(pos int, val string) error {
 		bmp.SetOn(pos)
 	}
 
-	var err error
 	// if the field is has children, then we should ensure that they're
 	// initialized  too
 	if field.HasChildren() {

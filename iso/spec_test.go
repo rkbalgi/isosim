@@ -1,38 +1,60 @@
 package iso
 
 import (
-	"log"
+	log "github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-/*func Test_FromJSON(t *testing.T) {
+func TestSpec_Messages(t *testing.T) {
+	spec := SpecByID(26)
+	assert.NotNil(t, spec)
+	assert.Equal(t, 2, len(spec.Messages()))
+	assert.Condition(t, func() (success bool) {
+		if (spec.Messages()[0].Name == "1420" || spec.Messages()[0].Name == "1100") || (spec.Messages()[0].Name == "1100" || spec.Messages()[0].Name == "1420") {
+			return true
+		}
+		return false
+	})
 
-	data := `[{"Id":28,"Value":"1100"},{"Id":29,"Value":"0111001000111100001001000000000100101000010000101000000000000000-"},{"Id":30,"Value":"311111111111114"},{"Id":31,"Value":"004000"},{"Id":32,"Value":"000000001000"},{"Id":35,"Value":"0421102451"},{"Id":36,"Value":"110602"},{"Id":37,"Value":"051018194312"},{"Id":38,"Value":"0503"},{"Id":39,"Value":"0901"},{"Id":44,"Value":"840"},{"Id":47,"Value":"261101101140"},{"Id":53,"Value":"0"},{"Id":55,"Value":"311111111111114D080810104013667200000"},{"Id":56,"Value":"000000000001"},{"Id":60,"Value":"5434501367     "},{"Id":63,"Value":"840"}]`
+}
+
+func TestSpecByID(t *testing.T) {
 
 	spec := SpecByID(26)
-	msg := spec.MessageByID(27)
+	assert.NotNil(t, spec)
+	spec = SpecByID(99)
+	assert.Nil(t, spec)
+
+}
+
+func TestSpec_MessageByID(t *testing.T) {
+	spec := SpecByID(26)
+	assert.NotNil(t, spec)
+
+	t.Run("valid msgid", func(t *testing.T) {
+		assert.Equal(t, "1100", spec.MessageByID(27).Name)
+	})
+	t.Run("invalid msgid", func(t *testing.T) {
+		assert.Nil(t, spec.MessageByID(99))
+	})
+
+}
+
+func Test_FromJSON(t *testing.T) {
+
+	log.SetLevel(log.TraceLevel)
+
+	data := `[{"Id":28,"Value":"1100"},{"Id":29,"Value":"01110000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"},{"Id":30,"Value":"57654333345677"},{"Id":31,"Value":"004000"},{"Id":32,"Value":"000000000100"},{"Id":33,"Value":"877619"}]`
+
+	spec := SpecByID(26)
+	msg := spec.MessageByName("1100")
 	parsedMsg, err := msg.ParseJSON(data)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
-	responseMsg := parsedMsg.Copy()
-	_=FromParsedMsg(responseMsg)
 
+	isoMsg := FromParsedMsg(parsedMsg)
+	assert.Equal(t, "000000000100", isoMsg.Bitmap().Get(4).Value())
 
-}*/
-
-func ToJsonList(parsedMsg *ParsedMsg) []fieldIdValue {
-
-	fieldDataList := make([]fieldIdValue, 0, 10)
-	for id, fieldData := range parsedMsg.FieldDataMap {
-		log.Print(fieldData.Field.Name, fieldData.Value())
-		dataRep := fieldIdValue{Id: id, Value: fieldData.Field.ValueToString(fieldData.Data)}
-		if fieldData.Field.FieldInfo.Type == Bitmapped {
-			dataRep.Value = fieldData.Bitmap.BinaryString()
-
-		}
-
-		fieldDataList = append(fieldDataList, dataRep)
-	}
-
-	return fieldDataList
 }

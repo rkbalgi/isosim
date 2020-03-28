@@ -99,6 +99,9 @@ func (msg *Message) ParseJSON(jsonMsg string) (*ParsedMsg, error) {
 	parsedMsg := &ParsedMsg{Msg: msg, FieldDataMap: make(map[int]*FieldData, 64)}
 
 	isoBitmap := NewBitmap()
+	isoBitmap.parsedMsg = parsedMsg
+
+	var err error
 
 	for _, pFieldIdValue := range fieldValArr {
 
@@ -106,6 +109,8 @@ func (msg *Message) ParseJSON(jsonMsg string) (*ParsedMsg, error) {
 		if field == nil {
 			return nil, ErrUnknownField
 		}
+
+		log.Tracef("Setting field value %s:=> %s\n", field.Name, pFieldIdValue.Value)
 
 		fieldData := new(FieldData)
 		fieldData.Field = field
@@ -115,7 +120,9 @@ func (msg *Message) ParseJSON(jsonMsg string) (*ParsedMsg, error) {
 			isoBitmap.field = field
 			parsedMsg.FieldDataMap[field.Id] = fieldData
 		} else {
-			fieldData.Data = field.ValueFromString(pFieldIdValue.Value)
+			if fieldData.Data, err = field.ValueFromString(pFieldIdValue.Value); err != nil {
+				return nil, fmt.Errorf("isosim: failed to set value for field :%s :%w", field.Name, err)
+			}
 
 			if field.FieldInfo.Type == Fixed && len(fieldData.Data) != field.FieldInfo.FieldSize {
 				//this is an error, field length exceeds max length
@@ -137,7 +144,8 @@ func (msg *Message) ParseJSON(jsonMsg string) (*ParsedMsg, error) {
 			if field.ParentId != -1 {
 				parentField := msg.fieldByIdMap[field.ParentId]
 				if parentField.FieldInfo.Type == Bitmapped {
-					isoBitmap.SetOn(field.Position)
+					log.Tracef("Setting bit-on for field position - %d\n", field.Position)
+					isoBitmap.Set(field.Position, pFieldIdValue.Value)
 				}
 
 			}
