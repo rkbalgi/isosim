@@ -6,7 +6,12 @@
 
 # ISO WebSim
 
-![](https://github.com/rkbalgi/isosim/blob/master/docs/images/home.png)
+## All new ReactJS front end!
+The below is a screenshot of the revamped application with the frontend written in React.
+
+![](https://github.com/rkbalgi/isosim/blob/master/docs/images/ReactApp_Screenshot.png)
+
+The frontend is bundled with the application and can be accessed at [http://localhost:8080/]
 
 
 * A quick demo - https://github.com/rkbalgi/isosim/wiki/Test-Examples
@@ -23,7 +28,6 @@ It provides
 
 The specifications themselves are defined in text file (more information on developing your own specs can be found in (https://github.com/rkbalgi/isosim/blob/master/specs/isoSpecs.spec).
 
-A new front end is being developed in react. See [here](#new-development-of-a-frontend-in-React)
 
 The main program is started by the file cmd/isosim/isosim.go
  
@@ -51,15 +55,11 @@ $> set GOPATH=<Your Directory>
 $> cd src\github.com\rkbalgi\isosim\cmd\isosim
 $> go run isosim.go -httpPort 8080 -specDefFile ..\..\specs\isoSpecs.spec -htmlDir ..\..\html --dataDir ..\..\testdata
 ```
-And now open chrome and hit this URL [http://localhost:8080/iso/home](http://localhost:8080/iso/home)
+And now open chrome and hit this URL [http://localhost:8080/](http://localhost:8080/)
 
 Read more about this on the [wiki](https://github.com/rkbalgi/isosim/wiki)
 
-## New development of a frontend in React
-The below is a screenshot of the revamped application with the frontend written in React.
+The old front end is still available at [http://localhost:8080/iso/home](http://localhost:8080/iso/home)
 
-![](https://github.com/rkbalgi/isosim/blob/master/docs/images/ReactApp_Screenshot.png)
-
-The frontend is bundled with the application and can be accessed at [http://localhost:8080/]
 
 
