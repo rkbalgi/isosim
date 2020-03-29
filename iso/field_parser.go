@@ -6,15 +6,22 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strconv"
+
 	"github.com/rkbalgi/go/encoding/ebcdic"
 	log "github.com/sirupsen/logrus"
-	"strconv"
 )
 
+// ErrInsufficientData is an error when there is not enough data in the raw message to parse it
 var ErrInsufficientData = errors.New("isosim: Insufficient data to parse field")
+
+// ErrLargeLengthIndicator is an error that could happen when a large lenght indicator is used in a variable field
 var ErrLargeLengthIndicator = errors.New("isosim: Too large length indicator size. ")
+
+// ErrInvalidEncoding is when an unsupported encoding is used for a field
 var ErrInvalidEncoding = errors.New("isosim: Invalid encoding")
 
+// ParsedMsg is a type that represents a parsed form of a ISO8583 message
 type ParsedMsg struct {
 	IsRequest bool
 	Msg       *Message
@@ -22,6 +29,7 @@ type ParsedMsg struct {
 	FieldDataMap map[int]*FieldData
 }
 
+// Get returns the field-data from the parsed message given its name
 func (pMsg *ParsedMsg) Get(name string) *FieldData {
 
 	field := pMsg.Msg.Field(name)
@@ -33,12 +41,13 @@ func (pMsg *ParsedMsg) Get(name string) *FieldData {
 
 }
 
+// GetById returns field data given its id
 func (pMsg *ParsedMsg) GetById(id int) *FieldData {
 
 	return pMsg.FieldDataMap[id]
 }
 
-//Returns a deep copy of the ParsedMsg
+// Copy returns a deep copy of the ParsedMsg
 func (pMsg *ParsedMsg) Copy() *ParsedMsg {
 
 	newParsedMsg := &ParsedMsg{IsRequest: false}
@@ -245,9 +254,9 @@ func parseBitmap(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 
 }
 
-//Returns the next 'n' bytes from the Buffer. This is similar to
-//the Next() method available on Buffer but this function returns a
-//copy of the slice
+// NextBytes returns the next 'n' bytes from the Buffer. This is similar to
+// the Next() method available on Buffer but this function returns a
+// copy of the slice
 func NextBytes(buf *bytes.Buffer, n int) []byte {
 
 	replica := make([]byte, n)

@@ -4,16 +4,21 @@ import (
 	"bytes"
 )
 
+// HTMLDir will point to the directory containing the static assets (HTML/JS/CSS etc)
 var HTMLDir string
 
 const (
+	// MessageType is a constant that indicates the Message Type or the MTI
+	// (This name has special meaning within the context of ISO8483 and cannot be name anything else. The same restrictions apply for 'Bitmap')
 	MessageType = "Message Type"
 )
 
+// Iso is a handle into accessing the details of a ISO message(via the parsedMsg)
 type Iso struct {
 	parsedMsg *ParsedMsg
 }
 
+// FromParsedMsg constructs a new Iso from a parsedMsg
 func FromParsedMsg(parsedMsg *ParsedMsg) *Iso {
 	isoMsg := &Iso{parsedMsg: parsedMsg}
 	bmpField := parsedMsg.Msg.fieldByName["Bitmap"]
@@ -53,6 +58,7 @@ func (iso *Iso) Set(fieldName string, value string) error {
 
 }
 
+// Get returns a field by its name
 func (iso *Iso) Get(fieldName string) *FieldData {
 
 	field := iso.parsedMsg.Msg.Field(fieldName)
@@ -60,6 +66,7 @@ func (iso *Iso) Get(fieldName string) *FieldData {
 
 }
 
+// Bitmap returns the Bitmap from the Iso message
 func (iso *Iso) Bitmap() *Bitmap {
 	field := iso.parsedMsg.Msg.Field("Bitmap")
 	fieldData := iso.parsedMsg.FieldDataMap[field.Id].Bitmap
@@ -70,9 +77,12 @@ func (iso *Iso) Bitmap() *Bitmap {
 
 }
 
+// ParsedMsg returns the backing parsedMsg
 func (iso *Iso) ParsedMsg() *ParsedMsg {
 	return iso.parsedMsg
 }
+
+// Assemble assembles the raw form of the message
 func (iso *Iso) Assemble() ([]byte, error) {
 
 	msg := iso.parsedMsg.Msg
