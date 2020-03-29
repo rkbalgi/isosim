@@ -2,6 +2,7 @@ package iso
 
 import "fmt"
 
+// FieldData represents the data associated with a field in a ISO message
 type FieldData struct {
 	Field *Field
 	Data  []byte
@@ -11,12 +12,13 @@ type FieldData struct {
 	Bitmap *Bitmap
 }
 
-//Returns the value of this field as a string
+//Value returns the value of this field as a string
 func (fieldData *FieldData) Value() string {
 	return fieldData.Field.ValueToString(fieldData.Data)
 
 }
 
+// Set sets the value for the field
 func (fieldData *FieldData) Set(value string) error {
 	var err error
 	if fieldData.Data, err = fieldData.Field.ValueFromString(value); err != nil {

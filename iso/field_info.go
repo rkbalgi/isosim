@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+// FieldInfo is a type that represents the meta data associated with a field like length, encoding etc
 type FieldInfo struct {
 	Type                    FieldType
 	FieldSize               int
@@ -24,6 +25,7 @@ type FieldInfo struct {
 var constraintsRegExp1, _ = regexp.Compile("^constraints\\{(([a-zA-Z]+):([0-9A-Za-z]+);){1,}\\}$")
 var constraintsRegExp2, _ = regexp.Compile("(([a-zA-Z]+):([0-9A-Za-z]+));")
 
+// NewFieldInfo is a constructor for FieldInfo
 func NewFieldInfo(sFieldInfo []string) *FieldInfo {
 
 	fieldInfo := &FieldInfo{}

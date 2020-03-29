@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+
 	log "github.com/sirupsen/logrus"
 )
 
+// Bitmap represents a bitmap in the ISO8583 specification
 type Bitmap struct {
 	bmpData   []uint64
 	childData map[int]*FieldData
@@ -17,6 +19,7 @@ type Bitmap struct {
 
 const HighBitMask uint64 = uint64(1) << 63
 
+// NewBitmap creates a new empty bitmap
 func NewBitmap() *Bitmap {
 	return &Bitmap{bmpData: make([]uint64, 3), childData: make(map[int]*FieldData, 10)}
 }
@@ -28,6 +31,7 @@ func emptyBitmap(parsedMsg *ParsedMsg) *Bitmap {
 	return bmp
 }
 
+// Get returns the field-data for the field at position 'pos'
 func (bmp *Bitmap) Get(pos int) *FieldData {
 
 	childField := bmp.field.fieldsByPosition[pos]
@@ -42,6 +46,7 @@ func (bmp *Bitmap) Get(pos int) *FieldData {
 
 }
 
+// Set sets a value for a field at position 'pos'
 func (bmp *Bitmap) Set(pos int, val string) error {
 
 	field := bmp.field.fieldsByPosition[pos]
@@ -92,7 +97,7 @@ func (bmp *Bitmap) Set(pos int, val string) error {
 	return err
 }
 
-//Returns a copy of the Bitmap
+// Copy returns a copy of the Bitmap
 func (bmp *Bitmap) Copy() *Bitmap {
 
 	newBmp := NewBitmap()
@@ -102,7 +107,7 @@ func (bmp *Bitmap) Copy() *Bitmap {
 
 }
 
-//Returns the bitmap as a slice of bytes
+// Bytes returns the bitmap as a slice of bytes
 func (bmp *Bitmap) Bytes() []byte {
 
 	buf := new(bytes.Buffer)
@@ -118,7 +123,7 @@ func (bmp *Bitmap) Bytes() []byte {
 
 }
 
-//Returns a binary string representing the Bitmap
+//BinaryString returns a binary string representing the Bitmap
 func (bmp *Bitmap) BinaryString() string {
 	buf := bytes.NewBufferString("")
 	for _, b := range bmp.bmpData {
@@ -197,6 +202,7 @@ func (bmp *Bitmap) targetAndMask(position int) (targetInt *uint64, mask uint64, 
 
 }
 
+// IsOn returns a boolean to indicate if the field at position is set or not
 func (bmp *Bitmap) IsOn(position int) bool {
 
 	targetInt, mask, _ := bmp.targetAndMask(position)
@@ -204,6 +210,7 @@ func (bmp *Bitmap) IsOn(position int) bool {
 
 }
 
+// SetOn sets the position on
 func (bmp *Bitmap) SetOn(position int) {
 
 	targetInt, mask, bc := bmp.targetAndMask(position)
@@ -216,6 +223,7 @@ func (bmp *Bitmap) SetOn(position int) {
 
 }
 
+// SetOff sets the position offl̥
 func (bmp *Bitmap) SetOff(position int) {
 
 	targetInt, mask, _ := bmp.targetAndMask(position)

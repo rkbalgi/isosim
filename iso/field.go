@@ -3,10 +3,12 @@ package iso
 import (
 	"encoding/hex"
 	"fmt"
+
 	"github.com/rkbalgi/go/encoding/ebcdic"
 	log "github.com/sirupsen/logrus"
 )
 
+// Field represents a Field in the ISO message
 type Field struct {
 	Id        int
 	Name      string
@@ -18,6 +20,7 @@ type Field struct {
 	ParentId         int
 }
 
+// ValueToString returns the value of the field to a string representation
 func (field *Field) ValueToString(data []byte) string {
 
 	switch field.FieldInfo.FieldDataEncoding {
@@ -35,6 +38,7 @@ func (field *Field) ValueToString(data []byte) string {
 
 }
 
+// ValueFromString constructs the value for a field from a raw form
 func (field *Field) ValueFromString(data string) ([]byte, error) {
 
 	switch field.FieldInfo.FieldDataEncoding {
@@ -55,10 +59,12 @@ func (field *Field) ValueFromString(data string) ([]byte, error) {
 
 }
 
+// HasChildren returns a boolean that indicates if the field has children (nested fields)
 func (field *Field) HasChildren() bool {
 	return len(field.fields) > 0
 }
 
+// Children returns a []*Field of its children
 func (field *Field) Children() []*Field {
 	return field.fields
 }

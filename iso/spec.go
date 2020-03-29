@@ -3,19 +3,23 @@ package iso // github.com/rkbalgi/isosim/iso
 import (
 	"bytes"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"sync"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var specMapMu sync.RWMutex
 var specMap = make(map[string]*Spec, 10)
 
+// Spec represents an ISO8583 specification
 type Spec struct {
 	Id       int
 	Name     string
 	messages map[string]*Message
 }
 
+// GetOrAddMsg returns (or adds and returns) a msg - This is usually called
+// during initialization
 func (spec *Spec) GetOrAddMsg(msgName string) *Message {
 
 	specMapMu.Lock()
@@ -34,6 +38,7 @@ func (spec *Spec) GetOrAddMsg(msgName string) *Message {
 
 }
 
+// Messages returns a list of all messages defined for the spec
 func (spec *Spec) Messages() []*Message {
 
 	specMapMu.RLock()
@@ -46,6 +51,7 @@ func (spec *Spec) Messages() []*Message {
 	return msgs
 }
 
+// MessageByID returns a message given its id
 func (spec *Spec) MessageByID(msgId int) *Message {
 
 	specMapMu.RLock()
@@ -61,6 +67,7 @@ func (spec *Spec) MessageByID(msgId int) *Message {
 	return nil
 }
 
+// MessageByName returns a message given its name
 func (spec *Spec) MessageByName(msgName string) *Message {
 
 	specMapMu.RLock()
@@ -104,6 +111,7 @@ func displayField(buf *bytes.Buffer, field *Field, level int) {
 	}
 }
 
+// Specs returns a list of all defined specs
 func Specs() []*Spec {
 
 	specs := make([]*Spec, 0, len(specMap))
@@ -114,6 +122,7 @@ func Specs() []*Spec {
 
 }
 
+// SpecByID returns a spec given it's id
 func SpecByID(specId int) *Spec {
 
 	specMapMu.RLock()
@@ -128,6 +137,7 @@ func SpecByID(specId int) *Spec {
 
 }
 
+// SpecByName returns a spec given its name
 func SpecByName(specName string) *Spec {
 
 	specMapMu.RLock()
