@@ -7,7 +7,6 @@
 # ISO WebSim
 
 ## All new ReactJS front end!
-The below is a screenshot of the revamped application with the frontend written in React.
 
 ![](https://github.com/rkbalgi/isosim/blob/master/docs/images/ReactApp_Screenshot.png)
 
@@ -31,7 +30,7 @@ The specifications themselves are defined in text file (more information on deve
 
 The main program is started by the file cmd/isosim/isosim.go
  
-* __:warning: Please note that this application has been tested on chrome browser only.__
+` Please note that this application has been tested on chrome browser only.`
 
 ### Usage: 
 ```
@@ -49,10 +48,10 @@ C:>go run isosim.go -help
 exit status 2
 ```
 
-### Starting Isosim 
+### Running Iso WebSim 
 ```
-$> set GOPATH=<Your Directory>
-$> cd src\github.com\rkbalgi\isosim\cmd\isosim
+$> git checkout https://github.com/rkbalgi/isosim.git
+$> cd isosim\cmd\isosim
 $> go run isosim.go -httpPort 8080 -specDefFile ..\..\specs\isoSpecs.spec -htmlDir ..\..\html --dataDir ..\..\testdata
 ```
 And now open chrome and hit this URL [http://localhost:8080/](http://localhost:8080/)
