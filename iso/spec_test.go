@@ -12,7 +12,7 @@ func TestSpec_Messages(t *testing.T) {
 	assert.NotNil(t, spec)
 	assert.Equal(t, 2, len(spec.Messages()))
 	assert.Condition(t, func() (success bool) {
-		if (spec.Messages()[0].Name == "1100" || spec.Messages()[1].Name == "1420") || l(spec.Messages()[0].Name == "1420" || spec.Messages()[1].Name == "1100") {
+		if (spec.Messages()[0].Name == "1100" || spec.Messages()[1].Name == "1420") || (spec.Messages()[0].Name == "1420" || spec.Messages()[1].Name == "1100") {
 			return true
 		}
 		return false
