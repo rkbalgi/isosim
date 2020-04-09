@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/rkbalgi/go/encoding/ebcdic"
 	log "github.com/sirupsen/logrus"
-	"strconv"
 )
 
 // assemble assembles all the field into the dst Buffer buf
@@ -163,20 +162,19 @@ func writeIntToBuf(lenBuf *bytes.Buffer, intVal uint64, noOfBytes int, radix int
 
 func buildLengthIndicator(lenEncoding Encoding, lenEncodingSize int, fieldLength int) (*bytes.Buffer, error) {
 
-	//info := fieldData.Field.FieldInfo
 	lenBuf := &bytes.Buffer{}
-	fmtStr := "%0" + strconv.FormatInt(int64(lenEncodingSize), 10) + "d"
-	lenStr := fmt.Sprintf(fmtStr, fieldLength)
 	switch lenEncoding {
 	case BCD:
 		writeIntToBuf(lenBuf, uint64(fieldLength), lenEncodingSize, 10)
 	case BINARY:
 		writeIntToBuf(lenBuf, uint64(fieldLength), lenEncodingSize, 16)
-	case ASCII:
-		lenBuf.Write([]byte(lenStr))
-	case EBCDIC:
-		lenBuf.Write(ebcdic.Decode(lenStr))
+	case ASCII, EBCDIC:
+		lenIndStr := fmt.Sprintf(fmt.Sprintf("%%0%dd", lenEncodingSize), fieldLength) //to construct %04d,%02d as the format string
+		if lenEncoding == ASCII {
+			lenBuf.Write([]byte(lenIndStr))
+		} else {
+			lenBuf.Write(ebcdic.Decode(lenIndStr))
+		}
 	}
-
 	return lenBuf, nil
 }

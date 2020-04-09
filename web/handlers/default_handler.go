@@ -4,6 +4,7 @@ import (
 	"errors"
 	log "github.com/sirupsen/logrus"
 	"isosim/iso"
+	"isosim/services/websim"
 	"isosim/web/handlers/isoserver"
 	"isosim/web/handlers/misc"
 	"net/http"
@@ -104,6 +105,9 @@ func setRoutes() {
 	saveMsgHandler()
 	loadMsgHandler()
 	misc.AddMiscHandlers()
+
+	//v1
+	http.Handle(AllSpecsUrlV1, websim.NewHTTPHandler())
 }
 
 func sendError(rw http.ResponseWriter, errorMsg string) {
