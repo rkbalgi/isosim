@@ -39,7 +39,7 @@ func Init(HTMLDir string) error {
 
 func setRoutes() {
 
-	log.Debugln("Setting default route " + homeUrl + ". Served By = " + isoHtmlFile)
+	log.Debugf("Setting default route %s Served By = %s", homeUrl, isoHtmlFile)
 
 	//default route
 	http.HandleFunc(homeUrl, func(rw http.ResponseWriter, req *http.Request) {
@@ -107,7 +107,8 @@ func setRoutes() {
 	misc.AddMiscHandlers()
 
 	//v1
-	http.Handle(AllSpecsUrlV1, websim.NewHTTPHandler())
+	websim.RegisterHTTPTransport()
+
 }
 
 func sendError(rw http.ResponseWriter, errorMsg string) {

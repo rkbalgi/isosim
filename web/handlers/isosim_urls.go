@@ -3,7 +3,6 @@ package handlers
 const (
 	homeUrl               = "/iso/home"
 	AllSpecsUrl           = "/iso/v0/specs"
-	AllSpecsUrlV1         = "/iso/v1/specs"
 	SpecMessagesUrl       = "/iso/v0/msgs/"     //{specId}
 	MessageTemplateUrl    = "/iso/v0/template/" //{specId}/{msgId}
 	ParseTraceUrl         = "/iso/v0/parse/"    //{specId}/{msgId}/
