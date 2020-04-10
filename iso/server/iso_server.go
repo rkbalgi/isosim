@@ -101,6 +101,9 @@ func Start(specId string, serverDefName string, port int) error {
 
 		addServer(serverDefName, port, listener)
 		vServerDef, err := getDef(specId, serverDefName)
+		if err != nil {
+			log.Errorln("Failed to get server definition", err)
+		}
 
 		retVal <- err
 		for {
