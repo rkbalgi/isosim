@@ -1,2 +1,2 @@
 REM "---- Running ISO Websim .. ----"
-go run isosim.go -httpPort 8080 -specDefFile ..\..\specs\isoSpecs.spec -htmlDir ..\..\html --dataDir ..\..\testdata
+go run isosim.go -http-port 8080 -specs-dir ..\..\specs -html-dir ..\..\html --data-dir ..\..\testdata

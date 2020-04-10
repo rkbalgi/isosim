@@ -11,15 +11,59 @@ import (
 )
 
 // ReadSpecs initializes the spec defined in the file specDefFile
-func ReadSpecs(specDefFile string) error {
+func ReadSpecs(specDir string) error {
 
-	file, err := os.Open(filepath.Join(specDefFile))
+	file, err := os.Open(filepath.Join(specDir))
 	if err != nil {
-		err = errors.New("Initialization error. Unable to open specDefFile - " + err.Error())
+		err = errors.New("isosim: init error. Unable to open specs-dir directory - " + err.Error())
+		return err
+	}
+	files, err := file.Readdir(-1)
+
+	if err != nil {
+		err = errors.New("isosim: init error. Unable to read specs-dir directory - " + err.Error())
 		return err
 	}
 	defer file.Close()
-	reader := bufio.NewReader(file)
+
+	for _, finfo := range files {
+
+		if !finfo.IsDir() {
+			if strings.HasSuffix(finfo.Name(), ".spec") {
+				if err := readLegacyFile(specDir, finfo); err != nil {
+					return err
+				}
+			} else if strings.HasSuffix(finfo.Name(), ".yaml") {
+
+				if specs, err := readSpecDef(specDir, finfo.Name()); err != nil {
+					return err
+				} else {
+					//FIXME:: we will eventually get rid of the older .spec file format
+					// but for now lets convert the new format to older and continue
+					processSpecs(specs)
+				}
+			}
+		}
+
+	}
+
+	if log.GetLevel() == log.DebugLevel {
+		printAllSpecsInfo()
+	}
+
+	return nil
+
+}
+
+// reads the older .spec files
+func readLegacyFile(specDir string, finfo os.FileInfo) error {
+
+	defFile, err := os.OpenFile(filepath.Join(specDir, finfo.Name()), os.O_RDONLY, 0644)
+	if err != nil {
+		return err
+	}
+
+	reader := bufio.NewReader(defFile)
 	scanner := bufio.NewScanner(reader)
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -67,10 +111,6 @@ func ReadSpecs(specDefFile string) error {
 		default:
 			return errors.New("isosim: Syntax error in spec definition file. Line = " + line)
 		}
-	}
-
-	if log.GetLevel() == log.DebugLevel {
-		printAllSpecsInfo()
 	}
 
 	return nil
