@@ -88,24 +88,33 @@ func Stop(serverName string) error {
 // Start starts a ISO server at port, the behaviour of which is defined by the server definition
 func Start(specId string, serverDefName string, port int) error {
 
+	vServerDef, err := getDef(specId, serverDefName)
+	if err != nil {
+		log.Errorln("Failed to get server definition", err)
+	}
+
+	return StartWithDef(vServerDef, serverDefName, port)
+
+}
+
+func StartWithDef(def *data.ServerDef, defName string, port int) error {
+
 	retVal := make(chan error)
 
-	go func() {
+	actualPort := port
+	if actualPort == 0 {
+		actualPort = def.ServerPort
+	}
 
-		log.Infoln("Starting ISO Server @ Port = ", port)
-		listener, err := net.Listen("tcp", ":"+strconv.Itoa(port))
-		if err != nil {
-			retVal <- err
-			return
-		}
+	log.Infoln("Starting ISO Server @ Port = ", actualPort)
+	listener, err := net.Listen("tcp", ":"+strconv.Itoa(actualPort))
+	addServer(defName, port, listener)
+	if err != nil {
+		return err
+	}
 
-		addServer(serverDefName, port, listener)
-		vServerDef, err := getDef(specId, serverDefName)
-		if err != nil {
-			log.Errorln("Failed to get server definition", err)
-		}
+	go func(vServerDef *data.ServerDef) {
 
-		retVal <- err
 		for {
 			connection, err := listener.Accept()
 			if err != nil {
@@ -115,7 +124,7 @@ func Start(specId string, serverDefName string, port int) error {
 			log.Debugf("New connection accepted:  - %v->%v", connection.RemoteAddr(), connection.RemoteAddr())
 			go handleConnection(connection, vServerDef)
 		}
-	}()
+	}(def)
 
 	select {
 	case errVal := <-retVal:
@@ -129,7 +138,6 @@ func Start(specId string, serverDefName string, port int) error {
 	}
 
 	return nil
-
 }
 
 func closeOnError(connection net.Conn, err error) {
