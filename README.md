@@ -6,14 +6,14 @@
 
 # ISO WebSim
 
-
-![](https://github.com/rkbalgi/isosim/blob/master/docs/images/home_rel2020.04.png)
+![](https://github.com/rkbalgi/isosim/blob/master/docs/images/home_rel2020.04_01.png)
+![](https://github.com/rkbalgi/isosim/blob/master/docs/images/home_rel2020.04_02.png)
 
 
 Iso Websim is a ISO8583 simulator built using [golang](http://golang.org), [React](https://reactjs.org/), [material-ui](https://material-ui.com/) and
 other amazing open source libraries.
 
-Features -
+## Features -
 * A mechanism to define ISO specifications
   * ASCII, EBCDIC, BCD and BINARY encoding for fields
   * Fixed, Variable, Bitmapped fields
