@@ -99,8 +99,6 @@ func Start(specId string, serverDefName string, port int) error {
 
 func StartWithDef(def *data.ServerDef, defName string, port int) error {
 
-	retVal := make(chan error)
-
 	actualPort := port
 	if actualPort == 0 {
 		actualPort = def.ServerPort
@@ -108,34 +106,23 @@ func StartWithDef(def *data.ServerDef, defName string, port int) error {
 
 	log.Infoln("Starting ISO Server @ Port = ", actualPort)
 	listener, err := net.Listen("tcp", ":"+strconv.Itoa(actualPort))
-	addServer(defName, port, listener)
 	if err != nil {
 		return err
 	}
+	addServer(defName, port, listener)
 
 	go func(vServerDef *data.ServerDef) {
 
 		for {
 			connection, err := listener.Accept()
 			if err != nil {
-				retVal <- err
+				log.Print("Error on server. Error =  ", err)
 				return
 			}
 			log.Debugf("New connection accepted:  - %v->%v", connection.RemoteAddr(), connection.RemoteAddr())
 			go handleConnection(connection, vServerDef)
 		}
 	}(def)
-
-	select {
-	case errVal := <-retVal:
-		{
-			if errVal != nil {
-				log.Print("Error on server. Error =  ", errVal.Error())
-				return errVal
-			}
-
-		}
-	}
 
 	return nil
 }
