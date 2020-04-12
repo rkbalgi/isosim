@@ -22,9 +22,9 @@ var version = "v0.6.x"
 func main() {
 
 	isDebugEnabled := flag.Bool("debug-enabled", true, "true if debug logging should be enabled.")
-	flag.StringVar(&iso.HTMLDir, "html-dir", ".", "Directory that contains any HTML's and js/css files etc.")
+	flag.StringVar(&iso.HTMLDir, "html-dir", "", "Directory that contains any HTML's and js/css files etc.")
 
-	specDefFile := flag.String("specs-dir", "", "The directory containing the ISO spec definition files.")
+	specsDir := flag.String("specs-dir", "", "The directory containing the ISO spec definition files.")
 	httpPort := flag.Int("http-port", 8080, "Http port to listen on.")
 	dataDir := flag.String("data-dir", "", "Directory to store messages (data sets). This is a required field.")
 
@@ -37,10 +37,9 @@ func main() {
 
 	//log.SetFormatter(&log.TextFormatter{ForceColors: true, DisableColors: false})
 
-	if *dataDir == "" {
-		log.Infoln("Please provide 'data-dir' parameter.")
+	if *dataDir == "" || *specsDir == "" || iso.HTMLDir == "" {
 		flag.Usage()
-		os.Exit(2)
+		os.Exit(1)
 	}
 
 	err := server.Init(*dataDir)
@@ -49,7 +48,7 @@ func main() {
 	}
 
 	//read all the specs from the spec file
-	err = iso.ReadSpecs(*specDefFile)
+	err = iso.ReadSpecs(*specsDir)
 	if err != nil {
 		log.Fatal(err.Error())
 	}

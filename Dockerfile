@@ -14,4 +14,7 @@ ADD specs /etc/isosim/specs
 ADD testdata /etc/isosim/data
 ADD certs /etc/isosom/certs
 ENV HTTP_PORT 8080
+# ENV TLS_ENABLED=true
+# ENV TLS_CERT_FILE=/etc/isosim/certs/cert.pem
+# ENV TLS_KEY_FILE=/etc/isosim/certs/key.pem
 ENTRYPOINT /usr/apps/isosim -http-port $HTTP_PORT -html-dir /etc/isosim/web -data-dir /etc/isosim/data -specs-dir /etc/isosim/specs
