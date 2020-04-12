@@ -6,55 +6,61 @@
 
 # ISO WebSim
 
-## All new ReactJS front end!
 
-![](https://github.com/rkbalgi/isosim/blob/master/docs/images/ReactApp_Screenshot.png)
+![](https://github.com/rkbalgi/isosim/blob/master/docs/images/home_rel2020.04.png)
 
-The frontend is bundled with the application and can be accessed at [http://localhost:8080/]
+
+Iso Websim is a ISO8583 simulator built using [golang](http://golang.org), [React](https://reactjs.org/), [material-ui](https://material-ui.com/) and
+other amazing open source libraries.
+
+Features -
+* A mechanism to define ISO specifications
+  * ASCII, EBCDIC, BCD and BINARY encoding for fields
+  * Fixed, Variable, Bitmapped fields
+  * Embedded/Nested fields 
+  * Supported MLI's - 2I, 2E
+* Define and run servers based on specs
+  * Run servers from the UI or in [standalone mode](https://github.com/rkbalgi/isosim/wiki/Start-standalone-ISO-server-from-command-line)
+  * Rules to respond to messages based on fields (rules based on amount, currency etc)   
+* A UI to build and send transactions to servers (as a client)
+  * Ability to edit fields on UI
+  * Client-side validation of fields for content, length (more on the way) 
+  * Save messages that be can be replayed later
+* TLS, Docker 
+
+The specifications themselves are defined in yaml file (Check out an example - [iso_specs.yaml](https://github.com/rkbalgi/isosim/blob/master/specs/iso_specs.yaml))
+
+The [frontend](https://github.com/rkbalgi/isosim-react-frontend) is bundled with the application and can be accessed at [http://localhost:8080/](http://localhost:8080/)
 
 
 * A quick demo - https://github.com/rkbalgi/isosim/wiki/Test-Examples
 * Running on Docker - https://github.com/rkbalgi/isosim/wiki/Running-on-Docker
 
-
-Iso Websim is a ISO8583 simulator built using golang (http://golang.org). 
-
-It provides 
-* A simple mechanism to define ISO specifications 
-* Define servers based on defined specs to respond to incoming messages (rules based on amount etc)
-* Build and send transactions to servers (as a client)
-* Save messages that be can be replayed later
-
-The specifications themselves are defined in text file (more information on developing your own specs can be found in (https://github.com/rkbalgi/isosim/blob/master/specs/isoSpecs.spec).
-
-
-The main program is started by the file cmd/isosim/isosim.go
  
 ` Please note that this application has been tested on chrome browser only.`
 
 ### Usage: 
 ```
 C:>go run isosim.go -help
-  -dataDir string
+  -data-dir string
         Directory to store messages (data sets). This is a required field.
-  -debugEnabled
+  -debug-enabled
         true if debug logging should be enabled. (default true)
-  -htmlDir string
-        Directory that contains any HTML's and js/css files etc. (default ".")
-  -httpPort int
+  -html-dir string
+        Directory that contains any HTML's and js/css files etc.
+  -http-port int
         Http port to listen on. (default 8080)
-  -specDefFile string
-        The file containing the ISO spec definitions. (default "isoSpec.spec")
-exit status 2
+  -specs-dir string
+        The directory containing the ISO spec definition files.
 ```
 
 ### Running Iso WebSim 
 ```
 $> git checkout https://github.com/rkbalgi/isosim.git
 $> cd isosim\cmd\isosim
-$> go run isosim.go -httpPort 8080 -specDefFile ..\..\specs\isoSpecs.spec -htmlDir ..\..\html --dataDir ..\..\testdata
+$> go run isosim.go -httpPort 8080 -specs-dir ..\..\specs -html-dir ..\..\html -data-dir ..\..\testdata
 ```
-And now open chrome and hit this URL [http://localhost:8080/](http://localhost:8080/)
+Open chrome and hit this URL [http://localhost:8080/](http://localhost:8080/)
 
 Read more about this on the [wiki](https://github.com/rkbalgi/isosim/wiki)
 

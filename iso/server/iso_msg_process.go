@@ -48,6 +48,7 @@ func processMsg(data []byte, pServerDef *data.ServerDef) ([]byte, error) {
 func processInternal(data []byte, pServerDef *data.ServerDef, msgSelConfig data.MsgSelectionConfig) ([]byte, bool, error) {
 
 	var isoSpec = iso.SpecByID(pServerDef.SpecId)
+	log.Trace("Selected Spec", pServerDef.SpecId, "Selected Message - ", msgSelConfig.Msg)
 	msg := isoSpec.MessageByID(msgSelConfig.Msg)
 	parsedMsg, err := msg.Parse(data)
 	if err != nil {

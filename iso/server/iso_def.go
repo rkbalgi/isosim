@@ -26,8 +26,7 @@ func getDef(specId string, defName string) (*data.ServerDef, error) {
 	def, ok := sd[defId]
 	if !ok {
 		//do processing
-		def = &data.ServerDef{}
-		def.MsgSelectionConfigs = make([]data.MsgSelectionConfig, 0, 10)
+		def = &data.ServerDef{MsgSelectionConfigs: make([]data.MsgSelectionConfig, 0, 10)}
 		serverDef, err := DataSetManager().ServerDef(specId, defName)
 		if err != nil {
 			return nil, fmt.Errorf("isosim: Unexpected error while reading server definition : %w", err)

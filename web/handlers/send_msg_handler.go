@@ -41,12 +41,13 @@ func sendMsgHandler() {
 
 		var mli netutil.MliType
 		switch req.PostForm.Get("mli") {
-		case "2I":
+		case "2I", "2i":
+
 			mli = netutil.Mli2i
-		case "2E":
+		case "2E", "2e":
 			mli = netutil.Mli2e
 		default:
-			log.Error("Invalid MLI specified in request", req.PostForm)
+			log.Error("Invalid MLI-Type specified in request", req.PostForm)
 			sendError(rw, "Invalid MLI specified in request")
 			return
 		}

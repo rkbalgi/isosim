@@ -30,6 +30,7 @@ func startServerHandler() {
 			return
 		}
 		log.Infof("Server [%s] has been started @ port %s", def, port)
+		rw.WriteHeader(http.StatusOK)
 
 	})
 }

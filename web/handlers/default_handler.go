@@ -4,6 +4,7 @@ import (
 	"errors"
 	log "github.com/sirupsen/logrus"
 	"isosim/iso"
+	"isosim/services/websim"
 	"isosim/web/handlers/isoserver"
 	"isosim/web/handlers/misc"
 	"net/http"
@@ -38,7 +39,7 @@ func Init(HTMLDir string) error {
 
 func setRoutes() {
 
-	log.Debugln("Setting default route " + homeUrl + ". Served By = " + isoHtmlFile)
+	log.Debugf("Setting default route %s Served By = %s", homeUrl, isoHtmlFile)
 
 	//default route
 	http.HandleFunc(homeUrl, func(rw http.ResponseWriter, req *http.Request) {
@@ -104,6 +105,10 @@ func setRoutes() {
 	saveMsgHandler()
 	loadMsgHandler()
 	misc.AddMiscHandlers()
+
+	//v1
+	websim.RegisterHTTPTransport()
+
 }
 
 func sendError(rw http.ResponseWriter, errorMsg string) {

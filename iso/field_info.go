@@ -8,6 +8,10 @@ import (
 	"strings"
 )
 
+const (
+	ContentTypeAny = "Any"
+)
+
 // FieldInfo is a type that represents the meta data associated with a field like length, encoding etc
 type FieldInfo struct {
 	Type                    FieldType

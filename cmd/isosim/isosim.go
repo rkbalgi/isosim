@@ -21,12 +21,12 @@ var version = "v0.6.x"
 
 func main() {
 
-	isDebugEnabled := flag.Bool("debugEnabled", true, "true if debug logging should be enabled.")
-	flag.StringVar(&iso.HTMLDir, "htmlDir", ".", "Directory that contains any HTML's and js/css files etc.")
+	isDebugEnabled := flag.Bool("debug-enabled", true, "true if debug logging should be enabled.")
+	flag.StringVar(&iso.HTMLDir, "html-dir", "", "Directory that contains any HTML's and js/css files etc.")
 
-	specDefFile := flag.String("specDefFile", "isoSpec.spec", "The file containing the ISO spec definitions.")
-	httpPort := flag.Int("httpPort", 8080, "Http port to listen on.")
-	dataDir := flag.String("dataDir", "", "Directory to store messages (data sets). This is a required field.")
+	specsDir := flag.String("specs-dir", "", "The directory containing the ISO spec definition files.")
+	httpPort := flag.Int("http-port", 8080, "Http port to listen on.")
+	dataDir := flag.String("data-dir", "", "Directory to store messages (data sets). This is a required field.")
 
 	flag.Parse()
 
@@ -37,10 +37,9 @@ func main() {
 
 	//log.SetFormatter(&log.TextFormatter{ForceColors: true, DisableColors: false})
 
-	if *dataDir == "" {
-		log.Infoln("Please provide 'dataDir' parameter.")
+	if *dataDir == "" || *specsDir == "" || iso.HTMLDir == "" {
 		flag.Usage()
-		os.Exit(2)
+		os.Exit(1)
 	}
 
 	err := server.Init(*dataDir)
@@ -49,7 +48,7 @@ func main() {
 	}
 
 	//read all the specs from the spec file
-	err = iso.ReadSpecs(*specDefFile)
+	err = iso.ReadSpecs(*specsDir)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -60,5 +59,18 @@ func main() {
 	}
 
 	log.Infoln("Starting ISO WebSim ", "Version = "+version)
-	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(*httpPort), nil))
+
+	tlsEnabled := os.Getenv("TLS_ENABLED")
+	if tlsEnabled == "true" {
+		certFile := os.Getenv("TLS_CERT_FILE")
+		keyFile := os.Getenv("TLS_KEY_FILE")
+
+		log.Infof("Using certificate file - %s, key file: %s", certFile, keyFile)
+		log.Fatal(http.ListenAndServeTLS(":"+strconv.Itoa(*httpPort), certFile, keyFile, nil))
+	} else {
+		log.Fatal(http.ListenAndServe(":"+strconv.Itoa(*httpPort), nil))
+	}
+
+	log.Infof("ISO WebSim started!")
+
 }

@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	if err := ReadSpecs(filepath.Join("..", "specs", "isoSpecs.spec")); err != nil {
+	if err := ReadSpecs(filepath.Join("..", "specs")); err != nil {
 		log.Fatal(err)
 		return
 	}
