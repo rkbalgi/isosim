@@ -116,6 +116,19 @@ func (f FieldDefV1) info() *FieldInfo {
 		default:
 			logrus.Errorf("Invalid/Unspecified length encoding for field %s \n", f.Name)
 		}
+
+		if f.Constraints.ContentType != "" {
+			info.Content = f.Constraints.ContentType
+		} else {
+			info.Content = ContentTypeAny
+		}
+		if f.Constraints.MinSize > 0 {
+			info.MinSize = f.Constraints.MinSize
+		}
+		if f.Constraints.MaxSize > 0 {
+			info.MaxSize = f.Constraints.MaxSize
+		}
+
 	}
 	return info
 
