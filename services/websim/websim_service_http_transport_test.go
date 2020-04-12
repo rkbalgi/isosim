@@ -45,7 +45,7 @@ func Test_WebsimHttpService(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := iso.ReadSpecs("../../specs/isoSpecs.spec"); err != nil {
+	if err := iso.ReadSpecs("../../specs"); err != nil {
 		t.Fatal(err)
 	}
 	s := httptest.NewServer(testHttpHandler{})

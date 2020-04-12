@@ -18,7 +18,7 @@ func Test_IsoServer_MessageProcessing(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := iso.ReadSpecs("../../specs/isoSpecs.spec"); err != nil {
+	if err := iso.ReadSpecs("../../specs"); err != nil {
 		t.Fatal(err)
 	}
 	specName := "Iso8583-MiniSpec"
