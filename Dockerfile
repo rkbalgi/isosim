@@ -7,7 +7,7 @@ RUN go build -v -o app isosim.go
 
 # stage 2
 FROM alpine
-USER 1001:1001
+#USER 1001:1001
 COPY --from=0 /home/isosim/app/isosim/cmd/isosim/app /usr/apps/isosim
 ADD html /etc/isosim/web
 ADD specs /etc/isosim/specs
