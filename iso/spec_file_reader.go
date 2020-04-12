@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"errors"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -18,30 +20,34 @@ func ReadSpecs(specDir string) error {
 		err = errors.New("isosim: init error. Unable to open specs-dir directory - " + err.Error())
 		return err
 	}
-	files, err := file.Readdir(-1)
+	file.Close()
 
+	specFiles := make([]string, 0)
+	data, err := ioutil.ReadFile(filepath.Join(specDir, "specs.yaml"))
 	if err != nil {
-		err = errors.New("isosim: init error. Unable to read specs-dir directory - " + err.Error())
 		return err
 	}
-	defer file.Close()
+	if err = yaml.Unmarshal(data, &specFiles); err != nil {
+		return err
+	}
+	log.Debugln("Available spec files - ", specFiles)
 
-	for _, finfo := range files {
+	for _, specFile := range specFiles {
 
-		if !finfo.IsDir() {
-			if strings.HasSuffix(finfo.Name(), ".spec") {
-				if err := readLegacyFile(specDir, finfo); err != nil {
-					return err
-				}
-			} else if strings.HasSuffix(finfo.Name(), ".yaml") {
+		log.Debugln("Reading file ..", specFile)
 
-				if specs, err := readSpecDef(specDir, finfo.Name()); err != nil {
-					return err
-				} else {
-					//FIXME:: we will eventually get rid of the older .spec file format
-					// but for now lets convert the new format to older and continue
-					processSpecs(specs)
-				}
+		if strings.HasSuffix(specFile, ".spec") {
+			if err := readLegacyFile(specDir, specFile); err != nil {
+				return err
+			}
+		} else if strings.HasSuffix(specFile, ".yaml") {
+
+			if specs, err := readSpecDef(specDir, specFile); err != nil {
+				return err
+			} else {
+				//FIXME:: we will eventually get rid of the older .spec file format
+				// but for now lets convert the new format to older and continue
+				processSpecs(specs)
 			}
 		}
 
@@ -56,9 +62,9 @@ func ReadSpecs(specDir string) error {
 }
 
 // reads the older .spec files
-func readLegacyFile(specDir string, finfo os.FileInfo) error {
+func readLegacyFile(specDir string, specFile string) error {
 
-	defFile, err := os.OpenFile(filepath.Join(specDir, finfo.Name()), os.O_RDONLY, 0644)
+	defFile, err := os.OpenFile(filepath.Join(specDir, specFile), os.O_RDONLY, 0644)
 	if err != nil {
 		return err
 	}
