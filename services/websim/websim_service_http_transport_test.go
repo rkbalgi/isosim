@@ -71,7 +71,7 @@ func Test_WebsimHttpService(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		assert.Equal(t, 2, len(allSpecsResponse.Specs))
+		assert.Equal(t, 3, len(allSpecsResponse.Specs))
 		assert.Nil(t, allSpecsResponse.Err)
 
 	})
