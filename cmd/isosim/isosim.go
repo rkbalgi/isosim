@@ -60,5 +60,18 @@ func main() {
 	}
 
 	log.Infoln("Starting ISO WebSim ", "Version = "+version)
-	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(*httpPort), nil))
+
+	tlsEnabled := os.Getenv("TLS_ENABLED")
+	if tlsEnabled == "true" {
+		certFile := os.Getenv("TLS_CERT_FILE")
+		keyFile := os.Getenv("TLS_KEY_FILE")
+
+		log.Infof("Using certificate file - %s, key file: %s", certFile, keyFile)
+		log.Fatal(http.ListenAndServeTLS(":"+strconv.Itoa(*httpPort), certFile, keyFile, nil))
+	} else {
+		log.Fatal(http.ListenAndServe(":"+strconv.Itoa(*httpPort), nil))
+	}
+
+	log.Infof("ISO WebSim started!")
+
 }

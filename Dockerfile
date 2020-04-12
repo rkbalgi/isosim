@@ -12,5 +12,6 @@ COPY --from=0 /home/isosim/app/isosim/cmd/isosim/app /usr/apps/isosim
 ADD html /etc/isosim/web
 ADD specs /etc/isosim/specs
 ADD testdata /etc/isosim/data
+ADD certs /etc/isosom/certs
 ENV HTTP_PORT 8080
 ENTRYPOINT /usr/apps/isosim -http-port $HTTP_PORT -html-dir /etc/isosim/web -data-dir /etc/isosim/data -specs-dir /etc/isosim/specs
