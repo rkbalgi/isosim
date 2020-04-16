@@ -20,21 +20,22 @@ type Spec struct {
 
 // GetOrAddMsg returns (or adds and returns) a msg - This is usually called
 // during initialization
-func (spec *Spec) GetOrAddMsg(msgName string) *Message {
+func (spec *Spec) GetOrAddMsg(msgId int, msgName string) (*Message, bool) {
 
 	specMapMu.Lock()
 	defer specMapMu.Unlock()
 
 	msg, ok := spec.messages[msgName]
 	if !ok {
-		msg = &Message{Name: msgName, Id: nextId(),
+		msg = &Message{Name: msgName, Id: msgId,
 			fields:       make([]*Field, 0, 10),
 			fieldByIdMap: make(map[int]*Field, 10),
 			fieldByName:  make(map[string]*Field),
 		}
 		spec.messages[msgName] = msg
+		return msg, true
 	}
-	return msg
+	return msg, false
 
 }
 
@@ -147,16 +148,22 @@ func SpecByName(specName string) *Spec {
 
 }
 
-func getOrCreateNewSpec(specName string) (spec *Spec) {
+func getOrCreateNewSpec(specId int, specName string) (spec *Spec, ok bool, err error) {
 
+	spec = SpecByID(specId)
+	if spec != nil {
+		return nil, false,
+			fmt.Errorf("isosim: SpecID - %d cannot be used for spec - %s. Is already used by %s", specId, specName, spec.Name)
+	}
 	specMapMu.Lock()
 	defer specMapMu.Unlock()
 
-	spec, ok := specMap[specName]
+	spec, ok = specMap[specName]
 	if !ok {
-		spec = &Spec{Name: specName, Id: nextId(), messages: make(map[string]*Message, 2)}
+		spec = &Spec{Name: specName, Id: specId, messages: make(map[string]*Message, 2)}
 		specMap[specName] = spec
+		return spec, true, nil
 	}
-	return spec
+	return spec, false, nil
 
 }

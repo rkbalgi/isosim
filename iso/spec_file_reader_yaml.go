@@ -1,6 +1,7 @@
 package iso
 
 import (
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -14,11 +15,13 @@ type SpecsV1 struct {
 
 type SpecDefV1 struct {
 	Name     string         `yaml:"name"`
+	ID       int            `yaml:"id"`
 	Messages []MessageDefV1 `yaml:"messages"`
 }
 
 type MessageDefV1 struct {
 	Name   string       `yaml:"name"`
+	ID     int          `yaml:"id"`
 	Fields []FieldDefV1 `yaml:"fields"`
 }
 
@@ -44,6 +47,7 @@ type FieldConstraints struct {
 
 type FieldDefV1 struct {
 	Name                    string      `yaml:"name"`
+	ID                      int         `yaml:"id"`
 	Type                    FieldTypeV1 `yaml:"type"`
 	Size                    int         `yaml:"size"`
 	Position                int         `yaml:"position"`
@@ -134,21 +138,6 @@ func (f FieldDefV1) info() *FieldInfo {
 
 }
 
-/*func (ft *FieldTypeV1) UnmarshalYAML(unmarshal func(interface{}) error) error {
-
-	str:=""
-	if err:= unmarshal(&str);err!=nil{
-		fmt.Print(err)
-	}
-
-	*ft = FieldTypeV1(str)
-	return nil
-}
-
-func (ft FieldTypeV1) MarshalText() (string, error) {
-	return string(ft), nil
-}*/
-
 // reads the new yaml files
 func readSpecDef(specDir string, name string) ([]SpecDefV1, error) {
 
@@ -171,32 +160,51 @@ func readSpecDef(specDir string, name string) ([]SpecDefV1, error) {
 }
 
 // register the newer spec definitions (based on yaml) into our old structures
-func processSpecs(specs []SpecDefV1) {
+func processSpecs(specs []SpecDefV1) error {
 
 	for _, newSpec := range specs {
 
-		spec := getOrCreateNewSpec(newSpec.Name)
+		spec, ok, err := getOrCreateNewSpec(newSpec.ID, newSpec.Name)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return fmt.Errorf("isosim: Spec %s already exists", newSpec.Name)
+		}
+
 		for _, m := range newSpec.Messages {
-			msg := spec.GetOrAddMsg(m.Name)
+			msg, ok := spec.GetOrAddMsg(m.ID, m.Name)
+			if !ok {
+				return fmt.Errorf("isosim: Msg %s in spec %s already exists", msg.Name, newSpec.Name)
+			}
 			for _, f := range m.Fields {
-				processField(msg, f)
+				if err := processField(msg, f); err != nil {
+					return err
+				}
 			}
 		}
 
 	}
 
+	return nil
 }
 
-func processField(msg *Message, f FieldDefV1) {
-	msg.addField(f.Name, f.info())
+func processField(msg *Message, f FieldDefV1) error {
+	fld := msg.FieldById(f.ID)
+	if fld != nil {
+		return fmt.Errorf("isosim: Field with ID %d already exists in Msg: %s", f.ID, msg.Name)
+	}
+
+	msg.addField(f.ID, f.Name, f.info())
 	processChildren(msg, f)
 
+	return nil
 }
 
 func processChildren(msg *Message, f FieldDefV1) {
 	if len(f.Children) > 0 {
 		for _, cf := range f.Children {
-			msg.Field(f.Name).addChild(cf.Name, cf.Position, cf.info())
+			msg.Field(f.Name).addChild(cf.ID, cf.Name, cf.Position, cf.info())
 			if len(cf.Children) > 0 {
 				processChildren(msg, cf)
 			}

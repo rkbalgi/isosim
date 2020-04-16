@@ -35,13 +35,13 @@ func (msg *Message) NewIso() *Iso {
 	return isoMsg
 }
 
-func (msg *Message) addField(name string, info *FieldInfo) {
+func (msg *Message) addField(fieldId int, name string, info *FieldInfo) {
 
 	if _, ok := msg.fieldByName[name]; ok {
 		log.Printf("field %s already exists!", name)
 		return
 	}
-	field := &Field{Name: name, Id: nextId(),
+	field := &Field{Name: name, Id: fieldId,
 		fields:           make([]*Field, 0),
 		fieldsByPosition: make(map[int]*Field, 10),
 		ParentId:         -1}

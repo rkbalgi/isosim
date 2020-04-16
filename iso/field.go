@@ -69,9 +69,9 @@ func (field *Field) Children() []*Field {
 	return field.fields
 }
 
-func (field *Field) addChild(name string, position int, info *FieldInfo) {
+func (field *Field) addChild(fieldId int, name string, position int, info *FieldInfo) {
 
-	newField := &Field{Name: name, Id: nextId(), Position: position, fields: make([]*Field, 0), FieldInfo: info, ParentId: -1}
+	newField := &Field{Name: name, Id: fieldId, Position: position, fields: make([]*Field, 0), FieldInfo: info, ParentId: -1}
 
 	field.fields = append(field.fields, newField)
 
@@ -79,9 +79,14 @@ func (field *Field) addChild(name string, position int, info *FieldInfo) {
 		field.fieldsByPosition[position] = newField
 	}
 	newField.ParentId = field.Id
-	newField.FieldInfo.Msg = field.FieldInfo.Msg
-	newField.FieldInfo.Msg.fieldByIdMap[newField.Id] = newField
-	field.FieldInfo.Msg.fieldByName[name] = newField
+
+	msg := field.FieldInfo.Msg
+	newField.FieldInfo.Msg = msg
+
+	msg.fieldByName[name] = newField
+	msg.fieldByIdMap[fieldId] = newField
+	msg.fieldByName[name] = newField
+
 }
 
 //String returns the attributes of the Field as a string

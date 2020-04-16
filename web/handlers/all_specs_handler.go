@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"isosim/iso"
 	"net/http"
+	"sort"
 )
 
 func allSpecsHandler() {
@@ -24,6 +25,14 @@ func allSpecsHandler() {
 				Messages []*iso.Message
 			}{Id: s.Id, Name: s.Name, Messages: s.Messages()})
 		}
+
+		//sort them so that they appear consistently on the UI
+		sort.Slice(specs, func(i, j int) bool {
+			if specs[i].Name < specs[j].Name {
+				return true
+			}
+			return false
+		})
 
 		if err := json.NewEncoder(rw).Encode(specs); err != nil {
 			sendError(rw, err.Error())

@@ -86,11 +86,7 @@ func setRoutes() {
 		case strings.HasSuffix(req.RequestURI, ".ttf"):
 			subDir = "media"
 		default:
-			{
-				log.Errorln("Requested resource not found", req.RequestURI)
-				rw.WriteHeader(http.StatusNotFound)
-				return
-			}
+			http.ServeFile(rw, req, filepath.Join(iso.HTMLDir, "react-fe", "build", subDir, fileName))
 		}
 		http.ServeFile(rw, req, filepath.Join(iso.HTMLDir, "react-fe", "build", "static", subDir, fileName))
 
