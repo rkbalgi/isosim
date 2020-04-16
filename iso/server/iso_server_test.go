@@ -50,18 +50,18 @@ func Test_IsoServer_MessageProcessing(t *testing.T) {
 	if len(defs) == 0 {
 		t.Fatalf("No server definitions for spec - %s/%d", specName, specId)
 	}
-	defName := "minispec_01.srvdef.json"
+	defName := "IsoMiniSpec_Server_01.srvdef.json"
 
-	if err := Start(strSpecId, defName, 6666); err != nil {
+	if err := Start(strSpecId, defName, 6665); err != nil {
 		t.Fatal(err)
 	}
 	defer Stop(defName)
 
 	var dsData []byte
-	if dsData, err = DataSetManager().Get(strSpecId, strconv.Itoa(msgId), "Msg_With_Amount_100"); err != nil {
+	if dsData, err = DataSetManager().Get(strSpecId, strconv.Itoa(msgId), "TC_ActionCode_100"); err != nil {
 		t.Fatal(err)
 	}
-	ncc := netutil.NewNetCatClient("localhost:6666", netutil.Mli2i)
+	ncc := netutil.NewNetCatClient("localhost:6665", netutil.Mli2i)
 	if err := ncc.OpenConnection(); err != nil {
 		t.Fatal(err)
 	}
@@ -72,22 +72,22 @@ func Test_IsoServer_MessageProcessing(t *testing.T) {
 
 	isoReqMsg := iso.FromParsedMsg(parsedMsg)
 
-	t.Run("with amount 100", func(t *testing.T) {
-		isoReqMsg.Bitmap().Set(4, "000000000100")
-		sendAndVerify(t, ncc, spec, isoReqMsg, "000")
+	t.Run("with amount 900", func(t *testing.T) {
+		isoReqMsg.Bitmap().Set(4, "000000000900")
+		sendAndVerify(t, ncc, spec, isoReqMsg, "100")
 
 	})
-	t.Run("with amount 101", func(t *testing.T) {
-		isoReqMsg := iso.FromParsedMsg(parsedMsg)
-		isoReqMsg.Bitmap().Set(4, "000000000101")
-		sendAndVerify(t, ncc, spec, isoReqMsg, "001")
-
-	})
-
 	t.Run("with amount 200", func(t *testing.T) {
 		isoReqMsg := iso.FromParsedMsg(parsedMsg)
 		isoReqMsg.Bitmap().Set(4, "000000000200")
 		sendAndVerify(t, ncc, spec, isoReqMsg, "200")
+
+	})
+
+	t.Run("with amount 100", func(t *testing.T) {
+		isoReqMsg := iso.FromParsedMsg(parsedMsg)
+		isoReqMsg.Bitmap().Set(4, "000000000100")
+		sendAndVerify(t, ncc, spec, isoReqMsg, "000")
 
 	})
 

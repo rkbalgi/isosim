@@ -16,7 +16,7 @@ func Test_FixedField(t *testing.T) {
 		fieldByIdMap: make(map[int]*Field),
 		fieldByName:  make(map[string]*Field),
 	}
-	msg.addField("FixedField", finfo)
+	msg.addField(9, "FixedField", finfo)
 	parsedMsg := &ParsedMsg{IsRequest: true, FieldDataMap: make(map[int]*FieldData), Msg: msg}
 
 	buf := bytes.NewBufferString("1234")
@@ -42,7 +42,7 @@ func Test_VariableField(t *testing.T) {
 			fieldByName:  make(map[string]*Field),
 		}
 		fieldName := "VariableField"
-		msg.addField(fieldName, fieldInfo)
+		msg.addField(9, fieldName, fieldInfo)
 		parsedMsg := &ParsedMsg{IsRequest: true, FieldDataMap: make(map[int]*FieldData), Msg: msg}
 
 		buf := bytes.NewBufferString("041234")
@@ -80,7 +80,7 @@ func Test_VariableField(t *testing.T) {
 			fieldByName:  make(map[string]*Field),
 		}
 		fieldName := "VariableField"
-		msg.addField(fieldName, fieldInfo)
+		msg.addField(9, fieldName, fieldInfo)
 		parsedMsg := &ParsedMsg{IsRequest: true, FieldDataMap: make(map[int]*FieldData), Msg: msg}
 
 		buf := &bytes.Buffer{}
@@ -113,7 +113,7 @@ func Test_VariableField(t *testing.T) {
 			fieldByName:  make(map[string]*Field),
 		}
 		fieldName := "VariableField"
-		msg.addField(fieldName, fieldInfo)
+		msg.addField(9, fieldName, fieldInfo)
 		parsedMsg := &ParsedMsg{IsRequest: true, FieldDataMap: make(map[int]*FieldData), Msg: msg}
 
 		buf := &bytes.Buffer{}
@@ -146,7 +146,7 @@ func Test_VariableField(t *testing.T) {
 			fieldByName:  make(map[string]*Field),
 		}
 		fieldName := "VariableField"
-		msg.addField(fieldName, fieldInfo)
+		msg.addField(9, fieldName, fieldInfo)
 		parsedMsg := &ParsedMsg{IsRequest: true, FieldDataMap: make(map[int]*FieldData), Msg: msg}
 
 		buf := &bytes.Buffer{}
@@ -179,7 +179,7 @@ func Test_VariableField(t *testing.T) {
 			fieldByName:  make(map[string]*Field),
 		}
 		fieldName := "VariableField"
-		msg.addField(fieldName, fieldInfo)
+		msg.addField(9, fieldName, fieldInfo)
 		parsedMsg := &ParsedMsg{IsRequest: true, FieldDataMap: make(map[int]*FieldData), Msg: msg}
 
 		buf := &bytes.Buffer{}
@@ -213,7 +213,7 @@ func TestFieldData_Copy(t *testing.T) {
 		fieldByIdMap: make(map[int]*Field),
 		fieldByName:  make(map[string]*Field),
 	}
-	msg.addField("FixedField", finfo)
+	msg.addField(9, "FixedField", finfo)
 
 	parsedMsg := &ParsedMsg{IsRequest: true, FieldDataMap: make(map[int]*FieldData), Msg: msg}
 

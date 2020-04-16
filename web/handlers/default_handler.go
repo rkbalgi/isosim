@@ -83,7 +83,9 @@ func setRoutes() {
 			subDir = "css"
 		case strings.HasSuffix(req.RequestURI, ".js"):
 			subDir = "js"
-		case strings.HasSuffix(req.RequestURI, ".ttf"):
+		case strings.HasSuffix(req.RequestURI, ".ttf"),
+			strings.HasSuffix(req.RequestURI, ".woff"),
+			strings.HasSuffix(req.RequestURI, ".woff2"):
 			subDir = "media"
 		default:
 			http.ServeFile(rw, req, filepath.Join(iso.HTMLDir, "react-fe", "build", subDir, fileName))

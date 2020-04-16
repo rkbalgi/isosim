@@ -8,7 +8,7 @@ import (
 )
 
 func TestSpec_Messages(t *testing.T) {
-	spec := SpecByID(26)
+	spec := SpecByID(2)
 	assert.NotNil(t, spec)
 	assert.Equal(t, 2, len(spec.Messages()))
 	assert.Condition(t, func() (success bool) {
@@ -22,7 +22,7 @@ func TestSpec_Messages(t *testing.T) {
 
 func TestSpecByID(t *testing.T) {
 
-	spec := SpecByID(26)
+	spec := SpecByID(1)
 	assert.NotNil(t, spec)
 	spec = SpecByID(99)
 	assert.Nil(t, spec)
@@ -30,11 +30,11 @@ func TestSpecByID(t *testing.T) {
 }
 
 func TestSpec_MessageByID(t *testing.T) {
-	spec := SpecByID(26)
+	spec := SpecByID(2)
 	assert.NotNil(t, spec)
 
 	t.Run("valid msgid", func(t *testing.T) {
-		assert.Equal(t, "1100", spec.MessageByID(27).Name)
+		assert.Equal(t, "1100", spec.MessageByID(1).Name)
 	})
 	t.Run("invalid msgid", func(t *testing.T) {
 		assert.Nil(t, spec.MessageByID(99))
@@ -46,9 +46,9 @@ func Test_FromJSON(t *testing.T) {
 
 	log.SetLevel(log.TraceLevel)
 
-	data := `[{"Id":28,"Value":"1100"},{"Id":29,"Value":"01110000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"},{"Id":30,"Value":"57654333345677"},{"Id":31,"Value":"004000"},{"Id":32,"Value":"000000000100"},{"Id":33,"Value":"877619"}]`
+	data := `[{"Id":1,"Name":"Message Type","Value":"1100"},{"Id":2,"Name":"Bitmap","Value":"01110000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"},{"Id":3,"Name":"PAN","Value":"548876515544244"},{"Id":4,"Name":"Processing Code","Value":"004000"},{"Id":5,"Name":"Amount","Value":"000000000900"},{"Id":6,"Name":"STAN","Value":"122332"}]`
 
-	spec := SpecByID(26)
+	spec := SpecByID(2)
 	msg := spec.MessageByName("1100")
 	parsedMsg, err := msg.ParseJSON(data)
 	if err != nil {
@@ -56,6 +56,6 @@ func Test_FromJSON(t *testing.T) {
 	}
 
 	isoMsg := FromParsedMsg(parsedMsg)
-	assert.Equal(t, "000000000100", isoMsg.Bitmap().Get(4).Value())
+	assert.Equal(t, "000000000900", isoMsg.Bitmap().Get(4).Value())
 
 }
