@@ -150,8 +150,8 @@ func ToJsonList(parsedMsg *iso.ParsedMsg) []data.JsonFieldDataRep {
 
 	fieldDataList := make([]data.JsonFieldDataRep, 0, 10)
 	for id, fieldData := range parsedMsg.FieldDataMap {
-		dataRep := data.JsonFieldDataRep{Id: id, Name: fieldData.Field.Name, Value: fieldData.Field.ValueToString(fieldData.Data)}
-		if fieldData.Field.FieldInfo.Type == iso.Bitmapped {
+		dataRep := data.JsonFieldDataRep{ID: id, Name: fieldData.Field.Name, Value: fieldData.Field.ValueToString(fieldData.Data)}
+		if fieldData.Field.Type == iso.BitmappedType {
 			dataRep.Value = fieldData.Bitmap.BinaryString()
 
 		}

@@ -24,9 +24,9 @@ func FromParsedMsg(parsedMsg *ParsedMsg) *Iso {
 	bmpField := parsedMsg.Msg.fieldByName["Bitmap"]
 
 	//if the bitmap field is not set then initialize it to a empty bitmap
-	if _, ok := parsedMsg.FieldDataMap[bmpField.Id]; !ok {
+	if _, ok := parsedMsg.FieldDataMap[bmpField.ID]; !ok {
 		bmpFieldData := &FieldData{Field: bmpField, Bitmap: emptyBitmap(parsedMsg)}
-		isoMsg.parsedMsg.FieldDataMap[bmpField.Id] = bmpFieldData
+		isoMsg.parsedMsg.FieldDataMap[bmpField.ID] = bmpFieldData
 	}
 
 	return isoMsg
@@ -42,7 +42,7 @@ func (iso *Iso) Set(fieldName string, value string) error {
 	}
 
 	bmpField := iso.parsedMsg.Get("Bitmap")
-	if field.ParentId == bmpField.Field.Id {
+	if field.ParentId == bmpField.Field.ID {
 		iso.Bitmap().SetOn(field.Position)
 		iso.Bitmap().Set(field.Position, value)
 	} else {
@@ -50,7 +50,7 @@ func (iso *Iso) Set(fieldName string, value string) error {
 		if err != nil {
 			return err
 		}
-		iso.parsedMsg.FieldDataMap[field.Id] = &FieldData{Field: field, Data: fieldData}
+		iso.parsedMsg.FieldDataMap[field.ID] = &FieldData{Field: field, Data: fieldData}
 
 	}
 
@@ -62,14 +62,14 @@ func (iso *Iso) Set(fieldName string, value string) error {
 func (iso *Iso) Get(fieldName string) *FieldData {
 
 	field := iso.parsedMsg.Msg.Field(fieldName)
-	return iso.parsedMsg.FieldDataMap[field.Id]
+	return iso.parsedMsg.FieldDataMap[field.ID]
 
 }
 
 // Bitmap returns the Bitmap from the Iso message
 func (iso *Iso) Bitmap() *Bitmap {
 	field := iso.parsedMsg.Msg.Field("Bitmap")
-	fieldData := iso.parsedMsg.FieldDataMap[field.Id].Bitmap
+	fieldData := iso.parsedMsg.FieldDataMap[field.ID].Bitmap
 	if fieldData != nil && fieldData.parsedMsg == nil {
 		fieldData.parsedMsg = iso.parsedMsg
 	}
@@ -87,8 +87,8 @@ func (iso *Iso) Assemble() ([]byte, error) {
 
 	msg := iso.parsedMsg.Msg
 	buf := new(bytes.Buffer)
-	for _, field := range msg.fields {
-		if err := assemble(buf, iso.parsedMsg, iso.parsedMsg.FieldDataMap[field.Id]); err != nil {
+	for _, field := range msg.Fields {
+		if err := assemble(buf, iso.parsedMsg, iso.parsedMsg.FieldDataMap[field.ID]); err != nil {
 			return nil, err
 		}
 	}

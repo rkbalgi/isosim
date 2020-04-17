@@ -15,7 +15,7 @@ import (
 type Bitmap struct {
 	bmpData   []uint64
 	childData map[int]*FieldData
-	field     *Field
+	field     *FieldDefV1
 	//This field is required during response building only
 	parsedMsg *ParsedMsg
 }
@@ -37,8 +37,8 @@ func emptyBitmap(parsedMsg *ParsedMsg) *Bitmap {
 // Get returns the field-data for the field at position 'pos'
 func (bmp *Bitmap) Get(pos int) *FieldData {
 
-	childField := bmp.field.fieldsByPosition[pos]
-	if childField == nil {
+	_, ok := bmp.field.fieldsByPosition[pos]
+	if !ok {
 		log.Fatal("No such field at position -", pos)
 	}
 
@@ -52,8 +52,8 @@ func (bmp *Bitmap) Get(pos int) *FieldData {
 // Set sets a value for a field at position 'pos'
 func (bmp *Bitmap) Set(pos int, val string) error {
 
-	field := bmp.field.fieldsByPosition[pos]
-	if field == nil {
+	field, ok := bmp.field.fieldsByPosition[pos]
+	if !ok {
 		return fmt.Errorf("isosim: Unable to set value for field. No field at position:%d", pos)
 	}
 
@@ -62,15 +62,15 @@ func (bmp *Bitmap) Set(pos int, val string) error {
 		return err
 	}
 	var fieldData *FieldData
-	var ok bool
+
 	if fieldData, ok = bmp.childData[pos]; ok {
 		fieldData.Data = rawFieldData
-		bmp.parsedMsg.FieldDataMap[field.Id] = fieldData
+		bmp.parsedMsg.FieldDataMap[field.ID] = fieldData
 		bmp.SetOn(pos)
 	} else {
 		fieldData = &FieldData{Field: field}
 		fieldData.Data = rawFieldData
-		bmp.parsedMsg.FieldDataMap[field.Id] = fieldData
+		bmp.parsedMsg.FieldDataMap[field.ID] = fieldData
 		bmp.childData[field.Position] = fieldData
 		bmp.SetOn(pos)
 	}
@@ -79,12 +79,12 @@ func (bmp *Bitmap) Set(pos int, val string) error {
 	// initialized  too
 	if field.HasChildren() {
 		log.Traceln("Attempting to set child fields during set parse for parent field -" + field.Name)
-		if field.FieldInfo.Type == Fixed {
+		if field.Type == FixedType {
 			err = parseFixed(bytes.NewBuffer(rawFieldData), bmp.parsedMsg, field)
-		} else if field.FieldInfo.Type == Variable {
+		} else if field.Type == VariableType {
 			// build the complete field with length indicator and parse it again so that it sets up
 			// all the children
-			vFieldWithLI, err := buildLengthIndicator(field.FieldInfo.LengthIndicatorEncoding, field.FieldInfo.LengthIndicatorSize, len(fieldData.Data))
+			vFieldWithLI, err := buildLengthIndicator(field.LengthIndicatorEncoding, field.LengthIndicatorSize, len(fieldData.Data))
 			if err != nil {
 				return fmt.Errorf("isosim: Unable to set value for variable field: %s :%w", field.Name, err)
 			}
@@ -121,21 +121,21 @@ func (bmp *Bitmap) Bytes() []byte {
 		}
 	}
 
-	switch bmp.field.FieldInfo.FieldDataEncoding {
-	case ASCII:
+	switch bmp.field.DataEncoding {
+	case ASCIIEncoding:
 		asciiBuf := &bytes.Buffer{}
 		asciiBuf.Write([]byte(strings.ToUpper(hex.EncodeToString(buf.Bytes()))))
 		buf = asciiBuf
-	case EBCDIC:
+	case EBCDICEncoding:
 		ebdicBuf := &bytes.Buffer{}
 		bin := strings.ToUpper(hex.EncodeToString(buf.Bytes()))
 		ebdicBuf.Write(ebcdic.Decode(bin))
 		buf = ebdicBuf
-	case BINARY:
+	case BINARYEncoding:
 		//already taken care of
 
 	default:
-		log.Errorf("isosim: Invalid encoding %v for Bitmap field", bmp.field.FieldInfo.FieldDataEncoding)
+		log.Errorf("isosim: Invalid encoding %v for Bitmap field", bmp.field.DataEncoding)
 
 	}
 
@@ -155,14 +155,14 @@ func (bmp *Bitmap) BinaryString() string {
 
 }
 
-func (bmp *Bitmap) parse(inputBuffer *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
+func (bmp *Bitmap) parse(inputBuffer *bytes.Buffer, parsedMsg *ParsedMsg, field *FieldDefV1) error {
 
 	var buf *bytes.Buffer
 	var err error
 
-	encoding := bmp.field.FieldInfo.FieldDataEncoding
+	encoding := bmp.field.DataEncoding
 	switch encoding {
-	case ASCII, EBCDIC:
+	case ASCIIEncoding, EBCDICEncoding:
 		if buf, err = toBinary(inputBuffer, encoding); err != nil {
 			return err
 		}
@@ -194,7 +194,7 @@ func (bmp *Bitmap) parse(inputBuffer *bytes.Buffer, parsedMsg *ParsedMsg, field 
 	}
 
 	if parsedMsg != nil && field != nil {
-		parsedMsg.FieldDataMap[field.Id] = &FieldData{Data: nil, Field: field, Bitmap: bmp}
+		parsedMsg.FieldDataMap[field.ID] = &FieldData{Data: nil, Field: field, Bitmap: bmp}
 
 	}
 
@@ -204,7 +204,7 @@ func (bmp *Bitmap) parse(inputBuffer *bytes.Buffer, parsedMsg *ParsedMsg, field 
 
 // toBinary extract data for a ASCII/EBCDIC encoded bitmap and coverts
 // it into a BINARY bitmap
-func toBinary(inputBuffer *bytes.Buffer, encoding Encoding) (*bytes.Buffer, error) {
+func toBinary(inputBuffer *bytes.Buffer, encoding EncodingV1) (*bytes.Buffer, error) {
 
 	// Each byte is represented by 2 bytes, so regular 8 byte becomes 16 - so a primary, secondary and tertiary
 	// bitmap in ASCII/EBCDIC is 48 bytes

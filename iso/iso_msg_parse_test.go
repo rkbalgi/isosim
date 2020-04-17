@@ -9,6 +9,7 @@ import (
 )
 
 func init() {
+	log.SetLevel(log.TraceLevel)
 	if err := ReadSpecs(filepath.Join("..", "specs")); err != nil {
 		log.Fatal(err)
 		return

@@ -107,7 +107,9 @@ func readLegacyFile(specDir string, specFile string) error {
 				if err != nil {
 					return errors.New("isosim: Syntax error in (field-specification) . Line = " + line)
 				}
-				msg.addField(fieldId, fieldName, fieldInfo)
+				fieldInfo.ID, fieldInfo.Name = fieldId, fieldName
+
+				msg.addField(fieldInfo)
 
 			}
 		case 6:
@@ -140,7 +142,9 @@ func readLegacyFile(specDir string, specFile string) error {
 				if err != nil {
 					return errors.New("isosim: Syntax error in field-specification. Line = " + line)
 				}
-				parentField.addChild(fieldId, fieldName, pos, fieldInfo)
+				fieldInfo.ID, fieldInfo.Name, fieldInfo.Position = fieldId, fieldName, pos
+				fieldInfo.ParentId = parentField.ID
+				parentField.addChild(fieldInfo)
 
 			}
 		default:
@@ -152,7 +156,7 @@ func readLegacyFile(specDir string, specFile string) error {
 
 }
 
-func resolveField(msg *Message, ref string) (*Field, error) {
+func resolveField(msg *Message, ref string) (*FieldDefV1, error) {
 
 	if NumericRegexPattern.Match([]byte(ref)) {
 		fieldId, _ := strconv.Atoi(ref)

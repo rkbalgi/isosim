@@ -43,16 +43,16 @@ func (e Encoding) ToString(data []byte) string {
 }
 
 // GetEncodingName returns a string form for encoding
-func GetEncodingName(encoding Encoding) string {
+func GetEncodingName(encoding EncodingV1) string {
 
 	switch encoding {
-	case ASCII:
+	case ASCIIEncoding:
 		return "ASCII"
-	case EBCDIC:
+	case EBCDICEncoding:
 		return "EBCDIC"
-	case BCD:
+	case BCDEncoding:
 		return "BCD"
-	case BINARY:
+	case BINARYEncoding:
 		return "BINARY"
 	}
 

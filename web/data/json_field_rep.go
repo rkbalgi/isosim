@@ -8,7 +8,7 @@ import "isosim/iso"
 // API calls)
 type JsonFieldInfoRep struct {
 	Name                string
-	Id                  int
+	ID                  int
 	ParentId            int
 	Children            []*JsonFieldInfoRep
 	Position            int
@@ -24,7 +24,7 @@ type JsonFieldInfoRep struct {
 
 // JsonFieldDataRep is the representation of a field's data
 type JsonFieldDataRep struct {
-	Id    int
+	ID    int
 	Name  string
 	Value string
 }
@@ -33,48 +33,48 @@ type JsonMessageTemplate struct {
 	Fields []*JsonFieldInfoRep
 }
 
-func newJsonFieldTemplate(field *iso.Field) *JsonFieldInfoRep {
+func newJsonFieldTemplate(field *iso.FieldDefV1) *JsonFieldInfoRep {
 	jFieldInfo := &JsonFieldInfoRep{Children: make([]*JsonFieldInfoRep, 0, 10)}
-	jFieldInfo.Id = field.Id
+	jFieldInfo.ID = field.ID
 	jFieldInfo.Name = field.Name
 	jFieldInfo.Position = field.Position
-	jFieldInfo.DataEncoding = iso.GetEncodingName(field.FieldInfo.FieldDataEncoding)
+	jFieldInfo.DataEncoding = iso.GetEncodingName(field.DataEncoding)
 
-	fieldInfo := field.FieldInfo
+	//fieldInfo := field.FieldInfo
 
-	switch fieldInfo.Type {
-	case iso.Bitmapped:
+	switch field.Type {
+	case iso.BitmappedType:
 		jFieldInfo.Type = "Bitmapped"
 
-	case iso.Fixed:
+	case iso.FixedType:
 		jFieldInfo.Type = "Fixed"
-		jFieldInfo.FixedSize = fieldInfo.FieldSize
-		if len(fieldInfo.Content) > 0 {
-			jFieldInfo.ContentType = fieldInfo.Content
+		jFieldInfo.FixedSize = field.Size
+		if len(field.Constraints.ContentType) > 0 {
+			jFieldInfo.ContentType = field.Constraints.ContentType
 		} else {
-			jFieldInfo.ContentType = "Any"
+			jFieldInfo.ContentType = iso.ContentTypeAny
 		}
 
-	case iso.Variable:
+	case iso.VariableType:
 
 		jFieldInfo.Type = "Variable"
-		jFieldInfo.LengthIndicatorSize = fieldInfo.LengthIndicatorSize
-		jFieldInfo.LengthEncoding = iso.GetEncodingName(fieldInfo.LengthIndicatorEncoding)
-		if len(fieldInfo.Content) > 0 {
-			jFieldInfo.ContentType = fieldInfo.Content
+		jFieldInfo.LengthIndicatorSize = field.LengthIndicatorSize
+		jFieldInfo.LengthEncoding = iso.GetEncodingName(field.LengthIndicatorEncoding)
+		if len(field.Constraints.ContentType) > 0 {
+			jFieldInfo.ContentType = field.Constraints.ContentType
 		} else {
-			jFieldInfo.ContentType = "Any"
+			jFieldInfo.ContentType = iso.ContentTypeAny
 		}
 
-		jFieldInfo.MinSize = fieldInfo.MinSize
-		jFieldInfo.MaxSize = fieldInfo.MaxSize
+		jFieldInfo.MinSize = field.Constraints.MinSize
+		jFieldInfo.MaxSize = field.Constraints.MaxSize
 
 	}
 
 	if field.HasChildren() {
-		for _, childField := range field.Children() {
+		for _, childField := range field.Children {
 			childJsonFieldTemplate := newJsonFieldTemplate(childField)
-			childJsonFieldTemplate.ParentId = field.Id
+			childJsonFieldTemplate.ParentId = field.ID
 			childJsonFieldTemplate.Position = childField.Position
 
 			jFieldInfo.Children = append(jFieldInfo.Children, childJsonFieldTemplate)
@@ -89,7 +89,7 @@ func newJsonFieldTemplate(field *iso.Field) *JsonFieldInfoRep {
 func NewJsonMessageTemplate(msg *iso.Message) *JsonMessageTemplate {
 
 	jsonMsgTemplate := &JsonMessageTemplate{Fields: make([]*JsonFieldInfoRep, 0, 10)}
-	for _, field := range msg.Fields() {
+	for _, field := range msg.Fields {
 
 		jsonFieldTemplate := newJsonFieldTemplate(field)
 		jsonMsgTemplate.Fields = append(jsonMsgTemplate.Fields, jsonFieldTemplate)

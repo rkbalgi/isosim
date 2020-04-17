@@ -17,10 +17,11 @@ func Test_BitmapField(t *testing.T) {
 	t.Run("parse binary bitmap field - success", func(t *testing.T) {
 		data, _ := hex.DecodeString("F000001018010002E0200000100201000000200004040201")
 
-		info := &FieldInfo{Type: Bitmapped, FieldDataEncoding: BINARY}
+		info := &FieldDefV1{ID: 10, Name: "Bitmap", Type: BitmappedType, DataEncoding: BINARYEncoding}
 
-		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*Field), fieldByName: make(map[string]*Field)}, FieldDataMap: make(map[int]*FieldData)}
-		field := p.Msg.addField(10, "Bitmap", info)
+		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*FieldDefV1),
+			fieldByName: make(map[string]*FieldDefV1)}, FieldDataMap: make(map[int]*FieldData)}
+		field := p.Msg.addField(info)
 
 		buf := bytes.NewBuffer(data)
 		err := parseBitmap(buf, p, field)
@@ -36,10 +37,11 @@ func Test_BitmapField(t *testing.T) {
 	t.Run("parse binary bitmap field - success (primary only)", func(t *testing.T) {
 		data, _ := hex.DecodeString("7000001018010002")
 
-		info := &FieldInfo{Type: Bitmapped, FieldDataEncoding: BINARY}
+		info := &FieldDefV1{ID: 10, Name: "Bitmap", Type: BitmappedType, DataEncoding: BINARYEncoding}
 
-		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*Field), fieldByName: make(map[string]*Field)}, FieldDataMap: make(map[int]*FieldData)}
-		field := p.Msg.addField(10, "Bitmap", info)
+		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*FieldDefV1),
+			fieldByName: make(map[string]*FieldDefV1)}, FieldDataMap: make(map[int]*FieldData)}
+		field := p.Msg.addField(info)
 
 		buf := bytes.NewBuffer(data)
 		err := parseBitmap(buf, p, field)
@@ -55,10 +57,11 @@ func Test_BitmapField(t *testing.T) {
 	t.Run("parse binary bitmap field - success (primary and secondary)", func(t *testing.T) {
 		data, _ := hex.DecodeString("F0000010180100026020000010020100")
 
-		info := &FieldInfo{Type: Bitmapped, FieldDataEncoding: BINARY}
+		info := &FieldDefV1{ID: 10, Name: "Bitmap", Type: BitmappedType, DataEncoding: BINARYEncoding}
 
-		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*Field), fieldByName: make(map[string]*Field)}, FieldDataMap: make(map[int]*FieldData)}
-		field := p.Msg.addField(10, "Bitmap", info)
+		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*FieldDefV1),
+			fieldByName: make(map[string]*FieldDefV1)}, FieldDataMap: make(map[int]*FieldData)}
+		field := p.Msg.addField(info)
 
 		buf := bytes.NewBuffer(data)
 		err := parseBitmap(buf, p, field)
@@ -74,10 +77,11 @@ func Test_BitmapField(t *testing.T) {
 	t.Run("parse binary bitmap field - failure", func(t *testing.T) {
 		data, _ := hex.DecodeString("F000000018010002E0200000100201000000200004040201")
 
-		field := &Field{Id: 10, Name: "Bitmap", FieldInfo: &FieldInfo{Type: Bitmapped, FieldDataEncoding: BINARY}}
+		info := &FieldDefV1{ID: 10, Name: "Bitmap", Type: BitmappedType, DataEncoding: BINARYEncoding}
 
-		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*Field), fieldByName: make(map[string]*Field)}, FieldDataMap: make(map[int]*FieldData)}
-		p.Msg.addField(10, "Bitmap", field.FieldInfo)
+		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*FieldDefV1),
+			fieldByName: make(map[string]*FieldDefV1)}, FieldDataMap: make(map[int]*FieldData)}
+		field := p.Msg.addField(info)
 
 		buf := bytes.NewBuffer(data)
 		err := parseBitmap(buf, p, field)
@@ -90,10 +94,11 @@ func Test_BitmapField(t *testing.T) {
 
 		data, _ := hex.DecodeString("463030303030313031383031303030324530323030303030313030323031303030303030323030303034303430323031")
 
-		info := &FieldInfo{Type: Bitmapped, FieldDataEncoding: ASCII}
+		info := &FieldDefV1{ID: 10, Name: "Bitmap", Type: BitmappedType, DataEncoding: ASCIIEncoding}
 
-		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*Field), fieldByName: make(map[string]*Field)}, FieldDataMap: make(map[int]*FieldData)}
-		field := p.Msg.addField(10, "Bitmap", info)
+		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*FieldDefV1),
+			fieldByName: make(map[string]*FieldDefV1)}, FieldDataMap: make(map[int]*FieldData)}
+		field := p.Msg.addField(info)
 
 		buf := bytes.NewBuffer(data)
 		err := parseBitmap(buf, p, field)
@@ -111,9 +116,11 @@ func Test_BitmapField(t *testing.T) {
 		ebcdicBmp := hex.EncodeToString(ebcdic.Decode("F000001018010002E0200000100201000000200004040201"))
 		data, _ := hex.DecodeString(ebcdicBmp)
 
-		info := &FieldInfo{Type: Bitmapped, FieldDataEncoding: EBCDIC}
-		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*Field), fieldByName: make(map[string]*Field)}, FieldDataMap: make(map[int]*FieldData)}
-		field := p.Msg.addField(10, "Bitmap", info)
+		info := &FieldDefV1{ID: 10, Name: "Bitmap", Type: BitmappedType, DataEncoding: EBCDICEncoding}
+
+		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*FieldDefV1),
+			fieldByName: make(map[string]*FieldDefV1)}, FieldDataMap: make(map[int]*FieldData)}
+		field := p.Msg.addField(info)
 
 		buf := bytes.NewBuffer(data)
 		err := parseBitmap(buf, p, field)
@@ -130,15 +137,15 @@ func Test_BitmapField(t *testing.T) {
 
 func Test_FixedField(t *testing.T) {
 
-	finfo := &FieldInfo{Type: Fixed, FieldSize: 4, FieldDataEncoding: ASCII}
+	finfo := &FieldDefV1{ID: 9, Name: "FixedField", Type: FixedType, Size: 4, DataEncoding: ASCIIEncoding}
 	msg := &Message{
-		Id:           1,
+		ID:           1,
 		Name:         "Default",
-		fields:       make([]*Field, 0),
-		fieldByIdMap: make(map[int]*Field),
-		fieldByName:  make(map[string]*Field),
+		Fields:       make([]*FieldDefV1, 0),
+		fieldByIdMap: make(map[int]*FieldDefV1),
+		fieldByName:  make(map[string]*FieldDefV1),
 	}
-	msg.addField(9, "FixedField", finfo)
+	msg.addField(finfo)
 	parsedMsg := &ParsedMsg{IsRequest: true, FieldDataMap: make(map[int]*FieldData), Msg: msg}
 
 	buf := bytes.NewBufferString("1234")
@@ -153,38 +160,40 @@ func Test_FixedField(t *testing.T) {
 
 func Test_VariableField(t *testing.T) {
 
+	name := "VariableField"
 	t.Run("variable field with ascii and ascii", func(t *testing.T) {
-		fieldInfo := &FieldInfo{Type: Variable, FieldDataEncoding: ASCII, LengthIndicatorEncoding: ASCII, LengthIndicatorSize: 2}
+		fieldInfo := &FieldDefV1{ID: 9, Name: name, Type: VariableType,
+			DataEncoding: ASCIIEncoding, LengthIndicatorEncoding: ASCIIEncoding, LengthIndicatorSize: 2}
 
 		msg := &Message{
-			Id:           1,
+			ID:           1,
 			Name:         "Default",
-			fields:       make([]*Field, 0),
-			fieldByIdMap: make(map[int]*Field),
-			fieldByName:  make(map[string]*Field),
+			Fields:       make([]*FieldDefV1, 0),
+			fieldByIdMap: make(map[int]*FieldDefV1),
+			fieldByName:  make(map[string]*FieldDefV1),
 		}
-		fieldName := "VariableField"
-		msg.addField(9, fieldName, fieldInfo)
+
+		msg.addField(fieldInfo)
 		parsedMsg := &ParsedMsg{IsRequest: true, FieldDataMap: make(map[int]*FieldData), Msg: msg}
 
 		buf := bytes.NewBufferString("041234")
-		if err := parseVariable(buf, parsedMsg, msg.Field(fieldName)); err != nil {
+		if err := parseVariable(buf, parsedMsg, msg.Field(name)); err != nil {
 			t.Fatal(err)
 		}
 
-		assert.Equal(t, "1234", parsedMsg.Get(fieldName).Value())
-		assert.Equal(t, []byte{0x31, 0x32, 0x33, 0x34}, parsedMsg.Get(fieldName).Data)
+		assert.Equal(t, "1234", parsedMsg.Get(name).Value())
+		assert.Equal(t, []byte{0x31, 0x32, 0x33, 0x34}, parsedMsg.Get(name).Data)
 
 		//also assemble the field and check the length indicator
 		buf2 := &bytes.Buffer{}
-		if err := assemble(buf2, parsedMsg, parsedMsg.Get(fieldName)); err != nil {
+		if err := assemble(buf2, parsedMsg, parsedMsg.Get(name)); err != nil {
 			t.Fatal(err)
 		}
 		assert.Equal(t, []byte{0x30, 0x34, 0x31, 0x32, 0x33, 0x34}, buf2.Bytes())
 
 		buf2.Reset()
-		parsedMsg.Get("VariableField").Set("covid19")
-		if err := assemble(buf2, parsedMsg, parsedMsg.Get(fieldName)); err != nil {
+		parsedMsg.Get(name).Set("covid19")
+		if err := assemble(buf2, parsedMsg, parsedMsg.Get(name)); err != nil {
 			t.Fatal(err)
 		}
 		assert.Equal(t, append([]byte{0x30, 0x37}, []byte("covid19")...), buf2.Bytes())
@@ -192,17 +201,21 @@ func Test_VariableField(t *testing.T) {
 	})
 
 	t.Run("variable field with bcd (1) and ascii", func(t *testing.T) {
-		fieldInfo := &FieldInfo{Type: Variable, FieldDataEncoding: ASCII, LengthIndicatorEncoding: BCD, LengthIndicatorSize: 1}
+
+		fieldName := "VariableField"
+
+		fieldInfo := &FieldDefV1{ID: 9, Name: fieldName, Type: VariableType, DataEncoding: ASCIIEncoding,
+			LengthIndicatorEncoding: BCDEncoding, LengthIndicatorSize: 1}
 
 		msg := &Message{
-			Id:           1,
+			ID:           1,
 			Name:         "Default",
-			fields:       make([]*Field, 0),
-			fieldByIdMap: make(map[int]*Field),
-			fieldByName:  make(map[string]*Field),
+			Fields:       make([]*FieldDefV1, 0),
+			fieldByIdMap: make(map[int]*FieldDefV1),
+			fieldByName:  make(map[string]*FieldDefV1),
 		}
-		fieldName := "VariableField"
-		msg.addField(9, fieldName, fieldInfo)
+
+		msg.addField(fieldInfo)
 		parsedMsg := &ParsedMsg{IsRequest: true, FieldDataMap: make(map[int]*FieldData), Msg: msg}
 
 		buf := &bytes.Buffer{}
@@ -225,17 +238,18 @@ func Test_VariableField(t *testing.T) {
 	})
 
 	t.Run("variable field with bcd (2) and ascii", func(t *testing.T) {
-		fieldInfo := &FieldInfo{Type: Variable, FieldDataEncoding: ASCII, LengthIndicatorEncoding: BCD, LengthIndicatorSize: 2}
+		fieldInfo := &FieldDefV1{ID: 9, Name: name, Type: VariableType,
+			DataEncoding: ASCIIEncoding, LengthIndicatorEncoding: BCDEncoding, LengthIndicatorSize: 2}
 
 		msg := &Message{
-			Id:           1,
+			ID:           1,
 			Name:         "Default",
-			fields:       make([]*Field, 0),
-			fieldByIdMap: make(map[int]*Field),
-			fieldByName:  make(map[string]*Field),
+			Fields:       make([]*FieldDefV1, 0),
+			fieldByIdMap: make(map[int]*FieldDefV1),
+			fieldByName:  make(map[string]*FieldDefV1),
 		}
-		fieldName := "VariableField"
-		msg.addField(9, fieldName, fieldInfo)
+		fieldName := name
+		msg.addField(fieldInfo)
 		parsedMsg := &ParsedMsg{IsRequest: true, FieldDataMap: make(map[int]*FieldData), Msg: msg}
 
 		buf := &bytes.Buffer{}
@@ -258,17 +272,19 @@ func Test_VariableField(t *testing.T) {
 	})
 
 	t.Run("variable field with binary (1) and ascii", func(t *testing.T) {
-		fieldInfo := &FieldInfo{Type: Variable, FieldDataEncoding: ASCII, LengthIndicatorEncoding: BINARY, LengthIndicatorSize: 1}
+		fieldName := "VariableField"
+		fieldInfo := &FieldDefV1{ID: 9, Name: fieldName, Type: VariableType, DataEncoding: ASCIIEncoding,
+			LengthIndicatorEncoding: BINARYEncoding, LengthIndicatorSize: 1}
 
 		msg := &Message{
-			Id:           1,
+			ID:           1,
 			Name:         "Default",
-			fields:       make([]*Field, 0),
-			fieldByIdMap: make(map[int]*Field),
-			fieldByName:  make(map[string]*Field),
+			Fields:       make([]*FieldDefV1, 0),
+			fieldByIdMap: make(map[int]*FieldDefV1),
+			fieldByName:  make(map[string]*FieldDefV1),
 		}
-		fieldName := "VariableField"
-		msg.addField(9, fieldName, fieldInfo)
+
+		msg.addField(fieldInfo)
 		parsedMsg := &ParsedMsg{IsRequest: true, FieldDataMap: make(map[int]*FieldData), Msg: msg}
 
 		buf := &bytes.Buffer{}
@@ -291,17 +307,19 @@ func Test_VariableField(t *testing.T) {
 	})
 
 	t.Run("variable field with binary (2) and ascii", func(t *testing.T) {
-		fieldInfo := &FieldInfo{Type: Variable, FieldDataEncoding: ASCII, LengthIndicatorEncoding: BINARY, LengthIndicatorSize: 2}
+		fieldName := "VariableField"
+		fieldInfo := &FieldDefV1{ID: 9, Name: fieldName, Type: VariableType, DataEncoding: ASCIIEncoding,
+			LengthIndicatorEncoding: BINARYEncoding, LengthIndicatorSize: 2}
 
 		msg := &Message{
-			Id:           1,
+			ID:           1,
 			Name:         "Default",
-			fields:       make([]*Field, 0),
-			fieldByIdMap: make(map[int]*Field),
-			fieldByName:  make(map[string]*Field),
+			Fields:       make([]*FieldDefV1, 0),
+			fieldByIdMap: make(map[int]*FieldDefV1),
+			fieldByName:  make(map[string]*FieldDefV1),
 		}
-		fieldName := "VariableField"
-		msg.addField(9, fieldName, fieldInfo)
+
+		msg.addField(fieldInfo)
 		parsedMsg := &ParsedMsg{IsRequest: true, FieldDataMap: make(map[int]*FieldData), Msg: msg}
 
 		buf := &bytes.Buffer{}
@@ -327,15 +345,15 @@ func Test_VariableField(t *testing.T) {
 
 func TestFieldData_Copy(t *testing.T) {
 
-	finfo := &FieldInfo{Type: Fixed, FieldSize: 4, FieldDataEncoding: ASCII}
+	finfo := &FieldDefV1{ID: 9, Name: "FixedField", Type: FixedType, Size: 4, DataEncoding: ASCIIEncoding}
 	msg := &Message{
-		Id:           1,
+		ID:           1,
 		Name:         "Default",
-		fields:       make([]*Field, 0),
-		fieldByIdMap: make(map[int]*Field),
-		fieldByName:  make(map[string]*Field),
+		Fields:       make([]*FieldDefV1, 0),
+		fieldByIdMap: make(map[int]*FieldDefV1),
+		fieldByName:  make(map[string]*FieldDefV1),
 	}
-	msg.addField(9, "FixedField", finfo)
+	msg.addField(finfo)
 
 	parsedMsg := &ParsedMsg{IsRequest: true, FieldDataMap: make(map[int]*FieldData), Msg: msg}
 

@@ -10,9 +10,9 @@ import (
 func TestSpec_Messages(t *testing.T) {
 	spec := SpecByID(2)
 	assert.NotNil(t, spec)
-	assert.Equal(t, 2, len(spec.Messages()))
+	assert.Equal(t, 2, len(spec.Messages))
 	assert.Condition(t, func() (success bool) {
-		if (spec.Messages()[0].Name == "1100" || spec.Messages()[1].Name == "1420") || (spec.Messages()[0].Name == "1420" || spec.Messages()[1].Name == "1100") {
+		if (spec.Messages[0].Name == "1100" || spec.Messages[1].Name == "1420") || (spec.Messages[0].Name == "1420" || spec.Messages[1].Name == "1100") {
 			return true
 		}
 		return false
@@ -46,7 +46,7 @@ func Test_FromJSON(t *testing.T) {
 
 	log.SetLevel(log.TraceLevel)
 
-	data := `[{"Id":1,"Name":"Message Type","Value":"1100"},{"Id":2,"Name":"Bitmap","Value":"01110000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"},{"Id":3,"Name":"PAN","Value":"548876515544244"},{"Id":4,"Name":"Processing Code","Value":"004000"},{"Id":5,"Name":"Amount","Value":"000000000900"},{"Id":6,"Name":"STAN","Value":"122332"}]`
+	data := `[{"ID":1,"Name":"Message Type","Value":"1100"},{"ID":2,"Name":"Bitmap","Value":"01110000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"},{"ID":3,"Name":"PAN","Value":"548876515544244"},{"ID":4,"Name":"Processing Code","Value":"004000"},{"ID":5,"Name":"Amount","Value":"000000000900"},{"ID":6,"Name":"STAN","Value":"122332"}]`
 
 	spec := SpecByID(2)
 	msg := spec.MessageByName("1100")

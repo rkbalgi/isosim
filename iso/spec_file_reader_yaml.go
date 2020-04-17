@@ -1,7 +1,9 @@
 package iso
 
 import (
+	"encoding/hex"
 	"fmt"
+	"github.com/rkbalgi/go/encoding/ebcdic"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
@@ -9,23 +11,26 @@ import (
 )
 
 type SpecsV1 struct {
-	Specs []SpecDefV1 `yaml:"specs"`
-}
-
-type SpecDefV1 struct {
-	Name     string         `yaml:"name"`
-	ID       int            `yaml:"id"`
-	Messages []MessageDefV1 `yaml:"messages"`
-}
-
-type MessageDefV1 struct {
-	Name   string       `yaml:"name"`
-	ID     int          `yaml:"id"`
-	Fields []FieldDefV1 `yaml:"fields"`
+	Specs []Spec `yaml:"specs"`
 }
 
 type FieldTypeV1 string
 type EncodingV1 string
+
+func (e EncodingV1) ToString(data []byte) string {
+
+	switch e {
+	case ASCIIEncoding:
+		return string(data)
+	case EBCDICEncoding:
+		return ebcdic.EncodeToString(data)
+	case BCDEncoding, BINARYEncoding:
+		return hex.EncodeToString(data)
+	}
+
+	return ""
+
+}
 
 const (
 	FixedType     FieldTypeV1 = "Fixed"
@@ -38,107 +43,8 @@ const (
 	BCDEncoding    EncodingV1 = "BCD"
 )
 
-type FieldConstraints struct {
-	ContentType string `yaml:"string"`
-	MaxSize     int    `yaml:"max_size"`
-	MinSize     int    `yaml:"min_size"`
-}
-
-type FieldDefV1 struct {
-	Name                    string      `yaml:"name"`
-	ID                      int         `yaml:"id"`
-	Type                    FieldTypeV1 `yaml:"type"`
-	Size                    int         `yaml:"size"`
-	Position                int         `yaml:"position"`
-	DataEncoding            EncodingV1  `yaml:"data_encoding"`
-	LengthIndicatorSize     int         `yaml:"length_indicator_size"`
-	LengthIndicatorEncoding EncodingV1  `yaml:"length_indicator_encoding"`
-
-	Constraints FieldConstraints `yaml:"constraints"`
-	Children    []FieldDefV1     `yaml:"children"`
-}
-
-func (f FieldDefV1) info() (*FieldInfo, error) {
-	info := &FieldInfo{
-
-		Content:             f.Constraints.ContentType,
-		MaxSize:             0,
-		MinSize:             0,
-		FieldSize:           f.Size,
-		LengthIndicatorSize: f.LengthIndicatorSize,
-	}
-
-	switch f.Type {
-	case FixedType:
-		info.Type = Fixed
-	case VariableType:
-		info.Type = Variable
-	case BitmappedType:
-		info.Type = Bitmapped
-	}
-
-	switch f.DataEncoding {
-	case ASCIIEncoding:
-		{
-			info.FieldDataEncoding = ASCII
-		}
-	case EBCDICEncoding:
-		{
-			info.FieldDataEncoding = EBCDIC
-		}
-	case BCDEncoding:
-		{
-			info.FieldDataEncoding = BCD
-		}
-	case BINARYEncoding:
-		{
-			info.FieldDataEncoding = BINARY
-		}
-	default:
-		return nil, fmt.Errorf("isosim: Invalid/Unspecified data encoding for field %s\n ", f.Name)
-	}
-
-	if f.Type == VariableType {
-		switch f.LengthIndicatorEncoding {
-		case ASCIIEncoding:
-			{
-				info.LengthIndicatorEncoding = ASCII
-			}
-		case EBCDICEncoding:
-			{
-				info.LengthIndicatorEncoding = EBCDIC
-			}
-		case BCDEncoding:
-			{
-				info.LengthIndicatorEncoding = BCD
-			}
-		case BINARYEncoding:
-			{
-				info.LengthIndicatorEncoding = BINARY
-			}
-		default:
-			return nil, fmt.Errorf("isosim: Invalid/Unspecified length encoding for field %s \n", f.Name)
-		}
-
-		if f.Constraints.ContentType != "" {
-			info.Content = f.Constraints.ContentType
-		} else {
-			info.Content = ContentTypeAny
-		}
-		if f.Constraints.MinSize > 0 {
-			info.MinSize = f.Constraints.MinSize
-		}
-		if f.Constraints.MaxSize > 0 {
-			info.MaxSize = f.Constraints.MaxSize
-		}
-
-	}
-	return info, nil
-
-}
-
 // reads the new yaml files
-func readSpecDef(specDir string, name string) ([]SpecDefV1, error) {
+func readSpecDef(specDir string, name string) ([]Spec, error) {
 
 	file, err := os.OpenFile(filepath.Join(specDir, name), os.O_RDONLY, 0644)
 	if err != nil {
@@ -159,7 +65,7 @@ func readSpecDef(specDir string, name string) ([]SpecDefV1, error) {
 }
 
 // register the newer spec definitions (based on yaml) into our old structures
-func processSpecs(specs []SpecDefV1) error {
+func processSpecs(specs []Spec) error {
 
 	for _, newSpec := range specs {
 
@@ -188,18 +94,14 @@ func processSpecs(specs []SpecDefV1) error {
 	return nil
 }
 
-func processField(msg *Message, f FieldDefV1) error {
+func processField(msg *Message, f *FieldDefV1) error {
 	fld := msg.FieldById(f.ID)
 	if fld != nil {
 		return fmt.Errorf("isosim: Field with ID %d already exists in Msg: %s", f.ID, msg.Name)
 	}
 
-	var info *FieldInfo
 	var err error
-	if info, err = f.info(); err != nil {
-		return err
-	}
-	msg.addField(f.ID, f.Name, info)
+	msg.addField(f)
 
 	if err = processChildren(msg, f); err != nil {
 		return err
@@ -208,17 +110,12 @@ func processField(msg *Message, f FieldDefV1) error {
 	return nil
 }
 
-func processChildren(msg *Message, f FieldDefV1) error {
-	var info *FieldInfo
-	var err error
+func processChildren(msg *Message, f *FieldDefV1) error {
 
 	if len(f.Children) > 0 {
 		for _, cf := range f.Children {
 
-			if info, err = cf.info(); err != nil {
-				return err
-			}
-			msg.Field(f.Name).addChild(cf.ID, cf.Name, cf.Position, info)
+			msg.Field(f.Name).addChild(cf)
 			if len(cf.Children) > 0 {
 				if err := processChildren(msg, cf); err != nil {
 					return err

@@ -13,17 +13,17 @@ func allSpecsHandler() {
 		rw.Header().Add("Access-Control-Allow-Origin", "http://localhost:3000")
 
 		specs := make([]struct {
-			Id       int
+			ID       int
 			Name     string
 			Messages []*iso.Message
 		}, 0)
 
 		for _, s := range iso.Specs() {
 			specs = append(specs, struct {
-				Id       int
+				ID       int
 				Name     string
 				Messages []*iso.Message
-			}{Id: s.Id, Name: s.Name, Messages: s.Messages()})
+			}{ID: s.ID, Name: s.Name, Messages: s.Messages})
 		}
 
 		//sort them so that they appear consistently on the UI
