@@ -131,6 +131,8 @@ func (bmp *Bitmap) Bytes() []byte {
 		bin := strings.ToUpper(hex.EncodeToString(buf.Bytes()))
 		ebdicBuf.Write(ebcdic.Decode(bin))
 		buf = ebdicBuf
+	case BINARY:
+		//already taken care of
 
 	default:
 		log.Errorf("isosim: Invalid encoding %v for Bitmap field", bmp.field.FieldInfo.FieldDataEncoding)

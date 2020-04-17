@@ -116,6 +116,9 @@ func Test_AssembleBitmapField(t *testing.T) {
 func Test_GenerateBitmap(t *testing.T) {
 
 	bmp := NewBitmap()
+	bmp.field = &Field{FieldInfo: &FieldInfo{
+		FieldDataEncoding: BINARY,
+	}}
 	bmp.SetOn(2)
 	bmp.SetOn(3)
 	bmp.SetOn(4)
@@ -135,14 +138,15 @@ func Test_onFields(t *testing.T) {
 	data := make([]byte, 16)
 
 	hex.Decode(data, []byte("e4000000000001100000002000000000"))
-
 	_, _ = hex.NewDecoder(strings.NewReader("e4000000000001100000002000000000")).Read(data)
-	/*if err != nil || n != 16 {
-		t.Fatal(err,n)
-		return
-	}*/
+
 	t.Log(data)
 	bmp := NewBitmap()
+	bmp.field = &Field{
+		FieldInfo: &FieldInfo{
+			FieldDataEncoding: BINARY,
+		},
+	}
 	bmp.parse(bytes.NewBuffer(data), nil, nil)
 	binString := bmp.BinaryString()
 	for i, c := range binString {
