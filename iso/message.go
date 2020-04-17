@@ -35,11 +35,11 @@ func (msg *Message) NewIso() *Iso {
 	return isoMsg
 }
 
-func (msg *Message) addField(fieldId int, name string, info *FieldInfo) {
+func (msg *Message) addField(fieldId int, name string, info *FieldInfo) *Field {
 
 	if _, ok := msg.fieldByName[name]; ok {
 		log.Printf("field %s already exists!", name)
-		return
+		return nil
 	}
 	field := &Field{Name: name, Id: fieldId,
 		fields:           make([]*Field, 0),
@@ -50,6 +50,7 @@ func (msg *Message) addField(fieldId int, name string, info *FieldInfo) {
 	msg.fieldByIdMap[field.Id] = field
 	msg.fieldByName[name] = field
 	msg.fields = append(msg.fields, field)
+	return field
 
 }
 
@@ -110,7 +111,7 @@ func (msg *Message) ParseJSON(jsonMsg string) (*ParsedMsg, error) {
 			return nil, ErrUnknownField
 		}
 
-		log.Tracef("Setting field value %s:=> %s\n", field.Name, pFieldIdValue.Value)
+		log.Debugf("Setting field value %s:=> %s, %v\n", field.Name, pFieldIdValue.Value, field.FieldInfo.FieldDataEncoding)
 
 		fieldData := new(FieldData)
 		fieldData.Field = field

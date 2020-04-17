@@ -1,9 +1,8 @@
 package iso
 
 import (
-	"fmt"
-	"log"
-	"sync/atomic"
+	"encoding/hex"
+	"github.com/rkbalgi/go/encoding/ebcdic"
 )
 
 const componentSeparator = "."
@@ -28,6 +27,21 @@ const (
 	BINARY
 )
 
+func (e Encoding) ToString(data []byte) string {
+
+	switch e {
+	case ASCII:
+		return string(data)
+	case EBCDIC:
+		return ebcdic.EncodeToString(data)
+	case BCD, BINARY:
+		return hex.EncodeToString(data)
+	}
+
+	return ""
+
+}
+
 // GetEncodingName returns a string form for encoding
 func GetEncodingName(encoding Encoding) string {
 
@@ -51,13 +65,3 @@ const (
 	Fixed
 	Variable
 )
-
-// nextId returns the next id to be used for a Spec, Message or Field
-func nextId() int {
-	atomic.AddInt32(&id, 1)
-	return int(atomic.LoadInt32(&id))
-}
-
-func logAndExit(msg string) {
-	log.Fatal(fmt.Errorf("isosim: configuration error. message = %s" + msg))
-}

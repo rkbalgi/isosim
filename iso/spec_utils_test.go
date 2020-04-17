@@ -1,6 +1,8 @@
 package iso
 
 import (
+	"encoding/hex"
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

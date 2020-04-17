@@ -3,7 +3,10 @@ package iso
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
+	"github.com/rkbalgi/go/encoding/ebcdic"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -17,7 +20,7 @@ type Bitmap struct {
 	parsedMsg *ParsedMsg
 }
 
-const HighBitMask uint64 = uint64(1) << 63
+const HighBitMask = uint64(1) << 63
 
 // NewBitmap creates a new empty bitmap
 func NewBitmap() *Bitmap {
@@ -51,7 +54,7 @@ func (bmp *Bitmap) Set(pos int, val string) error {
 
 	field := bmp.field.fieldsByPosition[pos]
 	if field == nil {
-		log.Fatal("No field at position -", pos)
+		return fmt.Errorf("isosim: Unable to set value for field. No field at position:%d", pos)
 	}
 
 	rawFieldData, err := field.ValueFromString(val)
@@ -79,18 +82,18 @@ func (bmp *Bitmap) Set(pos int, val string) error {
 		if field.FieldInfo.Type == Fixed {
 			err = parseFixed(bytes.NewBuffer(rawFieldData), bmp.parsedMsg, field)
 		} else if field.FieldInfo.Type == Variable {
-			fullField, err := buildLengthIndicator(field.FieldInfo.LengthIndicatorEncoding, field.FieldInfo.LengthIndicatorSize, len(fieldData.Data))
+			// build the complete field with length indicator and parse it again so that it sets up
+			// all the children
+			vFieldWithLI, err := buildLengthIndicator(field.FieldInfo.LengthIndicatorEncoding, field.FieldInfo.LengthIndicatorSize, len(fieldData.Data))
 			if err != nil {
-				log.Errorln("Failed to build length indicator for variable field", err)
-				return err
+				return fmt.Errorf("isosim: Unable to set value for variable field: %s :%w", field.Name, err)
 			}
-			fullField.Write(rawFieldData)
-			err = parseVariable(fullField, bmp.parsedMsg, field)
+			vFieldWithLI.Write(rawFieldData)
+			err = parseVariable(vFieldWithLI, bmp.parsedMsg, field)
 		}
 
 		if err != nil {
-			log.Errorln("Failed to set nested/child fields for parent field - "+field.Name, err)
-			return err
+			return fmt.Errorf("isosim: Unable to set value for field: %s :%w", field.Name, err)
 		}
 	}
 
@@ -110,15 +113,30 @@ func (bmp *Bitmap) Copy() *Bitmap {
 // Bytes returns the bitmap as a slice of bytes
 func (bmp *Bitmap) Bytes() []byte {
 
+	//form the binary bitmap first
 	buf := new(bytes.Buffer)
 	for _, b := range bmp.bmpData {
 		if b != 0 {
-			binary.Write(buf, binary.BigEndian, b)
-		} else {
-			break
+			_ = binary.Write(buf, binary.BigEndian, b)
 		}
+	}
+
+	switch bmp.field.FieldInfo.FieldDataEncoding {
+	case ASCII:
+		asciiBuf := &bytes.Buffer{}
+		asciiBuf.Write([]byte(strings.ToUpper(hex.EncodeToString(buf.Bytes()))))
+		buf = asciiBuf
+	case EBCDIC:
+		ebdicBuf := &bytes.Buffer{}
+		bin := strings.ToUpper(hex.EncodeToString(buf.Bytes()))
+		ebdicBuf.Write(ebcdic.Decode(bin))
+		buf = ebdicBuf
+
+	default:
+		log.Errorf("isosim: Invalid encoding %v for Bitmap field", bmp.field.FieldInfo.FieldDataEncoding)
 
 	}
+
 	return buf.Bytes()
 
 }
@@ -135,27 +153,40 @@ func (bmp *Bitmap) BinaryString() string {
 
 }
 
-func (bmp *Bitmap) parse(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
+func (bmp *Bitmap) parse(inputBuffer *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 
-	//TODO:: build support for ASCII/EBCDIC encoded bitmaps
+	var buf *bytes.Buffer
+	var err error
+
+	encoding := bmp.field.FieldInfo.FieldDataEncoding
+	switch encoding {
+	case ASCII, EBCDIC:
+		if buf, err = toBinary(inputBuffer, encoding); err != nil {
+			return err
+		}
+	default:
+		buf = inputBuffer
+	}
+
 	if buf.Len() < 8 {
 		return ErrInsufficientData
 	}
 
-	data := NextBytes(buf, 8)
-	binary.Read(bytes.NewBuffer(data), binary.BigEndian, &bmp.bmpData[0])
+	var data []byte
+	if data, err = NextBytes(buf, 8); err != nil {
+		return err
+	}
+	_ = binary.Read(bytes.NewBuffer(data), binary.BigEndian, &bmp.bmpData[0])
 	if (bmp.bmpData[0] & HighBitMask) == HighBitMask {
-		if buf.Len() < 8 {
-			return ErrInsufficientData
+		if data, err = NextBytes(buf, 8); err != nil {
+			return err
 		}
-		data = NextBytes(buf, 8)
-		binary.Read(bytes.NewBuffer(data), binary.BigEndian, &bmp.bmpData[1])
+		_ = binary.Read(bytes.NewBuffer(data), binary.BigEndian, &bmp.bmpData[1])
 		if bmp.bmpData[1]&HighBitMask == HighBitMask {
-			if buf.Len() < 8 {
-				return ErrInsufficientData
+			if data, err = NextBytes(buf, 8); err != nil {
+				return err
 			}
-			data = NextBytes(buf, 8)
-			binary.Read(bytes.NewBuffer(data), binary.BigEndian, &bmp.bmpData[2])
+			_ = binary.Read(bytes.NewBuffer(data), binary.BigEndian, &bmp.bmpData[2])
 
 		}
 	}
@@ -166,6 +197,42 @@ func (bmp *Bitmap) parse(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) 
 	}
 
 	return nil
+
+}
+
+// toBinary extract data for a ASCII/EBCDIC encoded bitmap and coverts
+// it into a BINARY bitmap
+func toBinary(inputBuffer *bytes.Buffer, encoding Encoding) (*bytes.Buffer, error) {
+
+	// Each byte is represented by 2 bytes, so regular 8 byte becomes 16 - so a primary, secondary and tertiary
+	// bitmap in ASCII/EBCDIC is 48 bytes
+
+	var tmp []byte
+	var err error
+	var outputBuffer = &bytes.Buffer{}
+
+	if tmp, err = NextBytes(inputBuffer, 16); err != nil {
+		return nil, fmt.Errorf("isosim: Failed to read primary bitmap :%w", err)
+	}
+
+	bin, _ := hex.DecodeString(encoding.ToString(tmp))
+	outputBuffer.Write(bin)
+	if bin[0]&0x80 == 0x80 {
+		if tmp, err = NextBytes(inputBuffer, 16); err != nil {
+			return nil, fmt.Errorf("isosim: Failed to read secondary bitmap :%w", err)
+		}
+		bin, _ := hex.DecodeString(encoding.ToString(tmp))
+		outputBuffer.Write(bin)
+		if bin[0]&0x80 == 0x80 {
+			if tmp, err = NextBytes(inputBuffer, 16); err != nil {
+				return nil, fmt.Errorf("isosim: Failed to read tertiary bitmap :%w", err)
+			}
+			bin, _ := hex.DecodeString(encoding.ToString(tmp))
+			outputBuffer.Write(bin)
+		}
+	}
+
+	return outputBuffer, nil
 
 }
 

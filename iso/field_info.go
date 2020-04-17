@@ -2,7 +2,7 @@ package iso
 
 import (
 	"errors"
-	"log"
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -26,11 +26,11 @@ type FieldInfo struct {
 	MaxSize int
 }
 
-var constraintsRegExp1, _ = regexp.Compile("^constraints\\{(([a-zA-Z]+):([0-9A-Za-z]+);){1,}\\}$")
+var constraintsRegExp1, _ = regexp.Compile("^constraints{(([a-zA-Z]+):([0-9A-Za-z]+);)+}$")
 var constraintsRegExp2, _ = regexp.Compile("(([a-zA-Z]+):([0-9A-Za-z]+));")
 
 // NewFieldInfo is a constructor for FieldInfo
-func NewFieldInfo(sFieldInfo []string) *FieldInfo {
+func NewFieldInfo(sFieldInfo []string) (*FieldInfo, error) {
 
 	fieldInfo := &FieldInfo{}
 	switch sFieldInfo[0] {
@@ -41,45 +41,49 @@ func NewFieldInfo(sFieldInfo []string) *FieldInfo {
 
 			switch len(sFieldInfo) {
 			case 3:
-				{
-
-				}
 			case 4:
-				{
-					//with constraints
-					hasConstraints = true
-				}
+				//with constraints
+				hasConstraints = true
 			default:
-				{
-					logAndExit(strings.Join(sFieldInfo, componentSeparator))
-				}
-
+				return nil, fmt.Errorf("isosim: Format error in field-specification - %v", sFieldInfo)
 			}
 
-			setEncoding(&(*fieldInfo).FieldDataEncoding, sFieldInfo[1])
+			if err := setEncoding(&(*fieldInfo).FieldDataEncoding, sFieldInfo[1]); err != nil {
+				return nil, err
+			}
 			sizeTokens := strings.Split(sFieldInfo[2], sizeSeparator)
 			if len(sizeTokens) != 2 {
-				logAndExit("Invalid size specification -" + sFieldInfo[2])
+				return nil, fmt.Errorf("isosim: Format error in field-specification - %v", sFieldInfo)
 			}
 			size, err := strconv.ParseInt(sizeTokens[1], 10, 0)
 			if err != nil {
-				logAndExit("Invalid size specification- " + strings.Join(sFieldInfo, componentSeparator))
+				return nil, err
 			}
 			fieldInfo.FieldSize = int(size)
 			if hasConstraints {
 
 				constraints, err := parseConstraints(strings.Replace(sFieldInfo[3], " ", "", -1))
 				if err != nil {
-					logAndExit(err.Error())
+					return nil, fmt.Errorf("isosim: Format error in field-specification - %v", sFieldInfo)
 				}
-				fieldInfo.addConstraints(constraints)
+				if err := fieldInfo.addConstraints(constraints); err != nil {
+					return nil, fmt.Errorf("isosim: Format error in field-specification - %v", sFieldInfo)
+				}
 			}
 
 		}
 	case "bitmap":
 		{
 			fieldInfo.Type = Bitmapped
-			fieldInfo.FieldDataEncoding = BINARY
+			if err := setEncoding(&(*fieldInfo).FieldDataEncoding, sFieldInfo[1]); err != nil {
+				return nil, err
+			}
+			switch fieldInfo.FieldDataEncoding {
+			case ASCII, EBCDIC, BINARY:
+			default:
+				return nil, fmt.Errorf("isosim: Unsupported encoding for bitmap: %v", sFieldInfo[1])
+			}
+
 		}
 	case "variable":
 		{
@@ -88,81 +92,67 @@ func NewFieldInfo(sFieldInfo []string) *FieldInfo {
 
 			switch len(sFieldInfo) {
 			case 4:
-				{
-
-				}
 			case 5:
-				{
-					//with constraints
-					hasConstraints = true
-				}
+				//with constraints
+				hasConstraints = true
 			default:
-				{
-					logAndExit(strings.Join(sFieldInfo, componentSeparator))
-				}
+				return nil, fmt.Errorf("isosim: Format error in field-specification - %v", sFieldInfo)
 
 			}
 
-			//if len(sFieldInfo) != 4 {
-			//	logAndExit("invalid field FieldInfo = " + strings.Join(sFieldInfo, componentSeparator))
-			//}
-			setEncoding(&(*fieldInfo).LengthIndicatorEncoding, sFieldInfo[1])
-			setEncoding(&(*fieldInfo).FieldDataEncoding, sFieldInfo[2])
+			if err := setEncoding(&(*fieldInfo).LengthIndicatorEncoding, sFieldInfo[1]); err != nil {
+				return nil, err
+			}
+			if err := setEncoding(&(*fieldInfo).FieldDataEncoding, sFieldInfo[2]); err != nil {
+				return nil, err
+			}
 			sizeTokens := strings.Split(sFieldInfo[3], sizeSeparator)
 			if len(sizeTokens) != 2 {
-				logAndExit("invalid size specification -" + sFieldInfo[2])
+				return nil, fmt.Errorf("isosim: Format error in field-specification - %v", sFieldInfo)
 
 			}
 
 			size, err := strconv.ParseInt(sizeTokens[1], 10, 0)
 			if err != nil {
-				logAndExit("invalid size specification one line - " + strings.Join(sFieldInfo, componentSeparator))
+				return nil, fmt.Errorf("isosim: Format error in field-specification - %v", sFieldInfo)
 			}
 			fieldInfo.LengthIndicatorSize = int(size)
 			if hasConstraints {
 
 				constraints, err := parseConstraints(strings.Replace(sFieldInfo[4], " ", "", -1))
 				if err != nil {
-					logAndExit(err.Error())
+					return nil, fmt.Errorf("isosim: Format error in field-specification - %v", sFieldInfo)
 				}
-				fieldInfo.addConstraints(constraints)
+				if err := fieldInfo.addConstraints(constraints); err != nil {
+					return nil, err
+				}
 			}
 		}
 	default:
-		{
-			logAndExit(strings.Join(sFieldInfo, componentSeparator))
-		}
+		return nil, fmt.Errorf("isosim: Unsupported field type - %s", sFieldInfo[0])
 
 	}
 
-	return fieldInfo
+	return fieldInfo, nil
 
 }
 
-func (fieldInfo *FieldInfo) addConstraints(constrainstMap map[string]interface{}) {
+func (fieldInfo *FieldInfo) addConstraints(consMap map[string]interface{}) error {
 
-	for constraint, val := range constrainstMap {
+	for constraint, val := range consMap {
 		switch constraint {
 		case "content":
-			{
-				fieldInfo.Content = val.(string)
-
-			}
+			fieldInfo.Content = val.(string)
 		case "minSize":
-			{
-				fieldInfo.MinSize, _ = strconv.Atoi(val.(string))
-			}
+			fieldInfo.MinSize, _ = strconv.Atoi(val.(string))
 		case "maxSize":
-			{
-				fieldInfo.MaxSize, _ = strconv.Atoi(val.(string))
-			}
+			fieldInfo.MaxSize, _ = strconv.Atoi(val.(string))
 		default:
-			{
-				log.Print("Ignoring unknown constraint. Constraint = " + constraint)
-			}
-
+			return fmt.Errorf("isosim: Format constraint spec in field-specification - %v", consMap)
 		}
 	}
+
+	return nil
 
 }
 
@@ -183,27 +173,18 @@ func parseConstraints(constraintsSpec string) (map[string]interface{}, error) {
 
 }
 
-func setEncoding(encoding *Encoding, stringEncoding string) {
+func setEncoding(encoding *Encoding, stringEncoding string) error {
 	switch stringEncoding {
 	case "ascii":
-		{
-			*encoding = ASCII
-		}
+		*encoding = ASCII
 	case "ebcdic":
-		{
-			*encoding = EBCDIC
-		}
+		*encoding = EBCDIC
 	case "bcd":
-		{
-			*encoding = BCD
-		}
+		*encoding = BCD
 	case "binary":
-		{
-			*encoding = BINARY
-		}
+		*encoding = BINARY
 	default:
-		{
-			logAndExit("invalid encoding - " + stringEncoding)
-		}
+		return fmt.Errorf("isosim: Unsupported encoding :%s", stringEncoding)
 	}
+	return nil
 }

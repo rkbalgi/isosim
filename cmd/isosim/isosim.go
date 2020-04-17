@@ -35,7 +35,7 @@ func main() {
 		log.Infoln("debug level logging is enabled.")
 	}
 
-	//log.SetFormatter(&log.TextFormatter{ForceColors: true, DisableColors: false})
+	log.SetFormatter(&log.TextFormatter{ForceColors: true, DisableColors: false})
 
 	if *dataDir == "" || *specsDir == "" || iso.HTMLDir == "" {
 		flag.Usage()

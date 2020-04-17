@@ -22,6 +22,10 @@ type Spec struct {
 // during initialization
 func (spec *Spec) GetOrAddMsg(msgId int, msgName string) (*Message, bool) {
 
+	if msg := spec.MessageByID(msgId); msg != nil {
+		return msg, false
+	}
+
 	specMapMu.Lock()
 	defer specMapMu.Unlock()
 

@@ -28,7 +28,7 @@ func processMsg(data []byte, pServerDef *data.ServerDef) ([]byte, error) {
 		msgSelectorData := data[msgSelectionConfig.BytesFrom:msgSelectionConfig.BytesTo]
 		msgSelector := strings.ToUpper(hex.EncodeToString(msgSelectorData))
 		expectedVal := strings.ToUpper(msgSelectionConfig.BytesValue)
-		log.Traceln("Comparing ", msgSelector, " to ", expectedVal)
+		log.Debugln("Comparing ", msgSelector, " to ", expectedVal)
 		if msgSelector == expectedVal {
 			responseData, processed, err := processInternal(data, pServerDef, msgSelectionConfig)
 			if processed && err == nil {

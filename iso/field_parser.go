@@ -105,13 +105,12 @@ func parse(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 
 func parseFixed(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 
-	bytesRequired := field.FieldInfo.FieldSize
-	if buf.Len() < bytesRequired {
-		return ErrInsufficientData
-	}
-
 	fieldData := &FieldData{Field: field}
-	fieldData.Data = NextBytes(buf, bytesRequired)
+	var err error
+
+	if fieldData.Data, err = NextBytes(buf, field.FieldInfo.FieldSize); err != nil {
+		return err
+	}
 
 	log.Debugf("Field : [%s] - Data = [%s]\n", field.Name, hex.EncodeToString(fieldData.Data))
 
@@ -132,12 +131,12 @@ func parseFixed(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 
 func parseVariable(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 
-	if buf.Len() < field.FieldInfo.LengthIndicatorSize {
-		return ErrInsufficientData
+	lenData, err := NextBytes(buf, field.FieldInfo.LengthIndicatorSize)
+	if err != nil {
+		return err
 	}
-	lenData := NextBytes(buf, field.FieldInfo.LengthIndicatorSize)
 	var length uint64
-	var err error
+
 	switch field.FieldInfo.LengthIndicatorEncoding {
 	case BINARY:
 		{
@@ -221,7 +220,9 @@ func parseVariable(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error 
 	}
 
 	fieldData := &FieldData{Field: field}
-	fieldData.Data = NextBytes(buf, int(length))
+	if fieldData.Data, err = NextBytes(buf, int(length)); err != nil {
+		return err
+	}
 
 	log.Debugf("Field : [%s] - Len: %02d - Data = [%s]\n", field.Name, length, hex.EncodeToString(fieldData.Data))
 
@@ -250,6 +251,7 @@ func parseBitmap(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 	}
 	log.Debugf("Field : [%s] - Data = [%s]\n", field.Name, bitmap.BinaryString())
 	parsedMsg.FieldDataMap[field.Id] = &FieldData{Field: field, Bitmap: bitmap}
+
 	return nil
 
 }
@@ -257,11 +259,14 @@ func parseBitmap(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 // NextBytes returns the next 'n' bytes from the Buffer. This is similar to
 // the Next() method available on Buffer but this function returns a
 // copy of the slice
-func NextBytes(buf *bytes.Buffer, n int) []byte {
+func NextBytes(buf *bytes.Buffer, n int) ([]byte, error) {
 
-	replica := make([]byte, n)
+	if buf.Len() < n {
+		return nil, ErrInsufficientData
+	}
+	cpData := make([]byte, n)
 	nextData := buf.Next(n)
-	copy(replica, nextData)
-	return replica
+	copy(cpData, nextData)
+	return cpData, nil
 
 }

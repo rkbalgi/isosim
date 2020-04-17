@@ -79,7 +79,7 @@ func sendMsgHandler() {
 			return
 		}
 
-		log.Debugf("Sending to Iso server @address -  %s:%d\n", hostIpAddr, port)
+		log.Debugf("Received request to send req to host: SpecID:%d, MsgID=%d\n", specId, msgId)
 
 		isoSpec := iso.SpecByID(specId)
 		if isoSpec == nil {
@@ -105,6 +105,8 @@ func sendMsgHandler() {
 			sendError(rw, "failed to assemble -"+err.Error())
 			return
 		}
+
+		log.Debugf("Sending to Iso server @address -  %s:%d\n", hostIpAddr, port)
 
 		isoServerAddr := fmt.Sprintf("%s:%d", hostIpAddr.String(), port)
 		ncc := netutil.NewNetCatClient(isoServerAddr, mli)

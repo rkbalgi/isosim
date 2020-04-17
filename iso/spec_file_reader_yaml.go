@@ -2,7 +2,6 @@ package iso
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
@@ -34,7 +33,7 @@ const (
 	BitmappedType FieldTypeV1 = "Bitmapped"
 
 	ASCIIEncoding  EncodingV1 = "ASCII"
-	EBCDICEncoding EncodingV1 = "EBDIC"
+	EBCDICEncoding EncodingV1 = "EBCDIC"
 	BINARYEncoding EncodingV1 = "BINARY"
 	BCDEncoding    EncodingV1 = "BCD"
 )
@@ -59,7 +58,7 @@ type FieldDefV1 struct {
 	Children    []FieldDefV1     `yaml:"children"`
 }
 
-func (f FieldDefV1) info() *FieldInfo {
+func (f FieldDefV1) info() (*FieldInfo, error) {
 	info := &FieldInfo{
 
 		Content:             f.Constraints.ContentType,
@@ -96,7 +95,7 @@ func (f FieldDefV1) info() *FieldInfo {
 			info.FieldDataEncoding = BINARY
 		}
 	default:
-		logrus.Errorf("Invalid/Unspecified data encoding for field %s\n ", f.Name)
+		return nil, fmt.Errorf("isosim: Invalid/Unspecified data encoding for field %s\n ", f.Name)
 	}
 
 	if f.Type == VariableType {
@@ -118,7 +117,7 @@ func (f FieldDefV1) info() *FieldInfo {
 				info.LengthIndicatorEncoding = BINARY
 			}
 		default:
-			logrus.Errorf("Invalid/Unspecified length encoding for field %s \n", f.Name)
+			return nil, fmt.Errorf("isosim: Invalid/Unspecified length encoding for field %s \n", f.Name)
 		}
 
 		if f.Constraints.ContentType != "" {
@@ -134,7 +133,7 @@ func (f FieldDefV1) info() *FieldInfo {
 		}
 
 	}
-	return info
+	return info, nil
 
 }
 
@@ -195,19 +194,37 @@ func processField(msg *Message, f FieldDefV1) error {
 		return fmt.Errorf("isosim: Field with ID %d already exists in Msg: %s", f.ID, msg.Name)
 	}
 
-	msg.addField(f.ID, f.Name, f.info())
-	processChildren(msg, f)
+	var info *FieldInfo
+	var err error
+	if info, err = f.info(); err != nil {
+		return err
+	}
+	msg.addField(f.ID, f.Name, info)
+
+	if err = processChildren(msg, f); err != nil {
+		return err
+	}
 
 	return nil
 }
 
-func processChildren(msg *Message, f FieldDefV1) {
+func processChildren(msg *Message, f FieldDefV1) error {
+	var info *FieldInfo
+	var err error
+
 	if len(f.Children) > 0 {
 		for _, cf := range f.Children {
-			msg.Field(f.Name).addChild(cf.ID, cf.Name, cf.Position, cf.info())
+
+			if info, err = cf.info(); err != nil {
+				return err
+			}
+			msg.Field(f.Name).addChild(cf.ID, cf.Name, cf.Position, info)
 			if len(cf.Children) > 0 {
-				processChildren(msg, cf)
+				if err := processChildren(msg, cf); err != nil {
+					return err
+				}
 			}
 		}
 	}
+	return nil
 }

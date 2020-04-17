@@ -2,9 +2,131 @@ package iso
 
 import (
 	"bytes"
+	"encoding/hex"
+	ebcdic "github.com/rkbalgi/go/encoding/ebcdic"
+	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
+
+func Test_BitmapField(t *testing.T) {
+
+	log.SetLevel(log.DebugLevel)
+	onBits := []int{1, 2, 3, 4, 28, 36, 37, 48, 63, 65, 66, 67, 75, 100, 111, 120, 147, 166, 174, 183, 192}
+
+	t.Run("parse binary bitmap field - success", func(t *testing.T) {
+		data, _ := hex.DecodeString("F000001018010002E0200000100201000000200004040201")
+
+		info := &FieldInfo{Type: Bitmapped, FieldDataEncoding: BINARY}
+
+		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*Field), fieldByName: make(map[string]*Field)}, FieldDataMap: make(map[int]*FieldData)}
+		field := p.Msg.addField(10, "Bitmap", info)
+
+		buf := bytes.NewBuffer(data)
+		err := parseBitmap(buf, p, field)
+		assert.Nil(t, err)
+
+		for _, pos := range onBits {
+			if !p.Get("Bitmap").Bitmap.IsOn(pos) {
+				t.Fatalf("%d position is not set", pos)
+			}
+		}
+	})
+
+	t.Run("parse binary bitmap field - success (primary only)", func(t *testing.T) {
+		data, _ := hex.DecodeString("7000001018010002")
+
+		info := &FieldInfo{Type: Bitmapped, FieldDataEncoding: BINARY}
+
+		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*Field), fieldByName: make(map[string]*Field)}, FieldDataMap: make(map[int]*FieldData)}
+		field := p.Msg.addField(10, "Bitmap", info)
+
+		buf := bytes.NewBuffer(data)
+		err := parseBitmap(buf, p, field)
+		assert.Nil(t, err)
+
+		for _, pos := range []int{2, 3, 4, 28, 36, 37, 48, 63} {
+			if !p.Get("Bitmap").Bitmap.IsOn(pos) {
+				t.Fatalf("%d position is not set", pos)
+			}
+		}
+	})
+
+	t.Run("parse binary bitmap field - success (primary and secondary)", func(t *testing.T) {
+		data, _ := hex.DecodeString("F0000010180100026020000010020100")
+
+		info := &FieldInfo{Type: Bitmapped, FieldDataEncoding: BINARY}
+
+		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*Field), fieldByName: make(map[string]*Field)}, FieldDataMap: make(map[int]*FieldData)}
+		field := p.Msg.addField(10, "Bitmap", info)
+
+		buf := bytes.NewBuffer(data)
+		err := parseBitmap(buf, p, field)
+		assert.Nil(t, err)
+
+		for _, pos := range []int{1, 2, 3, 4, 28, 36, 37, 48, 63, 66, 67, 75, 100, 111, 120} {
+			if !p.Get("Bitmap").Bitmap.IsOn(pos) {
+				t.Fatalf("%d position is not set", pos)
+			}
+		}
+	})
+
+	t.Run("parse binary bitmap field - failure", func(t *testing.T) {
+		data, _ := hex.DecodeString("F000000018010002E0200000100201000000200004040201")
+
+		field := &Field{Id: 10, Name: "Bitmap", FieldInfo: &FieldInfo{Type: Bitmapped, FieldDataEncoding: BINARY}}
+
+		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*Field), fieldByName: make(map[string]*Field)}, FieldDataMap: make(map[int]*FieldData)}
+		p.Msg.addField(10, "Bitmap", field.FieldInfo)
+
+		buf := bytes.NewBuffer(data)
+		err := parseBitmap(buf, p, field)
+		assert.Nil(t, err)
+
+		assert.False(t, p.Get("Bitmap").Bitmap.IsOn(28))
+	})
+
+	t.Run("parse ASCII bitmap field - success", func(t *testing.T) {
+
+		data, _ := hex.DecodeString("463030303030313031383031303030324530323030303030313030323031303030303030323030303034303430323031")
+
+		info := &FieldInfo{Type: Bitmapped, FieldDataEncoding: ASCII}
+
+		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*Field), fieldByName: make(map[string]*Field)}, FieldDataMap: make(map[int]*FieldData)}
+		field := p.Msg.addField(10, "Bitmap", info)
+
+		buf := bytes.NewBuffer(data)
+		err := parseBitmap(buf, p, field)
+		assert.Nil(t, err)
+
+		for _, pos := range onBits {
+			if !p.Get("Bitmap").Bitmap.IsOn(pos) {
+				t.Fatalf("%d position is not set", pos)
+			}
+		}
+	})
+
+	t.Run("parse EBCDIC bitmap field - success", func(t *testing.T) {
+
+		ebcdicBmp := hex.EncodeToString(ebcdic.Decode("F000001018010002E0200000100201000000200004040201"))
+		data, _ := hex.DecodeString(ebcdicBmp)
+
+		info := &FieldInfo{Type: Bitmapped, FieldDataEncoding: EBCDIC}
+		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*Field), fieldByName: make(map[string]*Field)}, FieldDataMap: make(map[int]*FieldData)}
+		field := p.Msg.addField(10, "Bitmap", info)
+
+		buf := bytes.NewBuffer(data)
+		err := parseBitmap(buf, p, field)
+		assert.Nil(t, err)
+
+		for _, pos := range onBits {
+			if !p.Get("Bitmap").Bitmap.IsOn(pos) {
+				t.Fatalf("%d position is not set", pos)
+			}
+		}
+	})
+
+}
 
 func Test_FixedField(t *testing.T) {
 

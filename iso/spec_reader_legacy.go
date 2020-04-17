@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 )
@@ -104,7 +103,10 @@ func readLegacyFile(specDir string, specFile string) error {
 				if fld := msg.FieldById(fieldId); fld != nil {
 					return fmt.Errorf("isosim: FieldId %d already used for field - %s : line: %d", fieldId, fld.Name, lineNo)
 				}
-				fieldInfo := NewFieldInfo(valuePart)
+				fieldInfo, err := NewFieldInfo(valuePart)
+				if err != nil {
+					return errors.New("isosim: Syntax error in (field-specification) . Line = " + line)
+				}
 				msg.addField(fieldId, fieldName, fieldInfo)
 
 			}
@@ -134,7 +136,10 @@ func readLegacyFile(specDir string, specFile string) error {
 				if fld := msg.FieldById(fieldId); fld != nil {
 					return fmt.Errorf("isosim: FieldId %d already used for field - %s : line: %d", fieldId, fld.Name, lineNo)
 				}
-				fieldInfo := NewFieldInfo(valuePart)
+				fieldInfo, err := NewFieldInfo(valuePart)
+				if err != nil {
+					return errors.New("isosim: Syntax error in field-specification. Line = " + line)
+				}
 				parentField.addChild(fieldId, fieldName, pos, fieldInfo)
 
 			}
@@ -185,7 +190,7 @@ func resolveSpecAndMsg(specRef string, msgRef string) (spec *Spec, msg *Message,
 
 	}
 
-	if regexp.MustCompile("[0-9]+").Match([]byte(msgRef)) {
+	if NumericRegexPattern.Match([]byte(msgRef)) {
 		msgId, _ := strconv.Atoi(msgRef)
 		msg = spec.MessageByID(msgId)
 		if msg == nil {
