@@ -5,9 +5,6 @@ import (
 	"testing"
 )
 
-//var constraintsRegExp1, _ = regexp.Compile("^constraints\\{(([a-zA-Z]+):([0-9A-Za-z]+);){1,}\\}$")
-//var constraintsRegExp2, _ = regexp.Compile("(([a-zA-Z]+):([0-9A-Za-z]+));")
-
 func Test_ConstraintsRegExp(t *testing.T) {
 
 	str := "constraints{minSize:10;maxSize:15;Content:Alpha;}"
@@ -23,10 +20,5 @@ func Test_ConstraintsRegExp(t *testing.T) {
 	} else {
 		t.Fail()
 	}
-
-	//t.Log(constraintsRegExp.FindAllString("constraints{minSize:0;maxSize:15;}", -1));
-	//return nil, nil;
-
-	//}
 
 }

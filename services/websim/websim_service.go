@@ -27,8 +27,8 @@ func (serviceImpl) GetAllSpecs(ctx context.Context) ([]UISpec, error) {
 
 	specs := make([]UISpec, 0)
 
-	for _, s := range iso.Specs() {
-		specs = append(specs, UISpec{Id: s.Id, Name: s.Name, Messages: s.Messages()})
+	for _, s := range iso.AllSpecs() {
+		specs = append(specs, UISpec{Id: s.ID, Name: s.Name, Messages: s.Messages})
 	}
 
 	return specs, nil
@@ -39,7 +39,7 @@ func (serviceImpl) GetMessages4Spec(ctx context.Context, specId int) ([]*iso.Mes
 	if sp == nil {
 		return nil, errors.New("isosim: No such spec")
 	}
-	return sp.Messages(), nil
+	return sp.Messages, nil
 }
 
 func New() Service {

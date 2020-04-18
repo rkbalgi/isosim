@@ -27,8 +27,8 @@ func Test_IsoServer_MessageProcessing(t *testing.T) {
 		t.Fatal("No such spec - " + specName)
 	}
 
-	specId := spec.Id
-	msgId := spec.MessageByName("1100").Id
+	specId := spec.ID
+	msgId := spec.MessageByName("1100").ID
 
 	strSpecId := strconv.Itoa(specId)
 	dataSets, err := DataSetManager().GetAll(strSpecId, strconv.Itoa(msgId))

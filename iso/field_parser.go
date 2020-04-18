@@ -34,7 +34,7 @@ func (pMsg *ParsedMsg) Get(name string) *FieldData {
 
 	field := pMsg.Msg.Field(name)
 	if field != nil {
-		return pMsg.FieldDataMap[field.Id]
+		return pMsg.FieldDataMap[field.ID]
 	}
 
 	return nil
@@ -65,16 +65,16 @@ func (pMsg *ParsedMsg) Copy() *ParsedMsg {
 func parse(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 
 	var err error
-	switch field.FieldInfo.Type {
+	switch field.Type {
 
-	case Fixed:
+	case FixedType:
 		err = parseFixed(buf, parsedMsg, field)
-	case Variable:
+	case VariableType:
 		err = parseVariable(buf, parsedMsg, field)
-	case Bitmapped:
+	case BitmappedType:
 		err = parseBitmap(buf, parsedMsg, field)
 	default:
-		return fmt.Errorf("isosim: Unsupported field type - %v", field.FieldInfo.Type)
+		return fmt.Errorf("isosim: Unsupported field type - %v", field.Type)
 
 	}
 
@@ -82,18 +82,18 @@ func parse(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 		return err
 	}
 
-	switch field.FieldInfo.Type {
-	case Fixed, Variable:
+	switch field.Type {
+	case FixedType, VariableType:
 
-	case Bitmapped:
+	case BitmappedType:
 		{
-			bitmap := parsedMsg.FieldDataMap[field.Id].Bitmap
-			for _, cf := range field.Children() {
+			bitmap := parsedMsg.FieldDataMap[field.ID].Bitmap
+			for _, cf := range field.Children {
 				if bitmap.IsOn(cf.Position) {
 					if err := parse(buf, parsedMsg, cf); err != nil {
 						return err
 					}
-					bitmap.childData[cf.Position] = parsedMsg.FieldDataMap[cf.Id]
+					bitmap.childData[cf.Position] = parsedMsg.FieldDataMap[cf.ID]
 				}
 			}
 		}
@@ -108,17 +108,17 @@ func parseFixed(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 	fieldData := &FieldData{Field: field}
 	var err error
 
-	if fieldData.Data, err = NextBytes(buf, field.FieldInfo.FieldSize); err != nil {
+	if fieldData.Data, err = NextBytes(buf, field.Size); err != nil {
 		return err
 	}
 
 	log.Debugf("Field : [%s] - Data = [%s]\n", field.Name, hex.EncodeToString(fieldData.Data))
 
-	parsedMsg.FieldDataMap[field.Id] = fieldData
+	parsedMsg.FieldDataMap[field.ID] = fieldData
 
 	if field.HasChildren() {
 		newBuf := bytes.NewBuffer(parsedMsg.Get(field.Name).Data)
-		for _, cf := range field.Children() {
+		for _, cf := range field.Children {
 			if err := parse(newBuf, parsedMsg, cf); err != nil {
 				return err
 			}
@@ -131,20 +131,20 @@ func parseFixed(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 
 func parseVariable(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 
-	lenData, err := NextBytes(buf, field.FieldInfo.LengthIndicatorSize)
+	lenData, err := NextBytes(buf, field.LengthIndicatorSize)
 	if err != nil {
 		return err
 	}
 	var length uint64
 
-	switch field.FieldInfo.LengthIndicatorEncoding {
+	switch field.LengthIndicatorEncoding {
 	case BINARY:
 		{
-			if field.FieldInfo.LengthIndicatorSize > 4 {
+			if field.LengthIndicatorSize > 4 {
 				return ErrLargeLengthIndicator
 			}
 
-			switch field.FieldInfo.LengthIndicatorSize {
+			switch field.LengthIndicatorSize {
 			case 1:
 				{
 
@@ -184,7 +184,7 @@ func parseVariable(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error 
 				}
 			default:
 				{
-					return errors.New(fmt.Sprint("Invalid length indicator size for binary (max 8) -", field.FieldInfo.LengthIndicatorSize))
+					return errors.New(fmt.Sprint("Invalid length indicator size for binary (max 8) -", field.LengthIndicatorSize))
 
 				}
 
@@ -226,11 +226,11 @@ func parseVariable(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error 
 
 	log.Debugf("Field : [%s] - Len: %02d - Data = [%s]\n", field.Name, length, hex.EncodeToString(fieldData.Data))
 
-	parsedMsg.FieldDataMap[field.Id] = fieldData
+	parsedMsg.FieldDataMap[field.ID] = fieldData
 
 	if field.HasChildren() {
 		newBuf := bytes.NewBuffer(parsedMsg.Get(field.Name).Data)
-		for _, cf := range field.Children() {
+		for _, cf := range field.Children {
 			if err := parse(newBuf, parsedMsg, cf); err != nil {
 				return err
 			}
@@ -250,7 +250,7 @@ func parseBitmap(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 		return err
 	}
 	log.Debugf("Field : [%s] - Data = [%s]\n", field.Name, bitmap.BinaryString())
-	parsedMsg.FieldDataMap[field.Id] = &FieldData{Field: field, Bitmap: bitmap}
+	parsedMsg.FieldDataMap[field.ID] = &FieldData{Field: field, Bitmap: bitmap}
 
 	return nil
 

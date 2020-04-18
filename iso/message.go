@@ -17,9 +17,10 @@ var ErrUnknownField = errors.New("isosim: Unknown field")
 
 // Message represents a message within a specification (auth/reversal etc)
 type Message struct {
-	Id           int
-	Name         string
-	fields       []*Field
+	Name   string   `yaml:"name"`
+	ID     int      `yaml:"id"`
+	Fields []*Field `yaml:"fields"`
+
 	fieldByIdMap map[int]*Field
 	fieldByName  map[string]*Field
 }
@@ -35,39 +36,44 @@ func (msg *Message) NewIso() *Iso {
 	return isoMsg
 }
 
-func (msg *Message) addField(fieldId int, name string, info *FieldInfo) *Field {
+func (msg *Message) addField(def *Field) *Field {
 
-	if _, ok := msg.fieldByName[name]; ok {
-		log.Printf("field %s already exists!", name)
+	if _, ok := msg.fieldByName[def.Name]; ok {
+		log.Printf("field %s already exists!", def.Name)
 		return nil
 	}
-	field := &Field{Name: name, Id: fieldId,
-		fields:           make([]*Field, 0),
-		fieldsByPosition: make(map[int]*Field, 10),
-		ParentId:         -1}
-	field.FieldInfo = info
-	field.FieldInfo.Msg = msg
-	msg.fieldByIdMap[field.Id] = field
-	msg.fieldByName[name] = field
-	msg.fields = append(msg.fields, field)
-	return field
+
+	//set up some aux fields
+	msg.setAux(def)
+
+	msg.Fields = append(msg.Fields, def)
+	return def
 
 }
 
 // FieldById returns a field by its id
 func (msg *Message) FieldById(id int) *Field {
-
-	return msg.fieldByIdMap[id]
+	if f, ok := msg.fieldByIdMap[id]; !ok {
+		return nil
+	} else {
+		return f
+	}
 }
 
 // Field returns a field by its name
 func (msg *Message) Field(fieldName string) *Field {
-	return msg.fieldByName[fieldName]
+
+	field, ok := msg.fieldByName[fieldName]
+	if !ok {
+		return nil
+	}
+
+	return field
 }
 
 //Fields returns all fields of this Message
-func (msg *Message) Fields() []*Field {
-	return msg.fields
+func (msg *Message) AllFields() []*Field {
+	return msg.Fields
 }
 
 // Parse parses a a byte slice representing the message into fields
@@ -75,7 +81,7 @@ func (msg *Message) Parse(msgData []byte) (*ParsedMsg, error) {
 
 	buf := bytes.NewBuffer(msgData)
 	parsedMsg := &ParsedMsg{Msg: msg, FieldDataMap: make(map[int]*FieldData, 64)}
-	for _, field := range msg.fields {
+	for _, field := range msg.Fields {
 		if err := parse(buf, parsedMsg, field); err != nil {
 			return nil, err
 		}
@@ -106,56 +112,76 @@ func (msg *Message) ParseJSON(jsonMsg string) (*ParsedMsg, error) {
 
 	for _, pFieldIdValue := range fieldValArr {
 
-		field := msg.fieldByIdMap[pFieldIdValue.Id]
-		if field == nil {
+		field, ok := msg.fieldByIdMap[pFieldIdValue.Id]
+		if !ok {
 			return nil, ErrUnknownField
 		}
 
-		log.Debugf("Setting field value %s:=> %s, %v\n", field.Name, pFieldIdValue.Value, field.FieldInfo.FieldDataEncoding)
+		log.Debugf("Setting field value %s:=> %s, %v\n", field.Name, pFieldIdValue.Value, field.DataEncoding)
 
 		fieldData := new(FieldData)
 		fieldData.Field = field
 
-		if field.FieldInfo.Type == Bitmapped {
+		if field.Type == BitmappedType {
 			fieldData.Bitmap = isoBitmap
 			isoBitmap.field = field
-			parsedMsg.FieldDataMap[field.Id] = fieldData
+			parsedMsg.FieldDataMap[field.ID] = fieldData
 		} else {
 			if fieldData.Data, err = field.ValueFromString(pFieldIdValue.Value); err != nil {
 				return nil, fmt.Errorf("isosim: failed to set value for field :%s :%w", field.Name, err)
 			}
 
-			if field.FieldInfo.Type == Fixed && len(fieldData.Data) != field.FieldInfo.FieldSize {
+			if field.Type == FixedType && len(fieldData.Data) != field.Size {
 				//this is an error, field length exceeds max length
 				return nil, fmt.Errorf("fixed field - [%s] doesn't match fixed length of %d (supplied length  = %d)",
-					field.Name, field.FieldInfo.FieldSize, len(fieldData.Data))
-			} else if field.FieldInfo.Type == Variable {
-				if field.FieldInfo.MaxSize != 0 && len(fieldData.Data) > field.FieldInfo.MaxSize {
+					field.Name, field.Size, len(fieldData.Data))
+			} else if field.Type == VariableType {
+				if field.Constraints.MaxSize != 0 && len(fieldData.Data) > field.Constraints.MaxSize {
 					//error
 					return nil, fmt.Errorf("variable field - [%s] exceeds max length of %d (supplied length  = %d)",
-						field.Name, field.FieldInfo.MaxSize, len(fieldData.Data))
+						field.Name, field.Constraints.MaxSize, len(fieldData.Data))
 				}
-				if field.FieldInfo.MinSize != 0 && len(fieldData.Data) < field.FieldInfo.MinSize {
+				if field.Constraints.MinSize != 0 && len(fieldData.Data) < field.Constraints.MinSize {
 					//error
 					return nil, fmt.Errorf("variable field - [%s] exceeds min length of %d (supplied length  = %d)",
-						field.Name, field.FieldInfo.MinSize, len(fieldData.Data))
+						field.Name, field.Constraints.MinSize, len(fieldData.Data))
 				}
 			}
 
 			if field.ParentId != -1 {
 				parentField := msg.fieldByIdMap[field.ParentId]
-				if parentField.FieldInfo.Type == Bitmapped {
+				if parentField.Type == BitmappedType {
 					log.Tracef("Setting bit-on for field position - %d\n", field.Position)
 					isoBitmap.Set(field.Position, pFieldIdValue.Value)
 				}
 
 			}
-			parsedMsg.FieldDataMap[field.Id] = fieldData
+			parsedMsg.FieldDataMap[field.ID] = fieldData
 
 		}
 
 	}
 
 	return parsedMsg, nil
+
+}
+
+func (msg *Message) setAux(def *Field) {
+
+	//some helpers to navigate the tree of messages, fields etc
+
+	def.fieldsByPosition = make(map[int]*Field, 10)
+	msg.fieldByName[def.Name] = def
+	msg.fieldByIdMap[def.ID] = def
+
+	def.ParentId = -1
+	def.msg = msg
+
+}
+
+func (msg *Message) initAuxFields() {
+
+	msg.fieldByIdMap = make(map[int]*Field)
+	msg.fieldByName = make(map[string]*Field)
 
 }

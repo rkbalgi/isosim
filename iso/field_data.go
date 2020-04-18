@@ -13,16 +13,16 @@ type FieldData struct {
 }
 
 //Value returns the value of this field as a string
-func (fieldData *FieldData) Value() string {
-	return fieldData.Field.ValueToString(fieldData.Data)
+func (fd *FieldData) Value() string {
+	return fd.Field.ValueToString(fd.Data)
 
 }
 
 // Set sets the value for the field
-func (fieldData *FieldData) Set(value string) error {
+func (fd *FieldData) Set(value string) error {
 	var err error
-	if fieldData.Data, err = fieldData.Field.ValueFromString(value); err != nil {
-		return fmt.Errorf("isosim: Failed to set value for field :%s to value %s :%w", fieldData.Field.Name, value, err)
+	if fd.Data, err = fd.Field.ValueFromString(value); err != nil {
+		return fmt.Errorf("isosim: Failed to set value for field :%s to value %s :%w", fd.Field.Name, value, err)
 	}
 
 	return err
@@ -30,16 +30,16 @@ func (fieldData *FieldData) Set(value string) error {
 }
 
 // Copy returns a deep copy of FieldData
-func (fieldData *FieldData) Copy() *FieldData {
+func (fd *FieldData) Copy() *FieldData {
 
-	newFieldData := &FieldData{Field: fieldData.Field}
-	if fieldData.Bitmap != nil {
-		newFieldData.Bitmap = fieldData.Bitmap.Copy()
+	newFieldData := &FieldData{Field: fd.Field}
+	if fd.Bitmap != nil {
+		newFieldData.Bitmap = fd.Bitmap.Copy()
 	}
 
-	if fieldData.Data != nil {
-		newFieldData.Data = make([]byte, len(fieldData.Data))
-		copy(newFieldData.Data, fieldData.Data)
+	if fd.Data != nil {
+		newFieldData.Data = make([]byte, len(fd.Data))
+		copy(newFieldData.Data, fd.Data)
 	}
 
 	return newFieldData

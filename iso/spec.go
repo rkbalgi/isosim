@@ -13,9 +13,9 @@ var specMap = make(map[string]*Spec, 10)
 
 // Spec represents an ISO8583 specification
 type Spec struct {
-	Id       int
-	Name     string
-	messages map[string]*Message
+	Name     string     `yaml:"name"`
+	ID       int        `yaml:"id"`
+	Messages []*Message `yaml:"messages"`
 }
 
 // GetOrAddMsg returns (or adds and returns) a msg - This is usually called
@@ -29,28 +29,25 @@ func (spec *Spec) GetOrAddMsg(msgId int, msgName string) (*Message, bool) {
 	specMapMu.Lock()
 	defer specMapMu.Unlock()
 
-	msg, ok := spec.messages[msgName]
-	if !ok {
-		msg = &Message{Name: msgName, Id: msgId,
-			fields:       make([]*Field, 0, 10),
-			fieldByIdMap: make(map[int]*Field, 10),
-			fieldByName:  make(map[string]*Field),
-		}
-		spec.messages[msgName] = msg
-		return msg, true
+	msg := &Message{Name: msgName, ID: msgId,
+		Fields:       make([]*Field, 0, 10),
+		fieldByIdMap: make(map[int]*Field, 10),
+		fieldByName:  make(map[string]*Field),
 	}
-	return msg, false
+	spec.Messages = append(spec.Messages, msg)
+
+	return msg, true
 
 }
 
 // Messages returns a list of all messages defined for the spec
-func (spec *Spec) Messages() []*Message {
+func (spec *Spec) GetMessages() []*Message {
 
 	specMapMu.RLock()
 	defer specMapMu.RUnlock()
 
-	msgs := make([]*Message, 0, len(spec.messages))
-	for _, msg := range spec.messages {
+	msgs := make([]*Message, 0, len(spec.Messages))
+	for _, msg := range spec.Messages {
 		msgs = append(msgs, msg)
 	}
 	return msgs
@@ -62,8 +59,8 @@ func (spec *Spec) MessageByID(msgId int) *Message {
 	specMapMu.RLock()
 	defer specMapMu.RUnlock()
 
-	for _, msg := range spec.messages {
-		if msg.Id == msgId {
+	for _, msg := range spec.Messages {
+		if msg.ID == msgId {
 			return msg
 		}
 
@@ -78,7 +75,13 @@ func (spec *Spec) MessageByName(msgName string) *Message {
 	specMapMu.RLock()
 	defer specMapMu.RUnlock()
 
-	return spec.messages[msgName]
+	for _, msg := range spec.Messages {
+		if msg.Name == msgName {
+			return msg
+		}
+	}
+
+	return nil
 
 }
 
@@ -89,10 +92,10 @@ func printAllSpecsInfo() {
 	for specName, spec := range specMap {
 
 		buf.WriteString(fmt.Sprintf("\nSpec = %s\n", specName))
-		for _, msg := range spec.messages {
+		for _, msg := range spec.Messages {
 			buf.WriteString(fmt.Sprintf("Spec Message = %s\n", msg.Name))
 			level := 0
-			for _, field := range msg.fields {
+			for _, field := range msg.Fields {
 				displayField(buf, field, level)
 
 			}
@@ -110,14 +113,14 @@ func displayField(buf *bytes.Buffer, field *Field, level int) {
 	buf.WriteString(">  ")
 	buf.WriteString(fmt.Sprintf("Field : %v\n", field))
 	if field.HasChildren() {
-		for _, childField := range field.fields {
+		for _, childField := range field.Children {
 			displayField(buf, childField, level+1)
 		}
 	}
 }
 
-// Specs returns a list of all defined specs
-func Specs() []*Spec {
+// AllSpecs returns a list of all defined specs
+func AllSpecs() []*Spec {
 
 	specs := make([]*Spec, 0, len(specMap))
 	for _, spec := range specMap {
@@ -134,7 +137,7 @@ func SpecByID(specId int) *Spec {
 	defer specMapMu.RUnlock()
 
 	for _, spec := range specMap {
-		if spec.Id == specId {
+		if spec.ID == specId {
 			return spec
 		}
 	}
@@ -164,7 +167,7 @@ func getOrCreateNewSpec(specId int, specName string) (spec *Spec, ok bool, err e
 
 	spec, ok = specMap[specName]
 	if !ok {
-		spec = &Spec{Name: specName, Id: specId, messages: make(map[string]*Message, 2)}
+		spec = &Spec{Name: specName, ID: specId, Messages: make([]*Message, 0)}
 		specMap[specName] = spec
 		return spec, true, nil
 	}

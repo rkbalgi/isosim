@@ -103,11 +103,13 @@ func readLegacyFile(specDir string, specFile string) error {
 				if fld := msg.FieldById(fieldId); fld != nil {
 					return fmt.Errorf("isosim: FieldId %d already used for field - %s : line: %d", fieldId, fld.Name, lineNo)
 				}
-				fieldInfo, err := NewFieldInfo(valuePart)
+				fieldInfo, err := NewField(valuePart)
 				if err != nil {
 					return errors.New("isosim: Syntax error in (field-specification) . Line = " + line)
 				}
-				msg.addField(fieldId, fieldName, fieldInfo)
+				fieldInfo.ID, fieldInfo.Name = fieldId, fieldName
+
+				msg.addField(fieldInfo)
 
 			}
 		case 6:
@@ -136,11 +138,13 @@ func readLegacyFile(specDir string, specFile string) error {
 				if fld := msg.FieldById(fieldId); fld != nil {
 					return fmt.Errorf("isosim: FieldId %d already used for field - %s : line: %d", fieldId, fld.Name, lineNo)
 				}
-				fieldInfo, err := NewFieldInfo(valuePart)
+				fieldInfo, err := NewField(valuePart)
 				if err != nil {
 					return errors.New("isosim: Syntax error in field-specification. Line = " + line)
 				}
-				parentField.addChild(fieldId, fieldName, pos, fieldInfo)
+				fieldInfo.ID, fieldInfo.Name, fieldInfo.Position = fieldId, fieldName, pos
+				fieldInfo.ParentId = parentField.ID
+				parentField.addChild(fieldInfo)
 
 			}
 		default:

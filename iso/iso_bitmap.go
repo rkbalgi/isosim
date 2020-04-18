@@ -30,15 +30,15 @@ func NewBitmap() *Bitmap {
 func emptyBitmap(parsedMsg *ParsedMsg) *Bitmap {
 	bmp := NewBitmap()
 	bmp.parsedMsg = parsedMsg
-	bmp.field = parsedMsg.Msg.Field("Bitmap")
+	bmp.field = parsedMsg.Msg.Field(StandardNameBitmap)
 	return bmp
 }
 
 // Get returns the field-data for the field at position 'pos'
 func (bmp *Bitmap) Get(pos int) *FieldData {
 
-	childField := bmp.field.fieldsByPosition[pos]
-	if childField == nil {
+	_, ok := bmp.field.fieldsByPosition[pos]
+	if !ok {
 		log.Fatal("No such field at position -", pos)
 	}
 
@@ -52,8 +52,8 @@ func (bmp *Bitmap) Get(pos int) *FieldData {
 // Set sets a value for a field at position 'pos'
 func (bmp *Bitmap) Set(pos int, val string) error {
 
-	field := bmp.field.fieldsByPosition[pos]
-	if field == nil {
+	field, ok := bmp.field.fieldsByPosition[pos]
+	if !ok {
 		return fmt.Errorf("isosim: Unable to set value for field. No field at position:%d", pos)
 	}
 
@@ -62,15 +62,15 @@ func (bmp *Bitmap) Set(pos int, val string) error {
 		return err
 	}
 	var fieldData *FieldData
-	var ok bool
+
 	if fieldData, ok = bmp.childData[pos]; ok {
 		fieldData.Data = rawFieldData
-		bmp.parsedMsg.FieldDataMap[field.Id] = fieldData
+		bmp.parsedMsg.FieldDataMap[field.ID] = fieldData
 		bmp.SetOn(pos)
 	} else {
 		fieldData = &FieldData{Field: field}
 		fieldData.Data = rawFieldData
-		bmp.parsedMsg.FieldDataMap[field.Id] = fieldData
+		bmp.parsedMsg.FieldDataMap[field.ID] = fieldData
 		bmp.childData[field.Position] = fieldData
 		bmp.SetOn(pos)
 	}
@@ -79,12 +79,12 @@ func (bmp *Bitmap) Set(pos int, val string) error {
 	// initialized  too
 	if field.HasChildren() {
 		log.Traceln("Attempting to set child fields during set parse for parent field -" + field.Name)
-		if field.FieldInfo.Type == Fixed {
+		if field.Type == FixedType {
 			err = parseFixed(bytes.NewBuffer(rawFieldData), bmp.parsedMsg, field)
-		} else if field.FieldInfo.Type == Variable {
+		} else if field.Type == VariableType {
 			// build the complete field with length indicator and parse it again so that it sets up
 			// all the children
-			vFieldWithLI, err := buildLengthIndicator(field.FieldInfo.LengthIndicatorEncoding, field.FieldInfo.LengthIndicatorSize, len(fieldData.Data))
+			vFieldWithLI, err := buildLengthIndicator(field.LengthIndicatorEncoding, field.LengthIndicatorSize, len(fieldData.Data))
 			if err != nil {
 				return fmt.Errorf("isosim: Unable to set value for variable field: %s :%w", field.Name, err)
 			}
@@ -121,7 +121,7 @@ func (bmp *Bitmap) Bytes() []byte {
 		}
 	}
 
-	switch bmp.field.FieldInfo.FieldDataEncoding {
+	switch bmp.field.DataEncoding {
 	case ASCII:
 		asciiBuf := &bytes.Buffer{}
 		asciiBuf.Write([]byte(strings.ToUpper(hex.EncodeToString(buf.Bytes()))))
@@ -135,7 +135,7 @@ func (bmp *Bitmap) Bytes() []byte {
 		//already taken care of
 
 	default:
-		log.Errorf("isosim: Invalid encoding %v for Bitmap field", bmp.field.FieldInfo.FieldDataEncoding)
+		log.Errorf("isosim: Invalid encoding %v for Bitmap field", bmp.field.DataEncoding)
 
 	}
 
@@ -160,7 +160,7 @@ func (bmp *Bitmap) parse(inputBuffer *bytes.Buffer, parsedMsg *ParsedMsg, field 
 	var buf *bytes.Buffer
 	var err error
 
-	encoding := bmp.field.FieldInfo.FieldDataEncoding
+	encoding := bmp.field.DataEncoding
 	switch encoding {
 	case ASCII, EBCDIC:
 		if buf, err = toBinary(inputBuffer, encoding); err != nil {
@@ -194,7 +194,7 @@ func (bmp *Bitmap) parse(inputBuffer *bytes.Buffer, parsedMsg *ParsedMsg, field 
 	}
 
 	if parsedMsg != nil && field != nil {
-		parsedMsg.FieldDataMap[field.Id] = &FieldData{Data: nil, Field: field, Bitmap: bmp}
+		parsedMsg.FieldDataMap[field.ID] = &FieldData{Data: nil, Field: field, Bitmap: bmp}
 
 	}
 
@@ -217,19 +217,19 @@ func toBinary(inputBuffer *bytes.Buffer, encoding Encoding) (*bytes.Buffer, erro
 		return nil, fmt.Errorf("isosim: Failed to read primary bitmap :%w", err)
 	}
 
-	bin, _ := hex.DecodeString(encoding.ToString(tmp))
+	bin, _ := hex.DecodeString(encoding.EncodeToString(tmp))
 	outputBuffer.Write(bin)
 	if bin[0]&0x80 == 0x80 {
 		if tmp, err = NextBytes(inputBuffer, 16); err != nil {
 			return nil, fmt.Errorf("isosim: Failed to read secondary bitmap :%w", err)
 		}
-		bin, _ := hex.DecodeString(encoding.ToString(tmp))
+		bin, _ := hex.DecodeString(encoding.EncodeToString(tmp))
 		outputBuffer.Write(bin)
 		if bin[0]&0x80 == 0x80 {
 			if tmp, err = NextBytes(inputBuffer, 16); err != nil {
 				return nil, fmt.Errorf("isosim: Failed to read tertiary bitmap :%w", err)
 			}
-			bin, _ := hex.DecodeString(encoding.ToString(tmp))
+			bin, _ := hex.DecodeString(encoding.EncodeToString(tmp))
 			outputBuffer.Write(bin)
 		}
 	}

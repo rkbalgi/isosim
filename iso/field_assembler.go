@@ -13,17 +13,17 @@ import (
 func assemble(buf *bytes.Buffer, parsedMsg *ParsedMsg, fieldData *FieldData) error {
 
 	log.Debugln("assembling field - " + fieldData.Field.Name)
-	info := fieldData.Field.FieldInfo
+	info := fieldData.Field
 	switch info.Type {
 
-	case Fixed:
+	case FixedType:
 		// if the field has children we will derive the data of the field
 		// from the children (nested fields) else we take it from the parent field
 		if !fieldData.Field.HasChildren() {
 			log.Debugf("assembled data for field %s = %s\n", fieldData.Field.Name, hex.EncodeToString(fieldData.Data))
 			buf.Write(fieldData.Data)
 		}
-	case Variable:
+	case VariableType:
 		{
 			if !fieldData.Field.HasChildren() {
 				lenBuf, err := buildLengthIndicator(info.LengthIndicatorEncoding, info.LengthIndicatorSize, len(fieldData.Data))
@@ -35,7 +35,7 @@ func assemble(buf *bytes.Buffer, parsedMsg *ParsedMsg, fieldData *FieldData) err
 				buf.Write(fieldData.Data)
 			}
 		}
-	case Bitmapped:
+	case BitmappedType:
 		log.Debugf("assembled data for field %s = %s\n", fieldData.Field.Name, hex.EncodeToString(fieldData.Bitmap.Bytes()))
 		buf.Write(fieldData.Bitmap.Bytes())
 
@@ -43,20 +43,20 @@ func assemble(buf *bytes.Buffer, parsedMsg *ParsedMsg, fieldData *FieldData) err
 
 	if fieldData.Field.HasChildren() {
 
-		if info.Type == Bitmapped {
+		if info.Type == BitmappedType {
 			bmp := fieldData.Bitmap
-			for _, childField := range fieldData.Field.Children() {
+			for _, childField := range fieldData.Field.Children {
 				if bmp.IsOn(childField.Position) {
-					if err := assemble(buf, parsedMsg, parsedMsg.FieldDataMap[childField.Id]); err != nil {
+					if err := assemble(buf, parsedMsg, parsedMsg.FieldDataMap[childField.ID]); err != nil {
 						return err
 					}
 				}
 			}
 		} else {
-			if info.Type == Fixed {
+			if info.Type == FixedType {
 				tempBuf := bytes.Buffer{}
-				for _, cf := range fieldData.Field.Children() {
-					if err := assemble(&tempBuf, parsedMsg, parsedMsg.FieldDataMap[cf.Id]); err != nil {
+				for _, cf := range fieldData.Field.Children {
+					if err := assemble(&tempBuf, parsedMsg, parsedMsg.FieldDataMap[cf.ID]); err != nil {
 						return err
 					}
 				}
@@ -64,11 +64,11 @@ func assemble(buf *bytes.Buffer, parsedMsg *ParsedMsg, fieldData *FieldData) err
 				fieldData.Data = tempBuf.Bytes()
 				log.Debugf("assembled data for fixed field %s = %s\n", fieldData.Field.Name, hex.EncodeToString(fieldData.Data))
 
-			} else if info.Type == Variable {
+			} else if info.Type == VariableType {
 				//assemble all child fields and then construct the parent
 				tempBuf := bytes.Buffer{}
-				for _, cf := range fieldData.Field.Children() {
-					if err := assemble(&tempBuf, parsedMsg, parsedMsg.FieldDataMap[cf.Id]); err != nil {
+				for _, cf := range fieldData.Field.Children {
+					if err := assemble(&tempBuf, parsedMsg, parsedMsg.FieldDataMap[cf.ID]); err != nil {
 						return err
 					}
 				}
@@ -153,7 +153,7 @@ func writeIntToBuf(lenBuf *bytes.Buffer, intVal uint64, noOfBytes int, radix int
 		}
 	default:
 		{
-			log.Fatal("invalid size for length indicator - ", noOfBytes)
+			log.Errorf("Large/Unsupported size for length indicator - %d", noOfBytes)
 		}
 
 	}

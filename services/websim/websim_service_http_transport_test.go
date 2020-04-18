@@ -78,8 +78,8 @@ func Test_WebsimHttpService(t *testing.T) {
 
 	t.Run("Get all message for spec - Success", func(t *testing.T) {
 		spec := iso.SpecByName("Iso8583-MiniSpec")
-		t.Log(spec.Id)
-		req, err := http.NewRequest(http.MethodGet, s.URL+URLMessages4Spec+"/"+strconv.Itoa(spec.Id), nil)
+		t.Log(spec.ID)
+		req, err := http.NewRequest(http.MethodGet, s.URL+URLMessages4Spec+"/"+strconv.Itoa(spec.ID), nil)
 		if err != nil {
 			t.Fatal(err)
 		}

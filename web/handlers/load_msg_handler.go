@@ -47,6 +47,7 @@ func loadMsgHandler() {
 						return
 
 					}
+					log.Debugf("Returning %s: \n%s", dsName, string(ds))
 					rw.Write(ds)
 					return
 

@@ -1,14 +1,9 @@
 package iso
 
-import (
-	"encoding/hex"
-	"github.com/rkbalgi/go/encoding/ebcdic"
-)
-
 const componentSeparator = "."
 const sizeSeparator = ":"
 
-var id int32 = 0
+/*var id int32 = 0
 
 // Encoding type represents Encoding like ASCII,EBCDIC etc
 type Encoding int
@@ -46,14 +41,8 @@ func (e Encoding) ToString(data []byte) string {
 func GetEncodingName(encoding Encoding) string {
 
 	switch encoding {
-	case ASCII:
-		return "ASCII"
-	case EBCDIC:
-		return "EBCDIC"
-	case BCD:
-		return "BCD"
-	case BINARY:
-		return "BINARY"
+	case ASCII, EBCDIC, BCD, BINARY:
+		return string(encoding)
 	}
 
 	return ""
@@ -65,3 +54,4 @@ const (
 	Fixed
 	Variable
 )
+*/

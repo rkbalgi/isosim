@@ -23,11 +23,11 @@ func getSpecMessagesHandler() {
 			return
 		} else {
 
-			log.Debugln("Getting messages for Spec Id ", specId)
+			log.Debugln("Getting messages for Spec ID ", specId)
 			sp := iso.SpecByID(int(specId))
 			if sp != nil {
 				rw.Header().Add("Access-Control-Allow-Origin", "http://localhost:3000")
-				_ = json.NewEncoder(rw).Encode(sp.Messages())
+				_ = json.NewEncoder(rw).Encode(sp.Messages)
 			} else {
 				log.Errorf("No spec for id - %d\n", specId)
 				sendError(rw, "No such spec")

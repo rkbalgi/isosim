@@ -56,7 +56,14 @@ func getMessageTemplateHandler() {
 			if msg != nil {
 				log.Debugf("Fetching Template for Spec: [%s] and Message: [%s]\n", spec.Name, msg.Name)
 				jsonMsgTemplate := data.NewJsonMessageTemplate(msg)
-				json.NewEncoder(rw).Encode(jsonMsgTemplate)
+
+				if jsonData, err := json.Marshal(jsonMsgTemplate); err != nil {
+					sendError(rw, "Error fetching message template -"+err.Error())
+					return
+				} else {
+					log.Debugf("MsgTemplate for Spec: %s : Msg:%s = %v", spec.Name, msg.Name, string(jsonData))
+					_, _ = rw.Write(jsonData)
+				}
 
 			} else {
 				sendError(rw, "unknown msg id in url - "+reqUri)
