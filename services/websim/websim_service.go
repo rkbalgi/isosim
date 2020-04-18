@@ -10,6 +10,7 @@ import (
 	"isosim/iso"
 	"isosim/iso/server"
 	"isosim/services/v0/data"
+	"sort"
 	"strconv"
 )
 
@@ -58,6 +59,13 @@ func (serviceImpl) GetAllSpecs(ctx context.Context) ([]UISpec, error) {
 
 		specs = append(specs, UISpec{ID: s.ID, Name: s.Name, Messages: messages})
 	}
+
+	sort.Slice(specs, func(i, j int) bool {
+		if specs[i].Name < specs[j].Name {
+			return true
+		}
+		return false
+	})
 
 	return specs, nil
 }
