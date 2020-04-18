@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
 	"isosim/iso"
-	"isosim/web/data"
+	"isosim/services/v0/data"
 )
 
 type GetAllSpecsRequest struct{}

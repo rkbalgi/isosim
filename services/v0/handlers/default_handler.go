@@ -1,14 +1,12 @@
 package handlers
 
 import (
-	"errors"
 	log "github.com/sirupsen/logrus"
 	"isosim/iso"
+	"isosim/services/v0/handlers/isoserver"
+	"isosim/services/v0/handlers/misc"
 	"isosim/services/websim"
-	"isosim/web/handlers/isoserver"
-	"isosim/web/handlers/misc"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strings"
 )
@@ -16,21 +14,7 @@ import (
 type IsoHttpHandler struct {
 }
 
-var isoHtmlFile string
-
 func Init(HTMLDir string) error {
-
-	isoHtmlFile = filepath.Join(HTMLDir, "iso.html")
-
-	if !filepath.IsAbs(isoHtmlFile) {
-		isoHtmlFile, _ = filepath.Abs(isoHtmlFile)
-	}
-
-	file, err := os.Open(isoHtmlFile)
-	if err != nil {
-		return errors.New("HTMLDir doesn't contain required files. File = iso.html")
-	}
-	defer file.Close()
 
 	setRoutes()
 	return nil
@@ -38,31 +22,6 @@ func Init(HTMLDir string) error {
 }
 
 func setRoutes() {
-
-	log.Debugf("Setting default route %s Served By = %s", homeUrl, isoHtmlFile)
-
-	//default route
-	http.HandleFunc(homeUrl, func(rw http.ResponseWriter, req *http.Request) {
-		pattern := homeUrl
-		log.Debugf("Pattern: %s . Requested URI = %s\n", pattern, req.RequestURI)
-		log.Debugln("Serving file = " + isoHtmlFile)
-		http.ServeFile(rw, req, isoHtmlFile)
-	})
-
-	//for static resources
-	http.HandleFunc("/iso/", func(rw http.ResponseWriter, req *http.Request) {
-
-		if strings.HasSuffix(req.RequestURI, ".css") ||
-			strings.HasSuffix(req.RequestURI, ".js") {
-
-			i := strings.LastIndex(req.RequestURI, "/")
-			fileName := req.RequestURI[i+1 : len(req.RequestURI)]
-			//log.Print("Requested File = " + fileName)
-			http.ServeFile(rw, req, filepath.Join(iso.HTMLDir, fileName))
-
-		}
-
-	})
 
 	//react front-end resources
 	//for static resources
@@ -94,14 +53,10 @@ func setRoutes() {
 
 	})
 
-	allSpecsHandler()
-	getSpecMessagesHandler()
-	getMessageTemplateHandler()
 	parseTraceHandler()
 	sendMsgHandler()
 	isoserver.AddAll()
 	saveMsgHandler()
-	loadMsgHandler()
 	misc.AddMiscHandlers()
 
 	//v1

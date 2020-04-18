@@ -10,7 +10,7 @@ import (
 	"errors"
 	log "github.com/sirupsen/logrus"
 	"isosim/iso"
-	"isosim/web/data"
+	"isosim/services/v0/data"
 	"net"
 	"strconv"
 	"sync"

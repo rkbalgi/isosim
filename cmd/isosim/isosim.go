@@ -5,7 +5,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"isosim/iso"
 	"isosim/iso/server"
-	"isosim/web/handlers"
+	"isosim/services/v0/handlers"
 	"net/http"
 	_ "net/http/pprof"
 	"os"

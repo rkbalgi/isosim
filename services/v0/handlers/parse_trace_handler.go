@@ -1,16 +1,16 @@
 package handlers
 
 import (
-	"bufio"
-	"bytes"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"isosim/iso"
-	"isosim/web/data"
+	"isosim/services/v0/data"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 func parseTraceHandler() {
@@ -20,7 +20,7 @@ func parseTraceHandler() {
 		reqObj := struct {
 			SpecName string `json:"spec_name"`
 			MsgName  string `json:"msg_name"`
-			Data     string `json:"data"`
+			Data     string `json:"traceData"`
 		}{}
 
 		defer req.Body.Close()
@@ -31,7 +31,7 @@ func parseTraceHandler() {
 		}
 
 		if reqObj.SpecName == "" || reqObj.MsgName == "" || reqObj.Data == "" {
-			log.Errorf("Bad request. Invalid data in request")
+			log.Errorf("Bad request. Invalid traceData in request")
 			rw.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -49,13 +49,13 @@ func parseTraceHandler() {
 			return
 		}
 
-		data, err := hex.DecodeString(reqObj.Data)
+		traceData, err := hex.DecodeString(reqObj.Data)
 		if err != nil {
-			log.Errorf("Invalid trace data in request. Should be valid hex. Provided data = %s", reqObj.Data)
+			log.Errorf("Invalid trace traceData in request. Should be valid hex. Provided traceData = %s", reqObj.Data)
 			rw.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		if parsedMsg, err := msg.Parse(data); err != nil {
+		if parsedMsg, err := msg.Parse(traceData); err != nil {
 			json.NewEncoder(rw).Encode(struct {
 				Error            string `json:"error"`
 				ErrorDescription string `json:"error_description"`
@@ -72,25 +72,19 @@ func parseTraceHandler() {
 		rw.Header().Add("Access-Control-Allow-Origin", "http://localhost:3000")
 
 		reqUri := req.RequestURI
-		scanner := bufio.NewScanner(bytes.NewBufferString(reqUri))
-		scanner.Split(splitByFwdSlash)
-		urlComponents := make([]string, 0, 10)
-		for scanner.Scan() {
-			if len(scanner.Text()) != 0 {
-				urlComponents = append(urlComponents, scanner.Text())
-			}
-		}
+		urlComponents := strings.Split(reqUri, "/")
 
 		log.Traceln("UrlComponents in HTTP request", urlComponents)
 
-		if len(urlComponents) != 5 {
+		fmt.Println(len(urlComponents))
+		if len(urlComponents) != 6 {
 			sendError(rw, "invalid url - "+reqUri)
 			return
 		}
 
 		//rw.WriteHeader(200)
-		paramSpecId := urlComponents[3]
-		paramMsgId := urlComponents[4]
+		paramSpecId := urlComponents[4]
+		paramMsgId := urlComponents[5]
 
 		specId, err := strconv.ParseInt(paramSpecId, 10, 0)
 		if err != nil {

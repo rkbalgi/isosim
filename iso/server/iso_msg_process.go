@@ -6,7 +6,7 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"isosim/iso"
-	"isosim/web/data"
+	"isosim/services/v0/data"
 	"strconv"
 	"strings"
 )

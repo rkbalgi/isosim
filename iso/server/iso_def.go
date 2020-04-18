@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"isosim/web/data"
+	"isosim/services/v0/data"
 
 	"sync"
 )

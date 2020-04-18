@@ -11,7 +11,7 @@ import (
 
 func init() {
 	log.SetLevel(log.TraceLevel)
-	err := iso.ReadSpecs(filepath.Join("..", "..", "specs"))
+	err := iso.ReadSpecs(filepath.Join("..", "..", "..", "specs"))
 	if err != nil {
 		fmt.Print(err)
 	}
