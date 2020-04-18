@@ -21,10 +21,12 @@ type Message struct {
 	ID     int      `yaml:"id"`
 	Fields []*Field `yaml:"fields"`
 
+	// internal aux fields
 	fieldByIdMap map[int]*Field
 	fieldByName  map[string]*Field
 }
 
+// fieldIdValue is a pair of field id and its value
 type fieldIdValue struct {
 	Id    int
 	Value string

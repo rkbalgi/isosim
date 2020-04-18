@@ -97,6 +97,7 @@ func Start(specId string, serverDefName string, port int) error {
 
 }
 
+// StartWithDef starts the server with a provided def, name and the port
 func StartWithDef(def *data.ServerDef, defName string, port int) error {
 
 	actualPort := port

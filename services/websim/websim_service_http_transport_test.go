@@ -28,12 +28,18 @@ func (testHttpHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	switch {
 	case strings.HasPrefix(req.URL.Path, URLAllSpecs):
 		{
-			httptransport.NewServer(allSpecsEndpoint(s), specsReqDecoder, respDecoder, options...).ServeHTTP(rw, req)
+			httptransport.NewServer(allSpecsEndpoint(s), specsReqDecoder, respEncoder, options...).ServeHTTP(rw, req)
 		}
 	case strings.HasPrefix(req.URL.Path, URLMessages4Spec):
 		{
-			httptransport.NewServer(messages4SpecEndpoint(s), messages4SpecReqDecoder, respDecoder, options...).ServeHTTP(rw, req)
+			httptransport.NewServer(messages4SpecEndpoint(s), messages4SpecReqDecoder, respEncoder, options...).ServeHTTP(rw, req)
 		}
+	case strings.HasPrefix(req.URL.Path, URLGetMessageTemplate):
+		{
+			httptransport.NewServer(messageTemplateEndpoint(s), getMessageTemplateReqDecoder, respEncoder, options...).ServeHTTP(rw, req)
+		}
+	case strings.HasPrefix(req.URL.Path, URLLoadMsg):
+		httptransport.NewServer(loadOrFetchSavedMessagesEndpoint(s), loadOrFetchSavedMessagesReqDecoder, respEncoder, options...).ServeHTTP(rw, req)
 
 	}
 
@@ -65,7 +71,7 @@ func Test_WebsimHttpService(t *testing.T) {
 			t.Fatal(err)
 		}
 		defer resp.Body.Close()
-
+		t.Log(string(data))
 		allSpecsResponse := &GetAllSpecResponse{}
 		if err = json.Unmarshal(data, allSpecsResponse); err != nil {
 			t.Fatal(err)
@@ -127,6 +133,99 @@ func Test_WebsimHttpService(t *testing.T) {
 		}
 		t.Log(msgs4SpecResponse.Err)
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+	})
+
+	t.Run("Get MessageTemplate", func(t *testing.T) {
+
+		req, err := http.NewRequest(http.MethodGet, s.URL+URLGetMessageTemplate+"1/1", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var data []byte
+		if data, err = ioutil.ReadAll(resp.Body); err != nil {
+			t.Fatal(err)
+		}
+		t.Log(string(data))
+		defer resp.Body.Close()
+
+		response := &GetMessageTemplateResponse{}
+		if err = json.Unmarshal(data, response); err != nil {
+			t.Fatal(err)
+		}
+
+		assert.True(t, response.Fields != nil && len(response.Fields) > 0)
+
+	})
+
+	t.Run("Get Saved Message - Specific", func(t *testing.T) {
+
+		req, err := http.NewRequest(http.MethodGet, s.URL+URLLoadMsg+"/?specId=1&msgId=1&dsName=TC_000_Approved", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var data []byte
+		if data, err = ioutil.ReadAll(resp.Body); err != nil {
+			t.Fatal(err)
+		}
+		t.Log(string(data))
+		defer resp.Body.Close()
+
+		response := &LoadOrFetchSavedMessagesResponse{}
+		if err = json.Unmarshal(data, response); err != nil {
+			t.Fatal(err)
+		}
+
+		assert.True(t, response.SavedMsg != nil && response.SavedMessages == nil)
+
+	})
+
+	t.Run("Get Saved Message - All", func(t *testing.T) {
+
+		req, err := http.NewRequest(http.MethodGet, s.URL+URLLoadMsg+"/?specId=1&msgId=1", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var data []byte
+		if data, err = ioutil.ReadAll(resp.Body); err != nil {
+			t.Fatal(err)
+		}
+		t.Log(string(data))
+		defer resp.Body.Close()
+
+		response := &LoadOrFetchSavedMessagesResponse{}
+		if err = json.Unmarshal(data, response); err != nil {
+			t.Fatal(err)
+		}
+
+		assert.True(t, response.SavedMsg == nil && response.SavedMessages != nil && len(response.SavedMessages) > 0)
+
+	})
+
+	t.Run("Get Saved Message - Invalid Spec", func(t *testing.T) {
+
+		req, err := http.NewRequest(http.MethodGet, s.URL+URLLoadMsg+"/?specId=0&msgId=1", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, 400, resp.StatusCode)
 
 	})
 

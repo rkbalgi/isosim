@@ -1,8 +1,5 @@
 package iso
 
-const componentSeparator = "."
-const sizeSeparator = ":"
-
 /*var id int32 = 0
 
 // Encoding type represents Encoding like ASCII,EBCDIC etc
