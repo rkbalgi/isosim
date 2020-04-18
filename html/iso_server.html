@@ -194,9 +194,9 @@
     $("#serverDef").html('');
 
     selectedSpec = $('#idSpecs').val();
-    $.getJSON('/iso/v0/msgs/' + selectedSpec, function (data) {
-
-      specMessages = data;
+    $.getJSON('/iso/v1/msgs/' + selectedSpec, function (data) {
+      console.log(data)
+      specMessages = data.messages;
     }).fail(function () {
       showErrorDialog('failed to load spec messages!. please check if the server is running..');
     });
@@ -235,9 +235,9 @@
     //hideAll();
 
     //get all specs and add them to the combo
-    $.getJSON('/iso/v0/specs', function (data) {
+    $.getJSON('/iso/v1/specs', function (data) {
 
-      $.each(data, function (i, spec) {
+      $.each(data.specs, function (i, spec) {
         $('#idSpecs').append('<option value="' + spec.ID + '">' + spec.Name + '</option>');
         $('#idSpecs0').append('<option value="' + spec.ID + '">' + spec.Name + '</option>');
       });
@@ -246,7 +246,7 @@
       $('#idSpecs0').selectedIndex = 0;
 
       selectedSpec = $('#idSpecs').val();
-      $.getJSON('/iso/v0/msgs/' + selectedSpec, function (data) {
+      $.getJSON('/iso/v1/msgs/' + selectedSpec, function (data) {
         specMessages = data;
       }).fail(function () {
         showErrorDialog('failed to load spec messages!. please check if the server is running..');
@@ -552,12 +552,12 @@
 
   function loadSpecMessageFields(msgId, pasync = true) {
     $.get({
-      url: '/iso/v0/template/' + selectedSpec + '/' + msgId,
+      url: '/iso/v1/template/' + selectedSpec + '/' + msgId,
       success: function (response) {
         var data = JSON.parse(response);
         var fieldList = [];
 
-        $.each(data.Fields, function (i, field) {
+        $.each(data.fields, function (i, field) {
           fieldList.push(field);
           addFieldToList(field, fieldList);
         });
