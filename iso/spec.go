@@ -30,9 +30,9 @@ func (spec *Spec) GetOrAddMsg(msgId int, msgName string) (*Message, bool) {
 	defer specMapMu.Unlock()
 
 	msg := &Message{Name: msgName, ID: msgId,
-		Fields:       make([]*FieldDefV1, 0, 10),
-		fieldByIdMap: make(map[int]*FieldDefV1, 10),
-		fieldByName:  make(map[string]*FieldDefV1),
+		Fields:       make([]*Field, 0, 10),
+		fieldByIdMap: make(map[int]*Field, 10),
+		fieldByName:  make(map[string]*Field),
 	}
 	spec.Messages = append(spec.Messages, msg)
 
@@ -105,7 +105,7 @@ func printAllSpecsInfo() {
 	}
 }
 
-func displayField(buf *bytes.Buffer, field *FieldDefV1, level int) {
+func displayField(buf *bytes.Buffer, field *Field, level int) {
 	i := 0
 	for ; i < level; i++ {
 		buf.WriteString("--")
@@ -119,8 +119,8 @@ func displayField(buf *bytes.Buffer, field *FieldDefV1, level int) {
 	}
 }
 
-// Specs returns a list of all defined specs
-func Specs() []*Spec {
+// AllSpecs returns a list of all defined specs
+func AllSpecs() []*Spec {
 
 	specs := make([]*Spec, 0, len(specMap))
 	for _, spec := range specMap {

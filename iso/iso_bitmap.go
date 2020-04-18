@@ -15,7 +15,7 @@ import (
 type Bitmap struct {
 	bmpData   []uint64
 	childData map[int]*FieldData
-	field     *FieldDefV1
+	field     *Field
 	//This field is required during response building only
 	parsedMsg *ParsedMsg
 }
@@ -30,7 +30,7 @@ func NewBitmap() *Bitmap {
 func emptyBitmap(parsedMsg *ParsedMsg) *Bitmap {
 	bmp := NewBitmap()
 	bmp.parsedMsg = parsedMsg
-	bmp.field = parsedMsg.Msg.Field("Bitmap")
+	bmp.field = parsedMsg.Msg.Field(StandardNameBitmap)
 	return bmp
 }
 
@@ -122,16 +122,16 @@ func (bmp *Bitmap) Bytes() []byte {
 	}
 
 	switch bmp.field.DataEncoding {
-	case ASCIIEncoding:
+	case ASCII:
 		asciiBuf := &bytes.Buffer{}
 		asciiBuf.Write([]byte(strings.ToUpper(hex.EncodeToString(buf.Bytes()))))
 		buf = asciiBuf
-	case EBCDICEncoding:
+	case EBCDIC:
 		ebdicBuf := &bytes.Buffer{}
 		bin := strings.ToUpper(hex.EncodeToString(buf.Bytes()))
 		ebdicBuf.Write(ebcdic.Decode(bin))
 		buf = ebdicBuf
-	case BINARYEncoding:
+	case BINARY:
 		//already taken care of
 
 	default:
@@ -155,14 +155,14 @@ func (bmp *Bitmap) BinaryString() string {
 
 }
 
-func (bmp *Bitmap) parse(inputBuffer *bytes.Buffer, parsedMsg *ParsedMsg, field *FieldDefV1) error {
+func (bmp *Bitmap) parse(inputBuffer *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 
 	var buf *bytes.Buffer
 	var err error
 
 	encoding := bmp.field.DataEncoding
 	switch encoding {
-	case ASCIIEncoding, EBCDICEncoding:
+	case ASCII, EBCDIC:
 		if buf, err = toBinary(inputBuffer, encoding); err != nil {
 			return err
 		}
@@ -204,7 +204,7 @@ func (bmp *Bitmap) parse(inputBuffer *bytes.Buffer, parsedMsg *ParsedMsg, field 
 
 // toBinary extract data for a ASCII/EBCDIC encoded bitmap and coverts
 // it into a BINARY bitmap
-func toBinary(inputBuffer *bytes.Buffer, encoding EncodingV1) (*bytes.Buffer, error) {
+func toBinary(inputBuffer *bytes.Buffer, encoding Encoding) (*bytes.Buffer, error) {
 
 	// Each byte is represented by 2 bytes, so regular 8 byte becomes 16 - so a primary, secondary and tertiary
 	// bitmap in ASCII/EBCDIC is 48 bytes
@@ -217,19 +217,19 @@ func toBinary(inputBuffer *bytes.Buffer, encoding EncodingV1) (*bytes.Buffer, er
 		return nil, fmt.Errorf("isosim: Failed to read primary bitmap :%w", err)
 	}
 
-	bin, _ := hex.DecodeString(encoding.ToString(tmp))
+	bin, _ := hex.DecodeString(encoding.EncodeToString(tmp))
 	outputBuffer.Write(bin)
 	if bin[0]&0x80 == 0x80 {
 		if tmp, err = NextBytes(inputBuffer, 16); err != nil {
 			return nil, fmt.Errorf("isosim: Failed to read secondary bitmap :%w", err)
 		}
-		bin, _ := hex.DecodeString(encoding.ToString(tmp))
+		bin, _ := hex.DecodeString(encoding.EncodeToString(tmp))
 		outputBuffer.Write(bin)
 		if bin[0]&0x80 == 0x80 {
 			if tmp, err = NextBytes(inputBuffer, 16); err != nil {
 				return nil, fmt.Errorf("isosim: Failed to read tertiary bitmap :%w", err)
 			}
-			bin, _ := hex.DecodeString(encoding.ToString(tmp))
+			bin, _ := hex.DecodeString(encoding.EncodeToString(tmp))
 			outputBuffer.Write(bin)
 		}
 	}

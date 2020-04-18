@@ -103,7 +103,7 @@ func readLegacyFile(specDir string, specFile string) error {
 				if fld := msg.FieldById(fieldId); fld != nil {
 					return fmt.Errorf("isosim: FieldId %d already used for field - %s : line: %d", fieldId, fld.Name, lineNo)
 				}
-				fieldInfo, err := NewFieldInfo(valuePart)
+				fieldInfo, err := NewField(valuePart)
 				if err != nil {
 					return errors.New("isosim: Syntax error in (field-specification) . Line = " + line)
 				}
@@ -138,7 +138,7 @@ func readLegacyFile(specDir string, specFile string) error {
 				if fld := msg.FieldById(fieldId); fld != nil {
 					return fmt.Errorf("isosim: FieldId %d already used for field - %s : line: %d", fieldId, fld.Name, lineNo)
 				}
-				fieldInfo, err := NewFieldInfo(valuePart)
+				fieldInfo, err := NewField(valuePart)
 				if err != nil {
 					return errors.New("isosim: Syntax error in field-specification. Line = " + line)
 				}
@@ -156,7 +156,7 @@ func readLegacyFile(specDir string, specFile string) error {
 
 }
 
-func resolveField(msg *Message, ref string) (*FieldDefV1, error) {
+func resolveField(msg *Message, ref string) (*Field, error) {
 
 	if NumericRegexPattern.Match([]byte(ref)) {
 		fieldId, _ := strconv.Atoi(ref)

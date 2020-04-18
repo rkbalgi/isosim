@@ -31,7 +31,7 @@ func Test_ParseMsg(t *testing.T) {
 		}
 
 		assert.Equal(t, "1100", parsedMsg.Get("Message Type").Value())
-		bmp := parsedMsg.Get("Bitmap").Bitmap
+		bmp := parsedMsg.Get(StandardNameBitmap).Bitmap
 		assert.Equal(t, "hello", bmp.Get(56).Value())
 
 		//sub fields of fixed field

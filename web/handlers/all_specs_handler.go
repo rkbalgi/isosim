@@ -18,7 +18,7 @@ func allSpecsHandler() {
 			Messages []*iso.Message
 		}, 0)
 
-		for _, s := range iso.Specs() {
+		for _, s := range iso.AllSpecs() {
 			specs = append(specs, struct {
 				ID       int
 				Name     string

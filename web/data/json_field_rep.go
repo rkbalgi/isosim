@@ -2,7 +2,10 @@
 // specs/messages
 package data
 
-import "isosim/iso"
+import (
+	"fmt"
+	"isosim/iso"
+)
 
 // JsonFieldInfoRep is a field info that is used in the front end application (sent as a result of
 // API calls)
@@ -33,12 +36,12 @@ type JsonMessageTemplate struct {
 	Fields []*JsonFieldInfoRep
 }
 
-func newJsonFieldTemplate(field *iso.FieldDefV1) *JsonFieldInfoRep {
+func newJsonFieldTemplate(field *iso.Field) *JsonFieldInfoRep {
 	jFieldInfo := &JsonFieldInfoRep{Children: make([]*JsonFieldInfoRep, 0, 10)}
 	jFieldInfo.ID = field.ID
 	jFieldInfo.Name = field.Name
 	jFieldInfo.Position = field.Position
-	jFieldInfo.DataEncoding = iso.GetEncodingName(field.DataEncoding)
+	jFieldInfo.DataEncoding = field.DataEncoding.AsString()
 
 	//fieldInfo := field.FieldInfo
 
@@ -59,7 +62,7 @@ func newJsonFieldTemplate(field *iso.FieldDefV1) *JsonFieldInfoRep {
 
 		jFieldInfo.Type = "Variable"
 		jFieldInfo.LengthIndicatorSize = field.LengthIndicatorSize
-		jFieldInfo.LengthEncoding = iso.GetEncodingName(field.LengthIndicatorEncoding)
+		jFieldInfo.LengthEncoding = field.LengthIndicatorEncoding.AsString()
 		if len(field.Constraints.ContentType) > 0 {
 			jFieldInfo.ContentType = field.Constraints.ContentType
 		} else {
@@ -76,7 +79,7 @@ func newJsonFieldTemplate(field *iso.FieldDefV1) *JsonFieldInfoRep {
 			childJsonFieldTemplate := newJsonFieldTemplate(childField)
 			childJsonFieldTemplate.ParentId = field.ID
 			childJsonFieldTemplate.Position = childField.Position
-
+			fmt.Println("Adding child ", childField, "to ", field)
 			jFieldInfo.Children = append(jFieldInfo.Children, childJsonFieldTemplate)
 		}
 
@@ -90,7 +93,7 @@ func NewJsonMessageTemplate(msg *iso.Message) *JsonMessageTemplate {
 
 	jsonMsgTemplate := &JsonMessageTemplate{Fields: make([]*JsonFieldInfoRep, 0, 10)}
 	for _, field := range msg.Fields {
-
+		fmt.Println("Adding ", field)
 		jsonFieldTemplate := newJsonFieldTemplate(field)
 		jsonMsgTemplate.Fields = append(jsonMsgTemplate.Fields, jsonFieldTemplate)
 

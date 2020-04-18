@@ -17,12 +17,12 @@ var ErrUnknownField = errors.New("isosim: Unknown field")
 
 // Message represents a message within a specification (auth/reversal etc)
 type Message struct {
-	Name   string        `yaml:"name"`
-	ID     int           `yaml:"id"`
-	Fields []*FieldDefV1 `yaml:"fields"`
+	Name   string   `yaml:"name"`
+	ID     int      `yaml:"id"`
+	Fields []*Field `yaml:"fields"`
 
-	fieldByIdMap map[int]*FieldDefV1
-	fieldByName  map[string]*FieldDefV1
+	fieldByIdMap map[int]*Field
+	fieldByName  map[string]*Field
 }
 
 type fieldIdValue struct {
@@ -36,18 +36,15 @@ func (msg *Message) NewIso() *Iso {
 	return isoMsg
 }
 
-func (msg *Message) addField(def *FieldDefV1) *FieldDefV1 {
+func (msg *Message) addField(def *Field) *Field {
 
 	if _, ok := msg.fieldByName[def.Name]; ok {
 		log.Printf("field %s already exists!", def.Name)
 		return nil
 	}
-	def.fieldsByPosition = make(map[int]*FieldDefV1, 10)
-	msg.fieldByName[def.Name] = def
-	msg.fieldByIdMap[def.ID] = def
 
-	def.ParentId = -1
-	def.msg = msg
+	//set up some aux fields
+	msg.setAux(def)
 
 	msg.Fields = append(msg.Fields, def)
 	return def
@@ -55,18 +52,16 @@ func (msg *Message) addField(def *FieldDefV1) *FieldDefV1 {
 }
 
 // FieldById returns a field by its id
-func (msg *Message) FieldById(id int) *FieldDefV1 {
-
+func (msg *Message) FieldById(id int) *Field {
 	if f, ok := msg.fieldByIdMap[id]; !ok {
 		return nil
 	} else {
 		return f
 	}
-
 }
 
 // Field returns a field by its name
-func (msg *Message) Field(fieldName string) *FieldDefV1 {
+func (msg *Message) Field(fieldName string) *Field {
 
 	field, ok := msg.fieldByName[fieldName]
 	if !ok {
@@ -77,7 +72,7 @@ func (msg *Message) Field(fieldName string) *FieldDefV1 {
 }
 
 //Fields returns all fields of this Message
-func (msg *Message) AllFields() []*FieldDefV1 {
+func (msg *Message) AllFields() []*Field {
 	return msg.Fields
 }
 
@@ -168,5 +163,25 @@ func (msg *Message) ParseJSON(jsonMsg string) (*ParsedMsg, error) {
 	}
 
 	return parsedMsg, nil
+
+}
+
+func (msg *Message) setAux(def *Field) {
+
+	//some helpers to navigate the tree of messages, fields etc
+
+	def.fieldsByPosition = make(map[int]*Field, 10)
+	msg.fieldByName[def.Name] = def
+	msg.fieldByIdMap[def.ID] = def
+
+	def.ParentId = -1
+	def.msg = msg
+
+}
+
+func (msg *Message) initAuxFields() {
+
+	msg.fieldByIdMap = make(map[int]*Field)
+	msg.fieldByName = make(map[string]*Field)
 
 }

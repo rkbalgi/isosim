@@ -4,7 +4,7 @@ import "fmt"
 
 // FieldData represents the data associated with a field in a ISO message
 type FieldData struct {
-	Field *FieldDefV1
+	Field *Field
 	Data  []byte
 
 	// Bitmap is only used for bitmapped fields to keep track of

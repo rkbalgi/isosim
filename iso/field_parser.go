@@ -62,7 +62,7 @@ func (pMsg *ParsedMsg) Copy() *ParsedMsg {
 
 }
 
-func parse(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *FieldDefV1) error {
+func parse(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 
 	var err error
 	switch field.Type {
@@ -103,7 +103,7 @@ func parse(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *FieldDefV1) error {
 
 }
 
-func parseFixed(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *FieldDefV1) error {
+func parseFixed(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 
 	fieldData := &FieldData{Field: field}
 	var err error
@@ -129,7 +129,7 @@ func parseFixed(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *FieldDefV1) erro
 
 }
 
-func parseVariable(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *FieldDefV1) error {
+func parseVariable(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 
 	lenData, err := NextBytes(buf, field.LengthIndicatorSize)
 	if err != nil {
@@ -138,7 +138,7 @@ func parseVariable(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *FieldDefV1) e
 	var length uint64
 
 	switch field.LengthIndicatorEncoding {
-	case BINARYEncoding:
+	case BINARY:
 		{
 			if field.LengthIndicatorSize > 4 {
 				return ErrLargeLengthIndicator
@@ -191,14 +191,14 @@ func parseVariable(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *FieldDefV1) e
 			}
 
 		}
-	case BCDEncoding:
+	case BCD:
 		{
 			//len = 0;
 			if length, err = strconv.ParseUint(hex.EncodeToString(lenData), 10, 64); err != nil {
 				return err
 			}
 		}
-	case ASCIIEncoding:
+	case ASCII:
 		{
 
 			if length, err = strconv.ParseUint(string(lenData), 10, 64); err != nil {
@@ -206,7 +206,7 @@ func parseVariable(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *FieldDefV1) e
 			}
 
 		}
-	case EBCDICEncoding:
+	case EBCDIC:
 		{
 
 			if length, err = strconv.ParseUint(ebcdic.EncodeToString(lenData), 10, 64); err != nil {
@@ -241,7 +241,7 @@ func parseVariable(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *FieldDefV1) e
 
 }
 
-func parseBitmap(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *FieldDefV1) error {
+func parseBitmap(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 
 	bitmap := NewBitmap()
 	bitmap.field = field

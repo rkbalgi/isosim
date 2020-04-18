@@ -27,7 +27,7 @@ func (serviceImpl) GetAllSpecs(ctx context.Context) ([]UISpec, error) {
 
 	specs := make([]UISpec, 0)
 
-	for _, s := range iso.Specs() {
+	for _, s := range iso.AllSpecs() {
 		specs = append(specs, UISpec{Id: s.ID, Name: s.Name, Messages: s.Messages})
 	}
 

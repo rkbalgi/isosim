@@ -17,18 +17,18 @@ func Test_BitmapField(t *testing.T) {
 	t.Run("parse binary bitmap field - success", func(t *testing.T) {
 		data, _ := hex.DecodeString("F000001018010002E0200000100201000000200004040201")
 
-		info := &FieldDefV1{ID: 10, Name: "Bitmap", Type: BitmappedType, DataEncoding: BINARYEncoding}
+		f := &Field{ID: 10, Name: StandardNameBitmap, Type: BitmappedType, DataEncoding: BINARY}
 
-		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*FieldDefV1),
-			fieldByName: make(map[string]*FieldDefV1)}, FieldDataMap: make(map[int]*FieldData)}
-		field := p.Msg.addField(info)
+		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*Field),
+			fieldByName: make(map[string]*Field)}, FieldDataMap: make(map[int]*FieldData)}
+		field := p.Msg.addField(f)
 
 		buf := bytes.NewBuffer(data)
 		err := parseBitmap(buf, p, field)
 		assert.Nil(t, err)
 
 		for _, pos := range onBits {
-			if !p.Get("Bitmap").Bitmap.IsOn(pos) {
+			if !p.Get(StandardNameBitmap).Bitmap.IsOn(pos) {
 				t.Fatalf("%d position is not set", pos)
 			}
 		}
@@ -37,18 +37,18 @@ func Test_BitmapField(t *testing.T) {
 	t.Run("parse binary bitmap field - success (primary only)", func(t *testing.T) {
 		data, _ := hex.DecodeString("7000001018010002")
 
-		info := &FieldDefV1{ID: 10, Name: "Bitmap", Type: BitmappedType, DataEncoding: BINARYEncoding}
+		f := &Field{ID: 10, Name: StandardNameBitmap, Type: BitmappedType, DataEncoding: BINARY}
 
-		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*FieldDefV1),
-			fieldByName: make(map[string]*FieldDefV1)}, FieldDataMap: make(map[int]*FieldData)}
-		field := p.Msg.addField(info)
+		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*Field),
+			fieldByName: make(map[string]*Field)}, FieldDataMap: make(map[int]*FieldData)}
+		field := p.Msg.addField(f)
 
 		buf := bytes.NewBuffer(data)
 		err := parseBitmap(buf, p, field)
 		assert.Nil(t, err)
 
 		for _, pos := range []int{2, 3, 4, 28, 36, 37, 48, 63} {
-			if !p.Get("Bitmap").Bitmap.IsOn(pos) {
+			if !p.Get(StandardNameBitmap).Bitmap.IsOn(pos) {
 				t.Fatalf("%d position is not set", pos)
 			}
 		}
@@ -57,18 +57,18 @@ func Test_BitmapField(t *testing.T) {
 	t.Run("parse binary bitmap field - success (primary and secondary)", func(t *testing.T) {
 		data, _ := hex.DecodeString("F0000010180100026020000010020100")
 
-		info := &FieldDefV1{ID: 10, Name: "Bitmap", Type: BitmappedType, DataEncoding: BINARYEncoding}
+		f := &Field{ID: 10, Name: StandardNameBitmap, Type: BitmappedType, DataEncoding: BINARY}
 
-		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*FieldDefV1),
-			fieldByName: make(map[string]*FieldDefV1)}, FieldDataMap: make(map[int]*FieldData)}
-		field := p.Msg.addField(info)
+		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*Field),
+			fieldByName: make(map[string]*Field)}, FieldDataMap: make(map[int]*FieldData)}
+		field := p.Msg.addField(f)
 
 		buf := bytes.NewBuffer(data)
 		err := parseBitmap(buf, p, field)
 		assert.Nil(t, err)
 
 		for _, pos := range []int{1, 2, 3, 4, 28, 36, 37, 48, 63, 66, 67, 75, 100, 111, 120} {
-			if !p.Get("Bitmap").Bitmap.IsOn(pos) {
+			if !p.Get(StandardNameBitmap).Bitmap.IsOn(pos) {
 				t.Fatalf("%d position is not set", pos)
 			}
 		}
@@ -77,27 +77,27 @@ func Test_BitmapField(t *testing.T) {
 	t.Run("parse binary bitmap field - failure", func(t *testing.T) {
 		data, _ := hex.DecodeString("F000000018010002E0200000100201000000200004040201")
 
-		info := &FieldDefV1{ID: 10, Name: "Bitmap", Type: BitmappedType, DataEncoding: BINARYEncoding}
+		info := &Field{ID: 10, Name: StandardNameBitmap, Type: BitmappedType, DataEncoding: BINARY}
 
-		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*FieldDefV1),
-			fieldByName: make(map[string]*FieldDefV1)}, FieldDataMap: make(map[int]*FieldData)}
+		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*Field),
+			fieldByName: make(map[string]*Field)}, FieldDataMap: make(map[int]*FieldData)}
 		field := p.Msg.addField(info)
 
 		buf := bytes.NewBuffer(data)
 		err := parseBitmap(buf, p, field)
 		assert.Nil(t, err)
 
-		assert.False(t, p.Get("Bitmap").Bitmap.IsOn(28))
+		assert.False(t, p.Get(StandardNameBitmap).Bitmap.IsOn(28))
 	})
 
 	t.Run("parse ASCII bitmap field - success", func(t *testing.T) {
 
 		data, _ := hex.DecodeString("463030303030313031383031303030324530323030303030313030323031303030303030323030303034303430323031")
 
-		info := &FieldDefV1{ID: 10, Name: "Bitmap", Type: BitmappedType, DataEncoding: ASCIIEncoding}
+		info := &Field{ID: 10, Name: StandardNameBitmap, Type: BitmappedType, DataEncoding: ASCII}
 
-		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*FieldDefV1),
-			fieldByName: make(map[string]*FieldDefV1)}, FieldDataMap: make(map[int]*FieldData)}
+		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*Field),
+			fieldByName: make(map[string]*Field)}, FieldDataMap: make(map[int]*FieldData)}
 		field := p.Msg.addField(info)
 
 		buf := bytes.NewBuffer(data)
@@ -105,7 +105,7 @@ func Test_BitmapField(t *testing.T) {
 		assert.Nil(t, err)
 
 		for _, pos := range onBits {
-			if !p.Get("Bitmap").Bitmap.IsOn(pos) {
+			if !p.Get(StandardNameBitmap).Bitmap.IsOn(pos) {
 				t.Fatalf("%d position is not set", pos)
 			}
 		}
@@ -116,10 +116,10 @@ func Test_BitmapField(t *testing.T) {
 		ebcdicBmp := hex.EncodeToString(ebcdic.Decode("F000001018010002E0200000100201000000200004040201"))
 		data, _ := hex.DecodeString(ebcdicBmp)
 
-		info := &FieldDefV1{ID: 10, Name: "Bitmap", Type: BitmappedType, DataEncoding: EBCDICEncoding}
+		info := &Field{ID: 10, Name: StandardNameBitmap, Type: BitmappedType, DataEncoding: EBCDIC}
 
-		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*FieldDefV1),
-			fieldByName: make(map[string]*FieldDefV1)}, FieldDataMap: make(map[int]*FieldData)}
+		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*Field),
+			fieldByName: make(map[string]*Field)}, FieldDataMap: make(map[int]*FieldData)}
 		field := p.Msg.addField(info)
 
 		buf := bytes.NewBuffer(data)
@@ -127,7 +127,7 @@ func Test_BitmapField(t *testing.T) {
 		assert.Nil(t, err)
 
 		for _, pos := range onBits {
-			if !p.Get("Bitmap").Bitmap.IsOn(pos) {
+			if !p.Get(StandardNameBitmap).Bitmap.IsOn(pos) {
 				t.Fatalf("%d position is not set", pos)
 			}
 		}
@@ -137,15 +137,15 @@ func Test_BitmapField(t *testing.T) {
 
 func Test_FixedField(t *testing.T) {
 
-	finfo := &FieldDefV1{ID: 9, Name: "FixedField", Type: FixedType, Size: 4, DataEncoding: ASCIIEncoding}
+	f := &Field{ID: 9, Name: "FixedField", Type: FixedType, Size: 4, DataEncoding: ASCII}
 	msg := &Message{
 		ID:           1,
 		Name:         "Default",
-		Fields:       make([]*FieldDefV1, 0),
-		fieldByIdMap: make(map[int]*FieldDefV1),
-		fieldByName:  make(map[string]*FieldDefV1),
+		Fields:       make([]*Field, 0),
+		fieldByIdMap: make(map[int]*Field),
+		fieldByName:  make(map[string]*Field),
 	}
-	msg.addField(finfo)
+	msg.addField(f)
 	parsedMsg := &ParsedMsg{IsRequest: true, FieldDataMap: make(map[int]*FieldData), Msg: msg}
 
 	buf := bytes.NewBufferString("1234")
@@ -162,15 +162,15 @@ func Test_VariableField(t *testing.T) {
 
 	name := "VariableField"
 	t.Run("variable field with ascii and ascii", func(t *testing.T) {
-		fieldInfo := &FieldDefV1{ID: 9, Name: name, Type: VariableType,
-			DataEncoding: ASCIIEncoding, LengthIndicatorEncoding: ASCIIEncoding, LengthIndicatorSize: 2}
+		fieldInfo := &Field{ID: 9, Name: name, Type: VariableType,
+			DataEncoding: ASCII, LengthIndicatorEncoding: ASCII, LengthIndicatorSize: 2}
 
 		msg := &Message{
 			ID:           1,
 			Name:         "Default",
-			Fields:       make([]*FieldDefV1, 0),
-			fieldByIdMap: make(map[int]*FieldDefV1),
-			fieldByName:  make(map[string]*FieldDefV1),
+			Fields:       make([]*Field, 0),
+			fieldByIdMap: make(map[int]*Field),
+			fieldByName:  make(map[string]*Field),
 		}
 
 		msg.addField(fieldInfo)
@@ -204,15 +204,15 @@ func Test_VariableField(t *testing.T) {
 
 		fieldName := "VariableField"
 
-		fieldInfo := &FieldDefV1{ID: 9, Name: fieldName, Type: VariableType, DataEncoding: ASCIIEncoding,
-			LengthIndicatorEncoding: BCDEncoding, LengthIndicatorSize: 1}
+		fieldInfo := &Field{ID: 9, Name: fieldName, Type: VariableType, DataEncoding: ASCII,
+			LengthIndicatorEncoding: BCD, LengthIndicatorSize: 1}
 
 		msg := &Message{
 			ID:           1,
 			Name:         "Default",
-			Fields:       make([]*FieldDefV1, 0),
-			fieldByIdMap: make(map[int]*FieldDefV1),
-			fieldByName:  make(map[string]*FieldDefV1),
+			Fields:       make([]*Field, 0),
+			fieldByIdMap: make(map[int]*Field),
+			fieldByName:  make(map[string]*Field),
 		}
 
 		msg.addField(fieldInfo)
@@ -238,15 +238,15 @@ func Test_VariableField(t *testing.T) {
 	})
 
 	t.Run("variable field with bcd (2) and ascii", func(t *testing.T) {
-		fieldInfo := &FieldDefV1{ID: 9, Name: name, Type: VariableType,
-			DataEncoding: ASCIIEncoding, LengthIndicatorEncoding: BCDEncoding, LengthIndicatorSize: 2}
+		fieldInfo := &Field{ID: 9, Name: name, Type: VariableType,
+			DataEncoding: ASCII, LengthIndicatorEncoding: BCD, LengthIndicatorSize: 2}
 
 		msg := &Message{
 			ID:           1,
 			Name:         "Default",
-			Fields:       make([]*FieldDefV1, 0),
-			fieldByIdMap: make(map[int]*FieldDefV1),
-			fieldByName:  make(map[string]*FieldDefV1),
+			Fields:       make([]*Field, 0),
+			fieldByIdMap: make(map[int]*Field),
+			fieldByName:  make(map[string]*Field),
 		}
 		fieldName := name
 		msg.addField(fieldInfo)
@@ -273,15 +273,15 @@ func Test_VariableField(t *testing.T) {
 
 	t.Run("variable field with binary (1) and ascii", func(t *testing.T) {
 		fieldName := "VariableField"
-		fieldInfo := &FieldDefV1{ID: 9, Name: fieldName, Type: VariableType, DataEncoding: ASCIIEncoding,
-			LengthIndicatorEncoding: BINARYEncoding, LengthIndicatorSize: 1}
+		fieldInfo := &Field{ID: 9, Name: fieldName, Type: VariableType, DataEncoding: ASCII,
+			LengthIndicatorEncoding: BINARY, LengthIndicatorSize: 1}
 
 		msg := &Message{
 			ID:           1,
 			Name:         "Default",
-			Fields:       make([]*FieldDefV1, 0),
-			fieldByIdMap: make(map[int]*FieldDefV1),
-			fieldByName:  make(map[string]*FieldDefV1),
+			Fields:       make([]*Field, 0),
+			fieldByIdMap: make(map[int]*Field),
+			fieldByName:  make(map[string]*Field),
 		}
 
 		msg.addField(fieldInfo)
@@ -308,15 +308,15 @@ func Test_VariableField(t *testing.T) {
 
 	t.Run("variable field with binary (2) and ascii", func(t *testing.T) {
 		fieldName := "VariableField"
-		fieldInfo := &FieldDefV1{ID: 9, Name: fieldName, Type: VariableType, DataEncoding: ASCIIEncoding,
-			LengthIndicatorEncoding: BINARYEncoding, LengthIndicatorSize: 2}
+		fieldInfo := &Field{ID: 9, Name: fieldName, Type: VariableType, DataEncoding: ASCII,
+			LengthIndicatorEncoding: BINARY, LengthIndicatorSize: 2}
 
 		msg := &Message{
 			ID:           1,
 			Name:         "Default",
-			Fields:       make([]*FieldDefV1, 0),
-			fieldByIdMap: make(map[int]*FieldDefV1),
-			fieldByName:  make(map[string]*FieldDefV1),
+			Fields:       make([]*Field, 0),
+			fieldByIdMap: make(map[int]*Field),
+			fieldByName:  make(map[string]*Field),
 		}
 
 		msg.addField(fieldInfo)
@@ -345,15 +345,15 @@ func Test_VariableField(t *testing.T) {
 
 func TestFieldData_Copy(t *testing.T) {
 
-	finfo := &FieldDefV1{ID: 9, Name: "FixedField", Type: FixedType, Size: 4, DataEncoding: ASCIIEncoding}
+	f := &Field{ID: 9, Name: "FixedField", Type: FixedType, Size: 4, DataEncoding: ASCII}
 	msg := &Message{
 		ID:           1,
 		Name:         "Default",
-		Fields:       make([]*FieldDefV1, 0),
-		fieldByIdMap: make(map[int]*FieldDefV1),
-		fieldByName:  make(map[string]*FieldDefV1),
+		Fields:       make([]*Field, 0),
+		fieldByIdMap: make(map[int]*Field),
+		fieldByName:  make(map[string]*Field),
 	}
-	msg.addField(finfo)
+	msg.addField(f)
 
 	parsedMsg := &ParsedMsg{IsRequest: true, FieldDataMap: make(map[int]*FieldData), Msg: msg}
 

@@ -15,9 +15,9 @@ func TestBitmap_IsOn(t *testing.T) {
 
 	data, _ := hex.DecodeString("F000001018010002E0200000100201000000200004040201")
 
-	field := &FieldDefV1{ID: 10, Name: "Bitmap", Type: BitmappedType, DataEncoding: BINARYEncoding}
+	field := &Field{ID: 10, Name: StandardNameBitmap, Type: BitmappedType, DataEncoding: BINARY}
 
-	p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*FieldDefV1), fieldByName: make(map[string]*FieldDefV1)}, FieldDataMap: make(map[int]*FieldData)}
+	p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*Field), fieldByName: make(map[string]*Field)}, FieldDataMap: make(map[int]*FieldData)}
 	p.Msg.addField(field)
 
 	buf := bytes.NewBuffer(data)
@@ -26,7 +26,7 @@ func TestBitmap_IsOn(t *testing.T) {
 
 	for i := 1; i < 193; i++ {
 
-		if p.Get("Bitmap").Bitmap.IsOn(i) {
+		if p.Get(StandardNameBitmap).Bitmap.IsOn(i) {
 			t.Logf("%d is On", i)
 		}
 
@@ -38,7 +38,7 @@ func Test_AssembleBitmapField(t *testing.T) {
 	t.Run("Assemble Bitmap - BINARY", func(t *testing.T) {
 
 		bmp := NewBitmap()
-		bmp.field = &FieldDefV1{ID: 10, Name: "Bitmap", Type: BitmappedType, DataEncoding: BINARYEncoding}
+		bmp.field = &Field{ID: 10, Name: StandardNameBitmap, Type: BitmappedType, DataEncoding: BINARY}
 
 		for _, pos := range []int{1, 2, 3, 4, 5, 6, 7, 55, 56, 60, 65, 91, 129, 192} {
 			bmp.SetOn(pos)
@@ -51,7 +51,7 @@ func Test_AssembleBitmapField(t *testing.T) {
 	t.Run("Assemble Bitmap - ASCII", func(t *testing.T) {
 
 		bmp := NewBitmap()
-		bmp.field = &FieldDefV1{ID: 10, Name: "Bitmap", Type: BitmappedType, DataEncoding: ASCIIEncoding}
+		bmp.field = &Field{ID: 10, Name: StandardNameBitmap, Type: BitmappedType, DataEncoding: ASCII}
 		for _, pos := range []int{1, 2, 3, 4, 5, 6, 7, 55, 56, 60, 65, 91, 129, 192} {
 			bmp.SetOn(pos)
 		}
@@ -63,7 +63,7 @@ func Test_AssembleBitmapField(t *testing.T) {
 	t.Run("Assemble Bitmap - EBCDIC", func(t *testing.T) {
 
 		bmp := NewBitmap()
-		bmp.field = &FieldDefV1{ID: 10, Name: "Bitmap", Type: BitmappedType, DataEncoding: EBCDICEncoding}
+		bmp.field = &Field{ID: 10, Name: StandardNameBitmap, Type: BitmappedType, DataEncoding: EBCDIC}
 		for _, pos := range []int{1, 2, 3, 4, 5, 6, 7, 55, 56, 60, 65, 91, 129, 192} {
 			bmp.SetOn(pos)
 		}
@@ -77,7 +77,7 @@ func Test_AssembleBitmapField(t *testing.T) {
 func Test_GenerateBitmap(t *testing.T) {
 
 	bmp := NewBitmap()
-	bmp.field = &FieldDefV1{ID: 10, Name: "Bitmap", Type: BitmappedType, DataEncoding: BINARYEncoding}
+	bmp.field = &Field{ID: 10, Name: StandardNameBitmap, Type: BitmappedType, DataEncoding: BINARY}
 
 	bmp.SetOn(2)
 	bmp.SetOn(3)
@@ -100,8 +100,8 @@ func Test_onFields(t *testing.T) {
 
 	t.Log(data)
 	bmp := NewBitmap()
-	bmp.field = &FieldDefV1{
-		DataEncoding: BINARYEncoding,
+	bmp.field = &Field{
+		DataEncoding: BINARY,
 	}
 	if err := bmp.parse(bytes.NewBuffer(data), nil, nil); err != nil {
 		assert.Fail(t, err.Error())

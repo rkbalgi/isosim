@@ -8,9 +8,10 @@ import (
 var HTMLDir string
 
 const (
-	// MessageType is a constant that indicates the Message Type or the MTI
+	// StandardNameMessageType is a constant that indicates the Message Type or the MTI
 	// (This name has special meaning within the context of ISO8483 and cannot be name anything else. The same restrictions apply for 'Bitmap')
-	MessageType = "Message Type"
+	StandardNameMessageType = "Message Type"
+	StandardNameBitmap      = "Bitmap"
 )
 
 // Iso is a handle into accessing the details of a ISO message(via the parsedMsg)
@@ -21,7 +22,8 @@ type Iso struct {
 // FromParsedMsg constructs a new Iso from a parsedMsg
 func FromParsedMsg(parsedMsg *ParsedMsg) *Iso {
 	isoMsg := &Iso{parsedMsg: parsedMsg}
-	bmpField := parsedMsg.Msg.fieldByName["Bitmap"]
+
+	bmpField := parsedMsg.Msg.fieldByName[StandardNameBitmap]
 
 	//if the bitmap field is not set then initialize it to a empty bitmap
 	if _, ok := parsedMsg.FieldDataMap[bmpField.ID]; !ok {
@@ -41,7 +43,7 @@ func (iso *Iso) Set(fieldName string, value string) error {
 		return ErrUnknownField
 	}
 
-	bmpField := iso.parsedMsg.Get("Bitmap")
+	bmpField := iso.parsedMsg.Get(StandardNameBitmap)
 	if field.ParentId == bmpField.Field.ID {
 		iso.Bitmap().SetOn(field.Position)
 		iso.Bitmap().Set(field.Position, value)
@@ -68,7 +70,7 @@ func (iso *Iso) Get(fieldName string) *FieldData {
 
 // Bitmap returns the Bitmap from the Iso message
 func (iso *Iso) Bitmap() *Bitmap {
-	field := iso.parsedMsg.Msg.Field("Bitmap")
+	field := iso.parsedMsg.Msg.Field(StandardNameBitmap)
 	fieldData := iso.parsedMsg.FieldDataMap[field.ID].Bitmap
 	if fieldData != nil && fieldData.parsedMsg == nil {
 		fieldData.parsedMsg = iso.parsedMsg

@@ -153,24 +153,24 @@ func writeIntToBuf(lenBuf *bytes.Buffer, intVal uint64, noOfBytes int, radix int
 		}
 	default:
 		{
-			log.Fatal("invalID size for length indicator - ", noOfBytes)
+			log.Errorf("Large/Unsupported size for length indicator - %d", noOfBytes)
 		}
 
 	}
 
 }
 
-func buildLengthIndicator(lenEncoding EncodingV1, lenEncodingSize int, fieldLength int) (*bytes.Buffer, error) {
+func buildLengthIndicator(lenEncoding Encoding, lenEncodingSize int, fieldLength int) (*bytes.Buffer, error) {
 
 	lenBuf := &bytes.Buffer{}
 	switch lenEncoding {
-	case BCDEncoding:
+	case BCD:
 		writeIntToBuf(lenBuf, uint64(fieldLength), lenEncodingSize, 10)
-	case BINARYEncoding:
+	case BINARY:
 		writeIntToBuf(lenBuf, uint64(fieldLength), lenEncodingSize, 16)
-	case ASCIIEncoding, EBCDICEncoding:
+	case ASCII, EBCDIC:
 		lenIndStr := fmt.Sprintf(fmt.Sprintf("%%0%dd", lenEncodingSize), fieldLength) //to construct %04d,%02d as the format string
-		if lenEncoding == ASCIIEncoding {
+		if lenEncoding == ASCII {
 			lenBuf.Write([]byte(lenIndStr))
 		} else {
 			lenBuf.Write(ebcdic.Decode(lenIndStr))

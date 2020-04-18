@@ -19,7 +19,7 @@ func Test_AssembleMsg(t *testing.T) {
 		isoMsg := msg.NewIso()
 
 		//setting directly
-		isoMsg.Set(MessageType, "1100")
+		isoMsg.Set(StandardNameMessageType, "1100")
 		isoMsg.Set("Fixed2_ASCII", "123")
 		isoMsg.Set("Fixed3_EBCDIC", "456")
 		isoMsg.Set("FxdField6_WithSubFields", "12345678")
