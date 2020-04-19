@@ -2,7 +2,9 @@ package websim
 
 import (
 	"context"
+	"fmt"
 	"github.com/go-kit/kit/endpoint"
+	netutil "github.com/rkbalgi/go/net"
 	"isosim/internal/iso"
 	"isosim/internal/services/v0/data"
 )
@@ -42,6 +44,60 @@ type LoadOrFetchSavedMessagesResponse struct {
 	Err           error     `json:"-"`
 }
 
+//parse msg
+
+type ParseTraceRequest struct {
+	specId   int
+	msgId    int
+	msgTrace string
+}
+
+type ParseTraceResponse struct {
+	ParsedFields *[]data.JsonFieldDataRep `json:"parsed_fields"`
+	Err          error                    `json:"-"`
+}
+
+type ParseTraceExtRequest struct {
+	specName string
+	msgName  string
+	msgTrace string
+}
+
+type ParseTraceExtResponse struct {
+	ParsedFields *[]data.JsonFieldDataRep `json:"parsed_fields"`
+	Err          error                    `json:"-"`
+}
+
+//save msg
+
+type SaveMsgRequest struct {
+	specId   int
+	msgId    int
+	msgName  string
+	msgData  string
+	isUpdate bool
+}
+
+type SaveMsgResponse struct {
+	Err error `json:"-"`
+}
+
+//send to host
+
+type SendToHostRequest struct {
+	specId  int
+	msgId   int
+	msgData string
+	HostIP  string
+	Port    int
+	MLI     string
+}
+
+type SendToHostResponse struct {
+	ResponseFields *[]data.JsonFieldDataRep `json:"response_fields"`
+	Err            error                    `json:"-"`
+}
+
 func (r GetAllSpecResponse) Failed() error {
 	return r.Err
 }
@@ -56,6 +112,23 @@ func (r GetMessageTemplateResponse) Failed() error {
 func (r LoadOrFetchSavedMessagesResponse) Failed() error {
 	return r.Err
 }
+
+func (r ParseTraceExtResponse) Failed() error {
+	return r.Err
+}
+
+func (r ParseTraceResponse) Failed() error {
+	return r.Err
+}
+
+func (r SaveMsgResponse) Failed() error {
+	return r.Err
+}
+
+func (r SendToHostResponse) Failed() error {
+	return r.Err
+}
+
 func allSpecsEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		resp, err := s.GetAllSpecs(ctx)
@@ -103,6 +176,69 @@ func loadOrFetchSavedMessagesEndpoint(s Service) endpoint.Endpoint {
 	}
 }
 
+func parseTraceEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(ParseTraceRequest)
+
+		parsedResponse, err := s.ParseTrace(ctx, req.specId, req.msgId, req.msgTrace)
+		if err != nil {
+			return ParseTraceResponse{Err: err}, nil
+		}
+		return ParseTraceResponse{ParsedFields: parsedResponse, Err: err}, nil
+
+	}
+
+}
+
+func parseTraceExternalEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(ParseTraceExtRequest)
+		parsedResponse, err := s.ParseTraceExternal(ctx, req.specName, req.msgName, req.msgTrace)
+		if err != nil {
+			return ParseTraceExtResponse{Err: err}, nil
+		}
+		return ParseTraceExtResponse{ParsedFields: parsedResponse, Err: err}, nil
+
+	}
+}
+
+func saveMsgEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(SaveMsgRequest)
+		err = s.SaveMessage(ctx, req.specId, req.msgId, req.msgName, req.msgData, req.isUpdate)
+		if err != nil {
+			return SaveMsgResponse{Err: err}, nil
+		}
+		return SaveMsgResponse{Err: err}, nil
+
+	}
+}
+
+func sendToHostEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(SendToHostRequest)
+
+		var mli netutil.MliType
+		switch req.MLI {
+		case "2I", "2i":
+			mli = netutil.Mli2i
+		case "2E", "2e":
+			mli = netutil.Mli2e
+		default:
+			return nil, fmt.Errorf("isosim: Invalid MLI-Type %s in request", req.MLI)
+
+		}
+
+		isoResponse, err := s.SendToHost(ctx, req.specId, req.msgId, NetOptions{Host: req.HostIP, Port: req.Port, MLIType: mli}, req.msgData)
+		if err != nil {
+			return SendToHostResponse{Err: err}, nil
+		}
+		return SendToHostResponse{ResponseFields: isoResponse}, nil
+
+	}
+}
+
 func Endpoints(s Service) []endpoint.Endpoint {
-	return []endpoint.Endpoint{allSpecsEndpoint(s), messages4SpecEndpoint(s), messageTemplateEndpoint(s), loadOrFetchSavedMessagesEndpoint(s)}
+	return []endpoint.Endpoint{allSpecsEndpoint(s), messages4SpecEndpoint(s),
+		messageTemplateEndpoint(s), loadOrFetchSavedMessagesEndpoint(s)}
 }

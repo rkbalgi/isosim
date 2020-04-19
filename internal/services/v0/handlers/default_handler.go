@@ -48,15 +48,16 @@ func setRoutes() {
 			subDir = "media"
 		default:
 			http.ServeFile(rw, req, filepath.Join(iso.HTMLDir, "react-fe", "build", subDir, fileName))
+			return
 		}
 		http.ServeFile(rw, req, filepath.Join(iso.HTMLDir, "react-fe", "build", "static", subDir, fileName))
 
 	})
 
-	parseTraceHandler()
-	sendMsgHandler()
+	//parseTraceHandler()
+	//sendMsgHandler()
 	isoserver.AddAll()
-	saveMsgHandler()
+	//saveMsgHandler()
 	misc.AddMiscHandlers()
 
 	//v1

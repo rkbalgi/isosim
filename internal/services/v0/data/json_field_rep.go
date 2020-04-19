@@ -3,7 +3,6 @@
 package data
 
 import (
-	"fmt"
 	"isosim/internal/iso"
 )
 
@@ -79,7 +78,6 @@ func newJsonFieldTemplate(field *iso.Field) *JsonFieldInfoRep {
 			childJsonFieldTemplate := newJsonFieldTemplate(childField)
 			childJsonFieldTemplate.ParentId = field.ID
 			childJsonFieldTemplate.Position = childField.Position
-			fmt.Println("Adding child ", childField, "to ", field)
 			jFieldInfo.Children = append(jFieldInfo.Children, childJsonFieldTemplate)
 		}
 
@@ -93,7 +91,6 @@ func NewJsonMessageTemplate(msg *iso.Message) *JsonMessageTemplate {
 
 	jsonMsgTemplate := &JsonMessageTemplate{Fields: make([]*JsonFieldInfoRep, 0, 10)}
 	for _, field := range msg.Fields {
-		fmt.Println("Adding ", field)
 		jsonFieldTemplate := newJsonFieldTemplate(field)
 		jsonMsgTemplate.Fields = append(jsonMsgTemplate.Fields, jsonFieldTemplate)
 
