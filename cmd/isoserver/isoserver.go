@@ -5,9 +5,9 @@ import (
 	"flag"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	"isosim/iso"
-	"isosim/iso/server"
-	"isosim/services/v0/data"
+	"isosim/internal/iso"
+	"isosim/internal/iso/server"
+	"isosim/internal/services/v0/data"
 	"os"
 	"sync"
 )

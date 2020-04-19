@@ -3,9 +3,9 @@ package main
 import (
 	"flag"
 	log "github.com/sirupsen/logrus"
-	"isosim/iso"
-	"isosim/iso/server"
-	"isosim/services/v0/handlers"
+	"isosim/internal/iso"
+	"isosim/internal/iso/server"
+	"isosim/internal/services/v0/handlers"
 	"net/http"
 	_ "net/http/pprof"
 	"os"

@@ -8,10 +8,10 @@ RUN go build -v -o app isosim.go
 # stage 2
 FROM alpine
 #USER 1001:1001
-ADD html /etc/isosim/web
-ADD specs /etc/isosim/specs
-ADD testdata /etc/isosim/data
-ADD certs /etc/isosim/certs
+ADD web /etc/isosim/web
+ADD test/testdata/specs /etc/isosim/specs
+ADD test/testdata/appdata /etc/isosim/data
+ADD test/testdata/certs /etc/isosim/certs
 ENV HTTP_PORT 8080
 ENV LOG_LEVEL DEBUG
 ENV TLS_ENABLED=false
