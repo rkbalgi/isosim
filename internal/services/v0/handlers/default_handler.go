@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	log "github.com/sirupsen/logrus"
 	"isosim/internal/iso"
 	"isosim/internal/services/v0/handlers/isoserver"
 	"isosim/internal/services/v0/handlers/misc"
@@ -54,20 +53,10 @@ func setRoutes() {
 
 	})
 
-	//parseTraceHandler()
-	//sendMsgHandler()
 	isoserver.AddAll()
-	//saveMsgHandler()
 	misc.AddMiscHandlers()
 
 	//v1
 	websim.RegisterHTTPTransport()
-
-}
-
-func sendError(rw http.ResponseWriter, errorMsg string) {
-	log.Debugln("Sending error to client = " + errorMsg)
-	rw.WriteHeader(http.StatusBadRequest)
-	_, _ = rw.Write([]byte(errorMsg))
 
 }

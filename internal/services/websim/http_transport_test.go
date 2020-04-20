@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"isosim/internal/iso"
-	"isosim/internal/iso/server"
+	"isosim/internal/iso/data"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -61,7 +61,7 @@ func (testHttpHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 func Test_WebsimHttpService(t *testing.T) {
 
-	if err := server.Init("../../../test/testdata/appdata"); err != nil {
+	if err := data.Init("../../../test/testdata/appdata"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -246,10 +246,11 @@ func Test_WebsimHttpService(t *testing.T) {
 	t.Run("Parse Trace", func(t *testing.T) {
 
 		trace := "313130303730323030303030323030303130303031343536353534343333333637373736303034303030303030303030303030303930313233343536313356554433367776f200302020201234567890abcd11"
-		req, err := http.NewRequest(http.MethodPost, s.URL+URLParseTrace+"/3/3", bytes.NewReader([]byte(trace)))
+		req, err := http.NewRequest(http.MethodPost, s.URL+URLParseTrace+"3/3", bytes.NewReader([]byte(trace)))
 		if err != nil {
 			t.Fatal(err)
 		}
+		req.Header.Set("Content-Type", "text/plain")
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			t.Fatal(err)

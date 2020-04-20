@@ -39,7 +39,10 @@ func AddMiscHandlers() {
 			return
 		}
 
-		req.ParseForm()
+		if err := req.ParseForm(); err != nil {
+			sendError(rw, err.Error())
+		}
+
 		port := req.Form.Get("hsmPort")
 		log.Debugln("Request to start HSM @ port = ", port)
 		intPort, err := strconv.Atoi(port)
@@ -71,7 +74,9 @@ func AddMiscHandlers() {
 	//for stopping a hsm instance
 	http.HandleFunc("/iso/misc/sendraw", func(rw http.ResponseWriter, req *http.Request) {
 
-		req.ParseForm()
+		if err := req.ParseForm(); err != nil {
+			sendError(rw, err.Error())
+		}
 
 		pHost := req.PostForm.Get("host")
 		pPort := req.PostForm.Get("port")

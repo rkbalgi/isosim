@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-kit/kit/endpoint"
+	"github.com/go-kit/kit/log"
 	netutil "github.com/rkbalgi/go/net"
 	"isosim/internal/iso"
 	"isosim/internal/services/v0/data"
@@ -238,7 +239,12 @@ func sendToHostEndpoint(s Service) endpoint.Endpoint {
 	}
 }
 
-func Endpoints(s Service) []endpoint.Endpoint {
-	return []endpoint.Endpoint{allSpecsEndpoint(s), messages4SpecEndpoint(s),
-		messageTemplateEndpoint(s), loadOrFetchSavedMessagesEndpoint(s)}
+func loggingMiddleware(logger log.Logger) endpoint.Middleware {
+	return func(next endpoint.Endpoint) endpoint.Endpoint {
+		return func(ctx context.Context, request interface{}) (interface{}, error) {
+			logger.Log("calling endpoint")
+			defer logger.Log("called endpoint")
+			return next(ctx, request)
+		}
+	}
 }

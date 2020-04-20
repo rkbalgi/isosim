@@ -11,7 +11,7 @@ import (
 	net2 "github.com/rkbalgi/go/net"
 	log "github.com/sirupsen/logrus"
 	"isosim/internal/iso"
-	"isosim/internal/iso/server"
+	data2 "isosim/internal/iso/data"
 	"isosim/internal/services/v0/data"
 	"net"
 	"sort"
@@ -38,6 +38,13 @@ type Service interface {
 
 type serviceImpl struct{}
 
+func New() Service {
+	var service Service
+	service = serviceImpl{}
+	return service
+}
+
+// SendToHost sends a request (ISO message) to a host and returns the response as a array of fields
 func (i serviceImpl) SendToHost(ctx context.Context, specId int, msgId int, netOpts NetOptions, msgData string) (*[]data.JsonFieldDataRep, error) {
 
 	spec := iso.SpecByID(specId)
@@ -102,9 +109,9 @@ func (i serviceImpl) SendToHost(ctx context.Context, specId int, msgId int, netO
 
 }
 
+// ParseTrace parses a provided trace and returns a list of parsed fields
 func (serviceImpl) ParseTrace(ctx context.Context, specId int, msgId int, msgTrace string) (*[]data.JsonFieldDataRep, error) {
 
-	log.Debug("Received parseReq() ... ")
 	spec := iso.SpecByID(specId)
 	if spec == nil {
 		return nil, errors.New("isosim: No such spec")
@@ -118,6 +125,7 @@ func (serviceImpl) ParseTrace(ctx context.Context, specId int, msgId int, msgTra
 	if err != nil {
 		return nil, err
 	} else {
+		fmt.Println("Parsing ..." + hex.EncodeToString(msgData))
 		parsedMsg, err := msg.Parse(msgData)
 		if err != nil {
 			return nil, fmt.Errorf("isosim: Parse failure. :%s", err.Error())
@@ -129,6 +137,8 @@ func (serviceImpl) ParseTrace(ctx context.Context, specId int, msgId int, msgTra
 	}
 }
 
+// ParseTraceExternal is the same as ParseTrace but accepts a specName and a msgName (in lieu of IDs) and
+// so can be used by external entities
 func (serviceImpl) ParseTraceExternal(ctx context.Context, specName string, msgName string, msgTrace string) (*[]data.JsonFieldDataRep, error) {
 
 	log.Debug("Received parseReqExternal() ... ")
@@ -156,6 +166,7 @@ func (serviceImpl) ParseTraceExternal(ctx context.Context, specName string, msgN
 	}
 }
 
+// SaveMessage saves a parsed message into persistent storage so that it can be fetched later
 func (serviceImpl) SaveMessage(ctx context.Context, specId int, msgId int, msgName string, msgData string, update bool) error {
 
 	spec := iso.SpecByID(specId)
@@ -169,9 +180,9 @@ func (serviceImpl) SaveMessage(ctx context.Context, specId int, msgId int, msgNa
 
 	var err error
 	if update {
-		err = server.DataSetManager().Update(strconv.Itoa(specId), strconv.Itoa(msgId), msgName, msgData)
+		err = data2.DataSetManager().Update(strconv.Itoa(specId), strconv.Itoa(msgId), msgName, msgData)
 	} else {
-		err = server.DataSetManager().Add(strconv.Itoa(specId), strconv.Itoa(msgId), msgName, msgData)
+		err = data2.DataSetManager().Add(strconv.Itoa(specId), strconv.Itoa(msgId), msgName, msgData)
 	}
 
 	if err != nil {
@@ -243,6 +254,7 @@ func (serviceImpl) GetAllSpecs(ctx context.Context) ([]UISpec, error) {
 	return specs, nil
 }
 
+// GetMessages4Spec returns all the defined messages for a given spec
 func (serviceImpl) GetMessages4Spec(ctx context.Context, specId int) ([]*iso.Message, error) {
 	sp := iso.SpecByID(specId)
 	if sp == nil {
@@ -251,9 +263,8 @@ func (serviceImpl) GetMessages4Spec(ctx context.Context, specId int) ([]*iso.Mes
 	return sp.Messages, nil
 }
 
+// GetMessageTemplate returns the template/layout for the given spec ad message
 func (i serviceImpl) GetMessageTemplate(ctx context.Context, specId int, msgId int) (*data.JsonMessageTemplate, error) {
-
-	log.Debug("Received GetMessageTemplate() ... ")
 
 	spec := iso.SpecByID(specId)
 	if spec == nil {
@@ -267,11 +278,13 @@ func (i serviceImpl) GetMessageTemplate(ctx context.Context, specId int, msgId i
 
 }
 
+// LoadOrFetchSavedMessages retrieves a previously saved message if dsName is not empty and
+// returns all saved messages if dsName is empty string
 func (serviceImpl) LoadOrFetchSavedMessages(ctx context.Context, specId int, msgId int, dsName string) (*SavedMsg, []string, error) {
 
 	if dsName != "" {
 		//load a specific ds
-		ds, err := server.DataSetManager().Get(strconv.Itoa(specId), strconv.Itoa(msgId), dsName)
+		ds, err := data2.DataSetManager().Get(strconv.Itoa(specId), strconv.Itoa(msgId), dsName)
 		if err != nil {
 			return nil, nil, err
 
@@ -284,7 +297,7 @@ func (serviceImpl) LoadOrFetchSavedMessages(ctx context.Context, specId int, msg
 
 	} else {
 		//fetch all
-		ds, err := server.DataSetManager().GetAll(strconv.Itoa(specId), strconv.Itoa(msgId))
+		ds, err := data2.DataSetManager().GetAll(strconv.Itoa(specId), strconv.Itoa(msgId))
 		if err != nil {
 			return nil, nil, fmt.Errorf("isosim Failed to read saved messages :%w", err)
 
@@ -297,10 +310,4 @@ func (serviceImpl) LoadOrFetchSavedMessages(ctx context.Context, specId int, msg
 
 	}
 
-}
-
-func New() Service {
-	var service Service
-	service = serviceImpl{}
-	return service
 }

@@ -6,6 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"isosim/internal/iso"
+	"isosim/internal/iso/data"
 	"strconv"
 	"testing"
 )
@@ -14,7 +15,7 @@ func Test_IsoServer_MessageProcessing(t *testing.T) {
 
 	log.SetLevel(log.InfoLevel)
 
-	if err := Init("../../../test/testdata/appdata"); err != nil {
+	if err := data.Init("../../../test/testdata/appdata"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -31,7 +32,7 @@ func Test_IsoServer_MessageProcessing(t *testing.T) {
 	msgId := spec.MessageByName("1100").ID
 
 	strSpecId := strconv.Itoa(specId)
-	dataSets, err := DataSetManager().GetAll(strSpecId, strconv.Itoa(msgId))
+	dataSets, err := data.DataSetManager().GetAll(strSpecId, strconv.Itoa(msgId))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,7 +44,7 @@ func Test_IsoServer_MessageProcessing(t *testing.T) {
 		t.Log(ds)
 	}
 
-	defs, err := DataSetManager().ServerDefinitions(strSpecId)
+	defs, err := data.DataSetManager().ServerDefinitions(strSpecId)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -58,7 +59,7 @@ func Test_IsoServer_MessageProcessing(t *testing.T) {
 	defer Stop(defName)
 
 	var dsData []byte
-	if dsData, err = DataSetManager().Get(strSpecId, strconv.Itoa(msgId), "TC_ActionCode_100"); err != nil {
+	if dsData, err = data.DataSetManager().Get(strSpecId, strconv.Itoa(msgId), "TC_ActionCode_100"); err != nil {
 		t.Fatal(err)
 	}
 	ncc := netutil.NewNetCatClient("localhost:6665", netutil.Mli2i)

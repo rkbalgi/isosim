@@ -4,7 +4,7 @@ import (
 	"flag"
 	log "github.com/sirupsen/logrus"
 	"isosim/internal/iso"
-	"isosim/internal/iso/server"
+	"isosim/internal/iso/data"
 	"isosim/internal/services/v0/handlers"
 	"net/http"
 	_ "net/http/pprof"
@@ -54,7 +54,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	err := server.Init(*dataDir)
+	err := data.Init(*dataDir)
 	if err != nil {
 		log.Fatal(err.Error())
 	}

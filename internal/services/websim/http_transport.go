@@ -4,13 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/go-kit/kit/endpoint"
+	loggk "github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/logrus"
 	"github.com/go-kit/kit/transport"
 	httptransport "github.com/go-kit/kit/transport/http"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -86,7 +89,8 @@ func loadOrFetchSavedMessagesReqDecoder(ctx context.Context, req *http.Request) 
 func parseTraceReqDecoder(ctx context.Context, req *http.Request) (request interface{}, err error) {
 
 	reqUri := req.RequestURI
-	ids := strings.Split(reqUri[len(URLParseTrace)+1:], "/")
+	ids := strings.Split(reqUri[len(URLParseTrace):], "/")
+	fmt.Println(ids)
 	specIdParam := ids[0]
 	specId, err := strconv.Atoi(specIdParam)
 	if err != nil {
@@ -94,21 +98,19 @@ func parseTraceReqDecoder(ctx context.Context, req *http.Request) (request inter
 	}
 	msgIdParam := ids[1]
 	msgId, err := strconv.Atoi(msgIdParam)
-	if err := req.ParseForm(); err != nil {
-		return nil, err
-	}
-
 	reqBody, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		return nil, err
 	}
 	defer req.Body.Close()
 
-	return ParseTraceRequest{
+	serviceReq := ParseTraceRequest{
 		specId:   specId,
 		msgId:    msgId,
 		msgTrace: string(reqBody),
-	}, nil
+	}
+
+	return serviceReq, nil
 
 }
 
@@ -234,16 +236,20 @@ func RegisterHTTPTransport() {
 		httptransport.ServerErrorHandler(transport.NewLogErrorHandler(logrus.NewLogrusLogger(log.New()))),
 	}
 
+	logger := loggk.NewLogfmtLogger(os.Stderr)
 	service := New()
-	endpoints := Endpoints(service)
 
-	http.Handle(URLAllSpecs, httptransport.NewServer(endpoints[0], specsReqDecoder, respEncoder, options...))
-	http.Handle(URLMessages4Spec, httptransport.NewServer(endpoints[1], messages4SpecReqDecoder, respEncoder, options...))
-	http.Handle(URLGetMessageTemplate, httptransport.NewServer(endpoints[2], getMessageTemplateReqDecoder, respEncoder, options...))
-	http.Handle(URLLoadMsg, httptransport.NewServer(endpoints[3], loadOrFetchSavedMessagesReqDecoder, respEncoder, options...))
-	http.Handle(URLParseTraceExternal, httptransport.NewServer(parseTraceExternalEndpoint(service), parseTraceExternalReqDecoder, respEncoder, options...))
-	http.Handle(URLParseTrace, httptransport.NewServer(parseTraceEndpoint(service), parseTraceReqDecoder, respEncoder, options...))
+	http.Handle(URLAllSpecs, httptransport.NewServer(allSpecsEndpoint(service), specsReqDecoder, respEncoder, options...))
+	http.Handle(URLMessages4Spec, httptransport.NewServer(messages4SpecEndpoint(service), messages4SpecReqDecoder, respEncoder, options...))
+	http.Handle(URLGetMessageTemplate, httptransport.NewServer(messageTemplateEndpoint(service), getMessageTemplateReqDecoder, respEncoder, options...))
+	http.Handle(URLLoadMsg, httptransport.NewServer(loadOrFetchSavedMessagesEndpoint(service), loadOrFetchSavedMessagesReqDecoder, respEncoder, options...))
+
+	http.Handle(URLParseTraceExternal, httptransport.NewServer(loggingMiddleware(loggk.With(logger, "method", "parseTraceExternal"))(parseTraceExternalEndpoint(service)),
+		parseTraceExternalReqDecoder, respEncoder, options...))
+
+	http.Handle(URLParseTrace, httptransport.NewServer(loggingMiddleware(loggk.With(logger, "method", "parseTrace"))(parseTraceEndpoint(service)), parseTraceReqDecoder, respEncoder, options...))
 	http.Handle(URLSaveMsg, httptransport.NewServer(saveMsgEndpoint(service), saveMsgReqDecoder, respEncoder, options...))
-	http.Handle(URLSendMessageToHost, httptransport.NewServer(sendToHostEndpoint(service), sendToHostReqDecoder, respEncoder, options...))
+
+	http.Handle(URLSendMessageToHost, httptransport.NewServer(loggingMiddleware(loggk.With(logger, "method", "send2Host"))(sendToHostEndpoint(service)), sendToHostReqDecoder, respEncoder, options...))
 
 }
