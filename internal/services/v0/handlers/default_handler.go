@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"isosim/internal/iso"
 	"isosim/internal/services/v0/handlers/isoserver"
 	"isosim/internal/services/v0/handlers/misc"
@@ -50,9 +49,9 @@ func setRoutes() {
 			http.ServeFile(rw, req, filepath.Join(iso.HTMLDir, "react-fe", "build", subDir, fileName))
 			return
 		}
-		fmt.Println(req.RequestURI)
+
 		if strings.HasPrefix(req.RequestURI, "/iso/v0/") && subDir != "" {
-			fmt.Println("Serving", filepath.Join(iso.HTMLDir, fileName))
+
 			http.ServeFile(rw, req, filepath.Join(iso.HTMLDir, fileName))
 		} else {
 			http.ServeFile(rw, req, filepath.Join(iso.HTMLDir, "react-fe", "build", "static", subDir, fileName))

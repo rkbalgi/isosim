@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/go-kit/kit/endpoint"
 	loggk "github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/logrus"
@@ -90,7 +89,7 @@ func parseTraceReqDecoder(ctx context.Context, req *http.Request) (request inter
 
 	reqUri := req.RequestURI
 	ids := strings.Split(reqUri[len(URLParseTrace):], "/")
-	fmt.Println(ids)
+
 	specIdParam := ids[0]
 	specId, err := strconv.Atoi(specIdParam)
 	if err != nil {
