@@ -242,8 +242,8 @@ func sendToHostEndpoint(s Service) endpoint.Endpoint {
 func loggingMiddleware(logger log.Logger) endpoint.Middleware {
 	return func(next endpoint.Endpoint) endpoint.Endpoint {
 		return func(ctx context.Context, request interface{}) (interface{}, error) {
-			logger.Log("calling endpoint")
-			defer logger.Log("called endpoint")
+			logger.Log("calling endpoint ")
+			defer logger.Log("called endpoint ")
 			return next(ctx, request)
 		}
 	}

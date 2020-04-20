@@ -23,8 +23,7 @@
 
 
 <div id="headerDiv">
-  <div class="cl_cursive_heading"> ISO WebSim</div>
-  [<a href="/iso/home">Home</a> | <a href="/iso/v0/server">Manage Servers</a> ]
+  <div class="cl_cursive_heading"> ISO WebSim - Manage Servers</div>
 </div>
 
 
@@ -195,7 +194,7 @@
 
     selectedSpec = $('#idSpecs').val();
     $.getJSON('/iso/v1/msgs/' + selectedSpec, function (data) {
-      console.log(data)
+      console.log("Retrieved spec messages..", data)
       specMessages = data.messages;
     }).fail(function () {
       showErrorDialog('failed to load spec messages!. please check if the server is running..');

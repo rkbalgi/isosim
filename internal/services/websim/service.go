@@ -125,7 +125,6 @@ func (serviceImpl) ParseTrace(ctx context.Context, specId int, msgId int, msgTra
 	if err != nil {
 		return nil, err
 	} else {
-		fmt.Println("Parsing ..." + hex.EncodeToString(msgData))
 		parsedMsg, err := msg.Parse(msgData)
 		if err != nil {
 			return nil, fmt.Errorf("isosim: Parse failure. :%s", err.Error())
