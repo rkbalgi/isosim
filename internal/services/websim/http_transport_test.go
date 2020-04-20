@@ -269,11 +269,7 @@ func Test_WebsimHttpService(t *testing.T) {
 	t.Run("Parse Trace External", func(t *testing.T) {
 
 		trace := "313130303730323030303030323030303130303031343536353534343333333637373736303034303030303030303030303030303930313233343536313356554433367776f200302020201234567890abcd11"
-		reqObj := struct {
-			SpecName string `json:"spec_name"`
-			MsgName  string `json:"msg_name"`
-			Data     string `json:"traceData"`
-		}{
+		reqObj := parseTraceExtReq{
 			SpecName: "ISO8583-Test",
 			MsgName:  "1100(A) - Authorization",
 			Data:     trace,

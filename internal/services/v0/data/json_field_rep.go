@@ -22,6 +22,7 @@ type JsonFieldInfoRep struct {
 	LengthIndicatorSize int
 	DataEncoding        string
 	LengthEncoding      string
+	Padding             string
 }
 
 // JsonFieldDataRep is the representation of a field's data
@@ -41,6 +42,7 @@ func newJsonFieldTemplate(field *iso.Field) *JsonFieldInfoRep {
 	jFieldInfo.Name = field.Name
 	jFieldInfo.Position = field.Position
 	jFieldInfo.DataEncoding = field.DataEncoding.AsString()
+	jFieldInfo.Padding = string(field.Padding)
 
 	//fieldInfo := field.FieldInfo
 

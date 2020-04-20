@@ -394,7 +394,192 @@ specs:
                 size: 8
                 data_encoding: BINARY
                 position: 128
+      - name: "Playground"
+        description: A sample message used in test and other experiements
+        id: 5
+        fields:
+          - name: "Message Type"
+            id: 1
+            type: Fixed
+            size: 4
+            data_encoding: ASCII
+            constraints:
+              content_type: Numeric
+            children: []
+          - name: "Bitmap"
+            id: 2
+            type: Bitmapped
+            data_encoding: ASCII
+            children:
+              - name: "PAN"
+                id: 3
+                type: Variable
+                length_indicator_size: 2
+                length_indicator_encoding: ASCII
+                data_encoding: ASCII
+                position: 2
+                constraints:
+                  content_type: Numeric
+                  max_size: 19
+                  min_size: 12
+              - name: "Processing Code"
+                id: 4
+                type: Fixed
+                size: 6
+                data_encoding: ASCII
+                position: 3
+                children: []
 
+              - name: "Amount"
+                id: 8
+                type: Fixed
+                size: 12
+                data_encoding: ASCII
+                padding: LEADING_ZEROES
+                position: 4
+              - name: "Amount"
+                id: 17
+                type: Fixed
+                size: 12
+                data_encoding: EBCDIC
+                padding: TRAILING_ZEROES
+                position: 5
+
+              - name: "BCDField_PadLeading0"
+                id: 18
+                type: Fixed
+                size: 3
+                data_encoding: BCD
+                padding: LEADING_ZEROES
+                position: 6
+
+              - name: "BCDField_PadTrailing0"
+                id: 19
+                type: Fixed
+                size: 3
+                data_encoding: BCD
+                padding: TRAILING_ZEROES
+                position: 7
+
+              - name: "BinaryField_PadLeading0"
+                id: 20
+                type: Fixed
+                size: 3
+                data_encoding: BINARY
+                padding: LEADING_ZEROES
+                position: 8
+
+              - name: "BinaryField_PadTrailing0"
+                id: 21
+                type: Fixed
+                size: 3
+                data_encoding: BINARY
+                padding: TRAILING_ZEROES
+                position: 9
+
+
+
+              - name: "STAN"
+                id: 9
+                type: Fixed
+                size: 6
+                data_encoding: ASCII
+                position: 11
+
+              - name: "BinaryField_PadLeadingF"
+                id: 22
+                type: Fixed
+                size: 3
+                data_encoding: BINARY
+                padding: LEADING_F
+                position: 12
+
+              - name: "BinaryField_PadTrailingF"
+                id: 23
+                type: Fixed
+                size: 3
+                data_encoding: BINARY
+                padding: TRAILING_F
+                position: 13
+
+              - name: "ASCIIField_PadTrailingSpaces"
+                id: 25
+                type: Fixed
+                size: 10
+                data_encoding: ASCII
+                padding: TRAILING_SPACES
+                position: 15
+
+              - name: "ASCIIField_PadLeadingSpaces"
+                id: 26
+                type: Fixed
+                size: 10
+                data_encoding: ASCII
+                padding: LEADING_SPACES
+                position: 16
+
+              - name: "PAN2_BCD_0.5"
+                id: 27
+                type: Variable
+                length_indicator_size: 1
+                length_indicator_multiplier: 0.5
+                length_indicator_encoding: BCD
+                data_encoding: BCD
+                position: 14
+                constraints:
+                  content_type: Numeric
+                  max_size: 19
+                  min_size: 12
+
+
+              - name: "Track 2"
+                id: 10
+                type: Variable
+                length_indicator_size: 2
+                data_encoding: BINARY
+                length_indicator_encoding: ASCII
+                position: 35
+
+              - name: "Track 3"
+                id: 11
+                type: Variable
+                length_indicator_size: 2
+                data_encoding: BINARY
+                length_indicator_encoding: ASCII
+                position: 36
+
+
+              - name: "Approval Code"
+                id: 12
+                type: Fixed
+                size: 6
+                data_encoding: ASCII
+                position: 38
+              - name: "Action Code"
+                id: 13
+                type: Fixed
+                size: 3
+                data_encoding: ASCII
+                position: 39
+              - name: "PIN Data"
+                id: 14
+                type: Fixed
+                size: 8
+                data_encoding: BINARY
+                position: 52
+              - name: "ICC Data"
+                id: 15
+                type: Variable
+                length_indicator_size: 2
+                data_encoding: BINARY
+                length_indicator_encoding: ASCII
+                position: 55
+              - name: "MAC"
+                id: 16
+                type: Fixed
+                size: 8
+                data_encoding: BINARY
+                position: 64
 
 
 

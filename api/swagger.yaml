@@ -1,0 +1,89 @@
+swagger: "2.0"
+info:
+  description: "This is ISO WebSim [http://github.com/rkbalgi/isosim](http://github.com/rkbalgi/isosim)"
+  version: "0.7.0"
+  title: "Iso WebSim"
+  contact:
+    email: "rkbalgi@gmail.com"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "localhost:8080"
+basePath: "/iso/v1"
+tags:
+  - name: "ISO8583"
+    description: "A specification used for transmitting financial data between payment entities"
+  - name: "simulator"
+    description: "A tool/utility to simulate real world POS/ATM devices, Payment Gateways/Hosts etc"
+schemes:
+  - "https"
+  - "http"
+paths:
+  /parse/external:
+    post:
+      tags:
+        - "parse-trace"
+      description: "Parse a ISO8583 trace given a ASCII encode hex trace, a spec and a msg name"
+      operationId: "addPet"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "The input data for parsing a trace"
+          required: true
+          schema:
+            $ref: "#/definitions/parseTraceExternalInput"
+
+      responses:
+        200:
+          description: "Parsing successful"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/ParsedField"
+        400:
+          description: "Invalid input"
+          schema:
+            $ref: "#/definitions/Error"
+        500:
+          description: "Server Error"
+
+
+definitions:
+  parseTraceExternalInput:
+    type: "object"
+    properties:
+      spec_name:
+        type: "string"
+        format: "string"
+      msg_name:
+        type: "string"
+        format: "string"
+      trace_data:
+        type: "string"
+        format:"string"
+    example:
+      spec_name: "ISO8583-Test"
+      msg_name: "1100(A) - Authorization"
+      trace_data: "313130303730323030303030323030303130303031343536353534343333333637373736303034303030303030303030303030303930313233343536313356554433367776f200302020201234567890abcd11"
+
+
+  ParsedField:
+    type: "object"
+    properties:
+      ID:
+        type: "integer"
+        format: "int64"
+      Name:
+        type: "string"
+      Value:
+        type: "string"
+  Error:
+    type: "object"
+    properties:
+      error:
+        type: "string"
+        format: "string"

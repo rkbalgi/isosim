@@ -16,6 +16,18 @@ type Encoding string
 var constraintsRegExp1, _ = regexp.Compile("^constraints{(([a-zA-Z]+):([0-9A-Za-z]+);)+}$")
 var constraintsRegExp2, _ = regexp.Compile("(([a-zA-Z]+):([0-9A-Za-z]+));")
 
+type PaddingType string
+
+const (
+	LeadingZeroes PaddingType = "LEADING_ZEROES"
+	LeadingSpaces PaddingType = "LEADING_SPACES"
+	LeadingF      PaddingType = "LEADING_F"
+
+	TrailingZeroes PaddingType = "TRAILING_ZEROES"
+	TrailingSpaces PaddingType = "TRAILING_SPACES"
+	TrailingF      PaddingType = "TRAILING_F"
+)
+
 const (
 	FixedType     FieldType = "Fixed"
 	VariableType  FieldType = "Variable"
@@ -58,20 +70,22 @@ func (e Encoding) AsString() string {
 
 // Field represents a Field in the ISO message
 type Field struct {
-	Name                    string    `yaml:"name"`
-	ID                      int       `yaml:"id"`
-	Type                    FieldType `yaml:"type"`
-	Size                    int       `yaml:"size"`
-	Position                int       `yaml:"position"`
-	DataEncoding            Encoding  `yaml:"data_encoding"`
-	LengthIndicatorSize     int       `yaml:"length_indicator_size"`
-	LengthIndicatorEncoding Encoding  `yaml:"length_indicator_encoding"`
+	Name                      string    `yaml:"name"`
+	ID                        int       `yaml:"id"`
+	Type                      FieldType `yaml:"type"`
+	Size                      int       `yaml:"size"`
+	Position                  int       `yaml:"position"`
+	DataEncoding              Encoding  `yaml:"data_encoding"`
+	LengthIndicatorSize       int       `yaml:"length_indicator_size"`
+	LengthIndicatorMultiplier float32   `yaml:"length_indicator_multiplier"`
+	LengthIndicatorEncoding   Encoding  `yaml:"length_indicator_encoding"`
 
 	Constraints FieldConstraints `yaml:"constraints"`
-	Children    []*Field         `yaml:"children"`
+	Padding     PaddingType      `yaml:"padding"`
 
-	msg *Message `yaml:"-",json:"-"`
+	Children []*Field `yaml:"children"`
 
+	msg *Message `yaml:"-"json:"-"`
 	//for bitmap only
 	fieldsByPosition map[int]*Field
 	ParentId         int

@@ -1,6 +1,7 @@
 package iso
 
 import (
+	"errors"
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -61,12 +62,42 @@ func processField(msg *Message, f *Field) error {
 		return fmt.Errorf("isosim: Field with ID %d already exists in Msg: %s", f.ID, msg.Name)
 	}
 
+	if err := validateField(f); err != nil {
+		return err
+	}
+
 	msg.setAux(f)
 	if err := processChildren(msg, f); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func validateField(f *Field) error {
+
+	if f.Padding != "" {
+
+		if f.Type != FixedType {
+			return errors.New("isosim: padding is only applicable for Fixed type fields")
+		}
+
+		switch f.Padding {
+		case LeadingSpaces, TrailingSpaces:
+			if f.DataEncoding == BINARY || f.DataEncoding == BCD {
+				return errors.New("isosim: Spaces padding type is only applicable for ASCII/EBCDIC fields")
+			}
+		case LeadingF, TrailingF:
+			{
+				if f.DataEncoding != BINARY {
+					return errors.New("isosim: 'F' padding type is only applicable for ASCII/EBCDIC fields")
+				}
+			}
+
+		}
+	}
+	return nil
+
 }
 
 func processChildren(msg *Message, f *Field) error {
