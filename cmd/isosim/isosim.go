@@ -66,7 +66,7 @@ func main() {
 	}
 
 	//check if all the required HTML files are available
-	if err = services.Init(iso.HTMLDir); err != nil {
+	if err = services.Init(); err != nil {
 		log.Fatal(err.Error())
 	}
 

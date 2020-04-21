@@ -14,7 +14,7 @@ import (
 type IsoHttpHandler struct {
 }
 
-func Init(HTMLDir string) error {
+func Init() error {
 
 	setRoutes()
 	return nil
