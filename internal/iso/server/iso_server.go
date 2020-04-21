@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	log "github.com/sirupsen/logrus"
+	"io"
 	"isosim/internal/iso"
 	"isosim/internal/services/v0/data"
 	"net"
@@ -129,7 +130,12 @@ func StartWithDef(def *data.ServerDef, defName string, port int) error {
 }
 
 func closeOnError(connection net.Conn, err error) {
-	log.Errorln("Error on connection.. Error = " + err.Error() + " Remote Addr =" + connection.RemoteAddr().String())
+
+	if err != io.EOF {
+		log.Errorln("Error on connection.. Error = " + err.Error() + " Remote Addr =" + connection.RemoteAddr().String())
+	} else {
+		log.Infof("iso-server: A remote client closed the connection. Addr: %s: LocalAddr: %s", connection.RemoteAddr().String(), connection.LocalAddr().String())
+	}
 	if err := connection.Close(); err != nil {
 		log.Errorln("Error closing connection ", err)
 	}

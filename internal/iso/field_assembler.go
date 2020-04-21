@@ -112,8 +112,6 @@ func lengthCorrection(field *Field, data []byte) (int, bool) {
 
 	// handling for special BCD fields - https://github.com/rkbalgi/isosim/wiki/Variable-Fields
 
-	fmt.Println(data[0]&0xF0, data[len(data)-1]&0x0F)
-
 	if field.DataEncoding == BINARY && field.LengthIndicatorMultiplier == 2 {
 		if field.Padding == LeadingZeroes && (data[0]&0xF0 == 0x00) {
 			return -1, true

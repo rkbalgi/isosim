@@ -5,7 +5,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"isosim/internal/iso"
 	"isosim/internal/iso/data"
-	"isosim/internal/services/v0/handlers"
+	"isosim/internal/services"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
@@ -66,7 +66,7 @@ func main() {
 	}
 
 	//check if all the required HTML files are available
-	if err = handlers.Init(iso.HTMLDir); err != nil {
+	if err = services.Init(iso.HTMLDir); err != nil {
 		log.Fatal(err.Error())
 	}
 

@@ -84,6 +84,16 @@ specs:
                 size: 8
                 data_encoding: BINARY
                 position: 52
+                gen_strategy:
+                  type: "pin_gen"
+                  props:
+                    pin_clear: "1234"
+                    pin_format: "ISO-0"
+                    pin_key: "AB9292288227277226252525224665FE"
+                    pan_field_id: 3
+                    pan_extract_params: "0:15"
+                    pan: ""
+
               - name: "MAC"
                 id: 13
                 type: Fixed

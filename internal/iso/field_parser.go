@@ -192,26 +192,17 @@ func parseVariable(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error 
 
 		}
 	case BCD:
-		{
-			//len = 0;
-			if length, err = strconv.ParseUint(hex.EncodeToString(lenData), 10, 64); err != nil {
-				return err
-			}
+		if length, err = strconv.ParseUint(hex.EncodeToString(lenData), 10, 64); err != nil {
+			return err
 		}
 	case ASCII:
-		{
-
-			if length, err = strconv.ParseUint(string(lenData), 10, 64); err != nil {
-				return err
-			}
-
+		if length, err = strconv.ParseUint(string(lenData), 10, 64); err != nil {
+			return err
 		}
 	case EBCDIC:
-		{
 
-			if length, err = strconv.ParseUint(ebcdic.EncodeToString(lenData), 10, 64); err != nil {
-				return err
-			}
+		if length, err = strconv.ParseUint(ebcdic.EncodeToString(lenData), 10, 64); err != nil {
+			return err
 		}
 	default:
 		{
@@ -232,7 +223,7 @@ func parseVariable(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error 
 		return err
 	}
 
-	log.WithFields(log.Fields{"component": "parser"}).Debugf("Field %-40s, Length: %d, Value: %s\n", field.Name, length, hex.EncodeToString(fieldData.Data))
+	log.WithFields(log.Fields{"component": "parser"}).Debugf("Field %s, Length: %d, Value: %s\n", field.Name, length, hex.EncodeToString(fieldData.Data))
 
 	parsedMsg.FieldDataMap[field.ID] = fieldData
 
