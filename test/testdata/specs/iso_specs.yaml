@@ -502,6 +502,16 @@ specs:
                 padding: TRAILING_F
                 position: 13
 
+              - name: "PAN_BCD_Special"
+                id: 29
+                type: Variable
+                length_indicator_size: 2
+                length_indicator_multiplier: 2
+                length_indicator_encoding: BCD
+                data_encoding: BINARY
+                padding: TRAILING_F
+                position: 14
+
               - name: "ASCIIField_PadTrailingSpaces"
                 id: 25
                 type: Fixed
@@ -509,6 +519,7 @@ specs:
                 data_encoding: ASCII
                 padding: TRAILING_SPACES
                 position: 15
+
 
               - name: "ASCIIField_PadLeadingSpaces"
                 id: 26
@@ -518,18 +529,21 @@ specs:
                 padding: LEADING_SPACES
                 position: 16
 
-              - name: "PAN2_BCD_0.5"
+              - name: "EBCDICField_PadTrailingSpaces"
                 id: 27
-                type: Variable
-                length_indicator_size: 1
-                length_indicator_multiplier: 0.5
-                length_indicator_encoding: BCD
-                data_encoding: BCD
-                position: 14
-                constraints:
-                  content_type: Numeric
-                  max_size: 19
-                  min_size: 12
+                type: Fixed
+                size: 10
+                data_encoding: EBCDIC
+                padding: TRAILING_SPACES
+                position: 17
+
+              - name: "EBCDICField_LeadingZeroes"
+                id: 28
+                type: Fixed
+                size: 10
+                data_encoding: EBCDIC
+                padding: LEADING_ZEROES
+                position: 18
 
 
               - name: "Track 2"

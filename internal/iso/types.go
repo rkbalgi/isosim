@@ -77,7 +77,7 @@ type Field struct {
 	Position                  int       `yaml:"position"`
 	DataEncoding              Encoding  `yaml:"data_encoding"`
 	LengthIndicatorSize       int       `yaml:"length_indicator_size"`
-	LengthIndicatorMultiplier float32   `yaml:"length_indicator_multiplier"`
+	LengthIndicatorMultiplier int       `yaml:"length_indicator_multiplier"`
 	LengthIndicatorEncoding   Encoding  `yaml:"length_indicator_encoding"`
 
 	Constraints FieldConstraints `yaml:"constraints"`

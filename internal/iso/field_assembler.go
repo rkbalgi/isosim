@@ -12,38 +12,48 @@ import (
 // assemble assembles all the field into the dst Buffer buf
 func assemble(buf *bytes.Buffer, parsedMsg *ParsedMsg, fieldData *FieldData) error {
 
-	log.Debugln("assembling field - " + fieldData.Field.Name)
-	info := fieldData.Field
-	switch info.Type {
+	asmLog := log.WithFields(log.Fields{"component": "assembler"})
+
+	asmLog.Tracef("Assembling field - %s\n", fieldData.Field.Name)
+	field := fieldData.Field
+	switch field.Type {
 
 	case FixedType:
 		// if the field has children we will derive the data of the field
 		// from the children (nested fields) else we take it from the parent field
 		if !fieldData.Field.HasChildren() {
-			log.Debugf("assembled data for field %s = %s\n", fieldData.Field.Name, hex.EncodeToString(fieldData.Data))
+			asmLog.Debugf("Field %s, Length: %d, Value: %s\n", field.Name, len(fieldData.Data), hex.EncodeToString(fieldData.Data))
 			buf.Write(fieldData.Data)
 		}
 	case VariableType:
 		{
 			if !fieldData.Field.HasChildren() {
-				lenBuf, err := buildLengthIndicator(info.LengthIndicatorEncoding, info.LengthIndicatorSize, len(fieldData.Data))
+
+				vlen := 0
+				vlen = len(fieldData.Data)
+				if lengthAdjustment, isSpecial := lengthCorrection(field, fieldData.Data); isSpecial {
+					vlen = (vlen * 2) + lengthAdjustment
+				}
+
+				lenBuf, err := buildLengthIndicator(field.LengthIndicatorEncoding, field.LengthIndicatorSize, vlen)
 				if err != nil {
 					return err
 				}
-				log.Debugf("assembled data for variable field %s = %s:%s\n", fieldData.Field.Name, hex.EncodeToString(lenBuf.Bytes()), hex.EncodeToString(fieldData.Data))
+
+				asmLog.Debugf("Field %s, LL (Variable): %s, Value: %s\n", field.Name, hex.EncodeToString(lenBuf.Bytes()), hex.EncodeToString(fieldData.Data))
 				buf.Write(lenBuf.Bytes())
 				buf.Write(fieldData.Data)
 			}
 		}
 	case BitmappedType:
-		log.Debugf("assembled data for field %s = %s\n", fieldData.Field.Name, hex.EncodeToString(fieldData.Bitmap.Bytes()))
+		asmLog.Debugf("Field %s, Length (bitmapped): -, Value: %s\n", field.Name, hex.EncodeToString(fieldData.Bitmap.Bytes()))
 		buf.Write(fieldData.Bitmap.Bytes())
 
 	}
 
 	if fieldData.Field.HasChildren() {
 
-		if info.Type == BitmappedType {
+		if field.Type == BitmappedType {
 			bmp := fieldData.Bitmap
 			for _, childField := range fieldData.Field.Children {
 				if bmp.IsOn(childField.Position) {
@@ -53,7 +63,7 @@ func assemble(buf *bytes.Buffer, parsedMsg *ParsedMsg, fieldData *FieldData) err
 				}
 			}
 		} else {
-			if info.Type == FixedType {
+			if field.Type == FixedType {
 				tempBuf := bytes.Buffer{}
 				for _, cf := range fieldData.Field.Children {
 					if err := assemble(&tempBuf, parsedMsg, parsedMsg.FieldDataMap[cf.ID]); err != nil {
@@ -62,9 +72,9 @@ func assemble(buf *bytes.Buffer, parsedMsg *ParsedMsg, fieldData *FieldData) err
 				}
 				buf.Write(tempBuf.Bytes())
 				fieldData.Data = tempBuf.Bytes()
-				log.Debugf("assembled data for fixed field %s = %s\n", fieldData.Field.Name, hex.EncodeToString(fieldData.Data))
+				asmLog.Debugf("Field %s, Length (Fixed): %d, Value: %s\n", field.Name, len(fieldData.Data), hex.EncodeToString(fieldData.Data))
 
-			} else if info.Type == VariableType {
+			} else if field.Type == VariableType {
 				//assemble all child fields and then construct the parent
 				tempBuf := bytes.Buffer{}
 				for _, cf := range fieldData.Field.Children {
@@ -72,12 +82,20 @@ func assemble(buf *bytes.Buffer, parsedMsg *ParsedMsg, fieldData *FieldData) err
 						return err
 					}
 				}
-				lenBuf, err := buildLengthIndicator(info.LengthIndicatorEncoding, info.LengthIndicatorSize, tempBuf.Len())
+
+				vlen := len(fieldData.Data)
+				if lengthAdjustment, isSpecial := lengthCorrection(field, fieldData.Data); isSpecial {
+					vlen = (vlen * 2) + lengthAdjustment
+				}
+
+				lenBuf, err := buildLengthIndicator(field.LengthIndicatorEncoding,
+					field.LengthIndicatorSize, vlen)
 				if err != nil {
 					return err
 				}
 				fieldData.Data = tempBuf.Bytes()
-				log.Debugf("assembled data for variable field %s = %s:%s\n", fieldData.Field.Name, hex.EncodeToString(lenBuf.Bytes()), hex.EncodeToString(fieldData.Data))
+				asmLog.Debugf("Field %s, LL (Variable): %s, Value: %s\n", field.Name, hex.EncodeToString(lenBuf.Bytes()), hex.EncodeToString(fieldData.Data))
+
 				buf.Write(lenBuf.Bytes())
 				buf.Write(tempBuf.Bytes())
 
@@ -87,6 +105,27 @@ func assemble(buf *bytes.Buffer, parsedMsg *ParsedMsg, fieldData *FieldData) err
 	}
 
 	return nil
+
+}
+
+func lengthCorrection(field *Field, data []byte) (int, bool) {
+
+	// handling for special BCD fields - https://github.com/rkbalgi/isosim/wiki/Variable-Fields
+
+	fmt.Println(data[0]&0xF0, data[len(data)-1]&0x0F)
+
+	if field.DataEncoding == BINARY && field.LengthIndicatorMultiplier == 2 {
+		if field.Padding == LeadingZeroes && (data[0]&0xF0 == 0x00) {
+			return -1, true
+		} else if field.Padding == TrailingF && (data[len(data)-1]&0x0F == 0x0F) {
+			return -1, true
+		} else {
+			log.Warnf("Detected special BCD field %q without encoding.", field.Name)
+			return 0, true
+		}
+	}
+
+	return 0, false
 
 }
 

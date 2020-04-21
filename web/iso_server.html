@@ -246,7 +246,7 @@
 
       selectedSpec = $('#idSpecs').val();
       $.getJSON('/iso/v1/msgs/' + selectedSpec, function (data) {
-        specMessages = data;
+        specMessages = data.messages;
       }).fail(function () {
         showErrorDialog('failed to load spec messages!. please check if the server is running..');
       });

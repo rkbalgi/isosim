@@ -112,7 +112,7 @@ func parseFixed(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 		return err
 	}
 
-	log.Debugf("Field : [%s] - Data = [%s]\n", field.Name, hex.EncodeToString(fieldData.Data))
+	log.WithFields(log.Fields{"component": "parser"}).Debugf("Field %s, Length: %d, Value: %s\n", field.Name, field.Size, hex.EncodeToString(fieldData.Data))
 
 	parsedMsg.FieldDataMap[field.ID] = fieldData
 
@@ -219,12 +219,20 @@ func parseVariable(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error 
 		}
 	}
 
+	if field.LengthIndicatorMultiplier == 2 && field.DataEncoding == BINARY {
+		//special bcd field handling - https://github.com/rkbalgi/isosim/wiki/Variable-Fields
+		if length%2 != 0 {
+			length++
+			length = length / 2
+		}
+	}
+
 	fieldData := &FieldData{Field: field}
 	if fieldData.Data, err = NextBytes(buf, int(length)); err != nil {
 		return err
 	}
 
-	log.Debugf("Field : [%s] - Len: %02d - Data = [%s]\n", field.Name, length, hex.EncodeToString(fieldData.Data))
+	log.WithFields(log.Fields{"component": "parser"}).Debugf("Field %-40s, Length: %d, Value: %s\n", field.Name, length, hex.EncodeToString(fieldData.Data))
 
 	parsedMsg.FieldDataMap[field.ID] = fieldData
 
@@ -249,7 +257,7 @@ func parseBitmap(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 	if err != nil {
 		return err
 	}
-	log.Debugf("Field : [%s] - Data = [%s]\n", field.Name, bitmap.BinaryString())
+	log.WithFields(log.Fields{"component": "parser"}).Debugf("Field %s, Length: -, Value: %s\n", field.Name, bitmap.BinaryString())
 	parsedMsg.FieldDataMap[field.ID] = &FieldData{Field: field, Bitmap: bitmap}
 
 	return nil
