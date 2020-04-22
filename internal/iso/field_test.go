@@ -3,7 +3,7 @@ package iso
 import (
 	"bytes"
 	"encoding/hex"
-	ebcdic "github.com/rkbalgi/go/encoding/ebcdic"
+	ebcdic "github.com/rkbalgi/libiso/encoding/ebcdic"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -338,6 +338,146 @@ func Test_VariableField(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.Equal(t, append([]byte{0x00, 0x0e}, []byte("2020!! covid19")...), buf2.Bytes())
+
+	})
+
+	t.Run("parse special BCD (LL in BINARY), trailing F", func(t *testing.T) {
+		fieldName := "VariableField"
+		fieldInfo := &Field{ID: 9, Name: fieldName, Type: VariableType, DataEncoding: BINARY,
+			LengthIndicatorEncoding: BINARY, LengthIndicatorSize: 2, Padding: TrailingF, LengthIndicatorMultiplier: 2}
+
+		msg := &Message{
+			ID:           1,
+			Name:         "Default",
+			Fields:       make([]*Field, 0),
+			fieldByIdMap: make(map[int]*Field),
+			fieldByName:  make(map[string]*Field),
+		}
+
+		msg.addField(fieldInfo)
+		parsedMsg := &ParsedMsg{IsRequest: true, FieldDataMap: make(map[int]*FieldData), Msg: msg}
+
+		buf := &bytes.Buffer{}
+		buf.Write([]byte{0x00, 0x0F})
+		fdata, _ := hex.DecodeString("876526544676665F")
+		buf.Write(fdata)
+		if err := parseVariable(buf, parsedMsg, msg.Field(fieldName)); err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, "876526544676665f", parsedMsg.Get(fieldName).Value())
+
+		//also assemble the field and check the length indicator
+		buf2 := &bytes.Buffer{}
+		if err := assemble(buf2, parsedMsg, parsedMsg.Get(fieldName)); err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, append([]byte{0x00, 0x0F}, fdata...), buf2.Bytes())
+
+	})
+
+	t.Run("parse special BCD (LL in BCD), trailing F", func(t *testing.T) {
+		fieldName := "VariableField"
+		fieldInfo := &Field{ID: 9, Name: fieldName, Type: VariableType, DataEncoding: BINARY,
+			LengthIndicatorEncoding: BCD, LengthIndicatorSize: 2, Padding: TrailingF, LengthIndicatorMultiplier: 2}
+
+		msg := &Message{
+			ID:           1,
+			Name:         "Default",
+			Fields:       make([]*Field, 0),
+			fieldByIdMap: make(map[int]*Field),
+			fieldByName:  make(map[string]*Field),
+		}
+
+		msg.addField(fieldInfo)
+		parsedMsg := &ParsedMsg{IsRequest: true, FieldDataMap: make(map[int]*FieldData), Msg: msg}
+
+		buf := &bytes.Buffer{}
+		buf.Write([]byte{0x00, 0x15})
+		fdata, _ := hex.DecodeString("876526544676665F")
+		buf.Write(fdata)
+		if err := parseVariable(buf, parsedMsg, msg.Field(fieldName)); err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, "876526544676665f", parsedMsg.Get(fieldName).Value())
+
+		//also assemble the field and check the length indicator
+		buf2 := &bytes.Buffer{}
+		if err := assemble(buf2, parsedMsg, parsedMsg.Get(fieldName)); err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, append([]byte{0x00, 0x15}, fdata...), buf2.Bytes())
+
+	})
+
+	t.Run("parse special LL in ASCII, trailing F", func(t *testing.T) {
+		fieldName := "VariableField"
+		fieldInfo := &Field{ID: 9, Name: fieldName, Type: VariableType, DataEncoding: BINARY,
+			LengthIndicatorEncoding: ASCII, LengthIndicatorSize: 2, Padding: TrailingF, LengthIndicatorMultiplier: 2}
+
+		msg := &Message{
+			ID:           1,
+			Name:         "Default",
+			Fields:       make([]*Field, 0),
+			fieldByIdMap: make(map[int]*Field),
+			fieldByName:  make(map[string]*Field),
+		}
+
+		msg.addField(fieldInfo)
+		parsedMsg := &ParsedMsg{IsRequest: true, FieldDataMap: make(map[int]*FieldData), Msg: msg}
+
+		buf := &bytes.Buffer{}
+		buf.Write([]byte{0x31, 0x35})
+		fdata, _ := hex.DecodeString("876526544676665F")
+		buf.Write(fdata)
+		if err := parseVariable(buf, parsedMsg, msg.Field(fieldName)); err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, "876526544676665f", parsedMsg.Get(fieldName).Value())
+
+		//also assemble the field and check the length indicator
+		buf2 := &bytes.Buffer{}
+		if err := assemble(buf2, parsedMsg, parsedMsg.Get(fieldName)); err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, append([]byte{0x31, 0x35}, fdata...), buf2.Bytes())
+
+	})
+
+	t.Run("parse special BCD, leading 0", func(t *testing.T) {
+		fieldName := "VariableField"
+		fieldInfo := &Field{ID: 9, Name: fieldName, Type: VariableType, DataEncoding: BINARY,
+			LengthIndicatorEncoding: BINARY, LengthIndicatorSize: 2, Padding: LeadingZeroes, LengthIndicatorMultiplier: 2}
+
+		msg := &Message{
+			ID:           1,
+			Name:         "Default",
+			Fields:       make([]*Field, 0),
+			fieldByIdMap: make(map[int]*Field),
+			fieldByName:  make(map[string]*Field),
+		}
+
+		msg.addField(fieldInfo)
+		parsedMsg := &ParsedMsg{IsRequest: true, FieldDataMap: make(map[int]*FieldData), Msg: msg}
+
+		buf := &bytes.Buffer{}
+		buf.Write([]byte{0x00, 0x0F})
+		fdata, _ := hex.DecodeString("0876526544676665")
+		buf.Write(fdata)
+		if err := parseVariable(buf, parsedMsg, msg.Field(fieldName)); err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, "0876526544676665", parsedMsg.Get(fieldName).Value())
+
+		//also assemble the field and check the length indicator
+		buf2 := &bytes.Buffer{}
+		if err := assemble(buf2, parsedMsg, parsedMsg.Get(fieldName)); err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, append([]byte{0x00, 0x0F}, fdata...), buf2.Bytes())
 
 	})
 

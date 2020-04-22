@@ -2,11 +2,11 @@ package server
 
 import (
 	"encoding/hex"
-	netutil "github.com/rkbalgi/go/net"
+	netutil "github.com/rkbalgi/libiso/net"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"isosim/internal/db"
 	"isosim/internal/iso"
-	"isosim/internal/iso/data"
 	"strconv"
 	"testing"
 )
@@ -15,7 +15,7 @@ func Test_IsoServer_MessageProcessing(t *testing.T) {
 
 	log.SetLevel(log.InfoLevel)
 
-	if err := data.Init("../../../test/testdata/appdata"); err != nil {
+	if err := db.Init("../../../test/testdata/appdata"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -32,7 +32,7 @@ func Test_IsoServer_MessageProcessing(t *testing.T) {
 	msgId := spec.MessageByName("1100").ID
 
 	strSpecId := strconv.Itoa(specId)
-	dataSets, err := data.DataSetManager().GetAll(strSpecId, strconv.Itoa(msgId))
+	dataSets, err := db.DataSetManager().GetAll(strSpecId, strconv.Itoa(msgId))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -44,7 +44,7 @@ func Test_IsoServer_MessageProcessing(t *testing.T) {
 		t.Log(ds)
 	}
 
-	defs, err := data.DataSetManager().ServerDefinitions(strSpecId)
+	defs, err := db.DataSetManager().ServerDefinitions(strSpecId)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,7 +59,7 @@ func Test_IsoServer_MessageProcessing(t *testing.T) {
 	defer Stop(defName)
 
 	var dsData []byte
-	if dsData, err = data.DataSetManager().Get(strSpecId, strconv.Itoa(msgId), "TC_ActionCode_100"); err != nil {
+	if dsData, err = db.DataSetManager().Get(strSpecId, strconv.Itoa(msgId), "TC_ActionCode_100"); err != nil {
 		t.Fatal(err)
 	}
 	ncc := netutil.NewNetCatClient("localhost:6665", netutil.Mli2i)

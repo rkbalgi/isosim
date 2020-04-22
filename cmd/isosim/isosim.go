@@ -3,9 +3,9 @@ package main
 import (
 	"flag"
 	log "github.com/sirupsen/logrus"
+	"isosim/internal/db"
 	"isosim/internal/iso"
-	"isosim/internal/iso/data"
-	"isosim/internal/services/v0/handlers"
+	"isosim/internal/services"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
@@ -54,7 +54,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	err := data.Init(*dataDir)
+	err := db.Init(*dataDir)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -66,7 +66,7 @@ func main() {
 	}
 
 	//check if all the required HTML files are available
-	if err = handlers.Init(iso.HTMLDir); err != nil {
+	if err = services.Init(); err != nil {
 		log.Fatal(err.Error())
 	}
 

@@ -113,13 +113,15 @@ func parseTraceReqDecoder(ctx context.Context, req *http.Request) (request inter
 
 }
 
+type parseTraceExtReq struct {
+	SpecName string `json:"spec_name"`
+	MsgName  string `json:"msg_name"`
+	Data     string `json:"trace_data"`
+}
+
 func parseTraceExternalReqDecoder(ctx context.Context, req *http.Request) (request interface{}, err error) {
 
-	reqObj := struct {
-		SpecName string `json:"spec_name"`
-		MsgName  string `json:"msg_name"`
-		Data     string `json:"traceData"`
-	}{}
+	reqObj := parseTraceExtReq{}
 
 	defer req.Body.Close()
 	if err := json.NewDecoder(req.Body).Decode(&reqObj); err != nil {

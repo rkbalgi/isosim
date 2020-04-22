@@ -1,7 +1,8 @@
-package handlers
+package services
 
 import (
 	"isosim/internal/iso"
+	"isosim/internal/services/crypto"
 	"isosim/internal/services/v0/handlers/isoserver"
 	"isosim/internal/services/v0/handlers/misc"
 	"isosim/internal/services/websim"
@@ -13,7 +14,7 @@ import (
 type IsoHttpHandler struct {
 }
 
-func Init(HTMLDir string) error {
+func Init() error {
 
 	setRoutes()
 	return nil
@@ -63,5 +64,6 @@ func setRoutes() {
 
 	//v1
 	websim.RegisterHTTPTransport()
+	crypto.RegisterHTTPTransport()
 
 }

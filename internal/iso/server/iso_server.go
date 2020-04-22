@@ -8,8 +8,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	net2 "github.com/rkbalgi/libiso/net"
 	log "github.com/sirupsen/logrus"
-	"isosim/internal/iso"
+	"io"
 	"isosim/internal/services/v0/data"
 	"net"
 	"strconv"
@@ -105,7 +106,7 @@ func StartWithDef(def *data.ServerDef, defName string, port int) error {
 		actualPort = def.ServerPort
 	}
 
-	log.Infoln("Starting ISO Server @ Port = ", actualPort)
+	log.Infoln("Starting ISO Server @ Port = ", actualPort, "MLI = ", def.MliType)
 	listener, err := net.Listen("tcp", ":"+strconv.Itoa(actualPort))
 	if err != nil {
 		return err
@@ -129,7 +130,12 @@ func StartWithDef(def *data.ServerDef, defName string, port int) error {
 }
 
 func closeOnError(connection net.Conn, err error) {
-	log.Errorln("Error on connection.. Error = " + err.Error() + " Remote Addr =" + connection.RemoteAddr().String())
+
+	if err != io.EOF {
+		log.Errorln("Error on connection.. Error = " + err.Error() + " Remote Addr =" + connection.RemoteAddr().String())
+	} else {
+		log.Infof("iso-server: A remote client closed the connection. Addr: %s: LocalAddr: %s", connection.RemoteAddr().String(), connection.LocalAddr().String())
+	}
 	if err := connection.Close(); err != nil {
 		log.Errorln("Error closing connection ", err)
 	}
@@ -139,54 +145,83 @@ func closeOnError(connection net.Conn, err error) {
 func handleConnection(connection net.Conn, pServerDef *data.ServerDef) {
 
 	buf := new(bytes.Buffer)
-	mli := make([]byte, 2)
+
+	var mliType net2.MliType
+	var mliLen uint32 = 2
+	switch pServerDef.MliType {
+	case "2e", "2E":
+		mliType = net2.Mli2e
+	case "2i", "2I":
+		mliType = net2.Mli2i
+	case "4e", "4E":
+		mliType = net2.Mli4e
+		mliLen = 4
+	case "4i", "4I":
+		mliType = net2.Mli4i
+		mliLen = 4
+	default:
+		log.Errorf("isosim: (server) Invalid MLI-Type - " + pServerDef.MliType)
+
+	}
+
+	mli := make([]byte, mliLen)
 	tmp := make([]byte, 256)
 
 	for {
 		log.Traceln("Reading MLI .. ")
 		n, err := connection.Read(mli)
+
 		if err != nil {
-			closeOnError(connection, err)
-			return
+			log.Traceln("Unexpected error while reading MLI : ", err)
 		}
 		if n > 0 {
 			log.Traceln("read::mli = " + hex.EncodeToString(mli))
 		}
-		if n == 2 {
-			var msgLen uint16
-			err = binary.Read(bytes.NewBuffer(mli), binary.BigEndian, &msgLen)
-			if err != nil {
-				log.Errorln("Failed to convert to binary", err)
+		var msgLen uint32 = 0
+
+		switch mliType {
+		case net2.Mli2i, net2.Mli2e:
+			msgLen = uint32(binary.BigEndian.Uint16(mli))
+			if mliType == net2.Mli2i {
+				msgLen -= mliLen
+			}
+		case net2.Mli4i, net2.Mli4e:
+			msgLen = binary.BigEndian.Uint32(mli)
+			if mliType == net2.Mli4i {
+				msgLen -= mliLen
+			}
+		}
+
+		if err != nil {
+			closeOnError(connection, err)
+			return
+		}
+		log.Debugf("Expected msgLen: %d", msgLen)
+
+		complete := false
+		for !complete {
+			n := 0
+			if n, err = connection.Read(tmp); err != nil {
+				closeOnError(connection, err)
+				return
+
 			}
 
-			if pServerDef.MliType == iso.Mli2I {
-				msgLen -= 2
-			}
+			if n > 0 {
+				log.WithFields(log.Fields{"type": "server"}).Traceln("Read = " + hex.EncodeToString(tmp[0:n]))
+				buf.Write(tmp[0:n])
+				log.WithFields(log.Fields{"type": "server"}).Traceln("msgLen = ", msgLen, " Read = ", n)
+				if uint32(len(buf.Bytes())) == msgLen {
+					//we have a complete msg
 
-			complete := false
-			for !complete {
-				n := 0
-				if n, err = connection.Read(tmp); err != nil {
-					closeOnError(connection, err)
-					return
+					complete = true
+					var msgData = make([]byte, msgLen)
+					copy(msgData, buf.Bytes())
+					log.Debugf("Received Request, %s\n", hex.Dump(msgData))
+					buf.Reset()
+					go handleRequest(connection, msgData, pServerDef, mliType)
 
 				}
-
-				if n > 0 {
-					log.WithFields(log.Fields{"type": "server"}).Traceln("Read = " + hex.EncodeToString(tmp[0:n]))
-					buf.Write(tmp[0:n])
-					log.WithFields(log.Fields{"type": "server"}).Traceln("msgLen = ", msgLen, " Read = ", n)
-					if uint16(len(buf.Bytes())) == msgLen {
-						//we have a complete msg
-						complete = true
-						var msgData = make([]byte, msgLen)
-						copy(msgData, buf.Bytes())
-						buf.Reset()
-						go handleRequest(connection, msgData, pServerDef)
-
-					}
-				}
-
 			}
 
 		}
@@ -195,28 +230,18 @@ func handleConnection(connection net.Conn, pServerDef *data.ServerDef) {
 
 }
 
-func handleRequest(connection net.Conn, msgData []byte, pServerDef *data.ServerDef) {
+func handleRequest(connection net.Conn, msgData []byte, pServerDef *data.ServerDef, mliType net2.MliType) {
 
 	responseData, err := processMsg(msgData, pServerDef)
 	if err != nil {
 		log.Errorln("Failed to process message . Error = ", err.Error())
 		return
 	}
-	var respLen uint16 = 0
 
-	if pServerDef.MliType == iso.Mli2I {
-		respLen = 2 + uint16(len(responseData))
-	} else {
-		respLen = uint16(len(responseData))
-	}
+	finalData := net2.AddMLI(mliType, responseData)
 
 	buf := new(bytes.Buffer)
-	err = binary.Write(buf, binary.BigEndian, respLen)
-	if err != nil {
-		log.Errorln("Failed to construct response . Error = " + err.Error())
-		return
-	}
-	buf.Write(responseData)
+	buf.Write(finalData)
 	log.WithFields(log.Fields{"type": "server"}).Debugln("Writing Response. Data = " + hex.EncodeToString(buf.Bytes()))
 	_, err = connection.Write(buf.Bytes())
 	if err != nil {

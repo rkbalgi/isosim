@@ -81,6 +81,8 @@
         <select id="idMliType" class="cl_field_name">
           <option value="2I">2I</option>
           <option value="2E">2E</option>
+          <option value="4I">4I</option>
+          <option value="4E">4E</option>
         </select>
       </td>
     </tr>
@@ -246,7 +248,7 @@
 
       selectedSpec = $('#idSpecs').val();
       $.getJSON('/iso/v1/msgs/' + selectedSpec, function (data) {
-        specMessages = data;
+        specMessages = data.messages;
       }).fail(function () {
         showErrorDialog('failed to load spec messages!. please check if the server is running..');
       });

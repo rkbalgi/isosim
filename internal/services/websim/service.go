@@ -8,10 +8,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	net2 "github.com/rkbalgi/go/net"
+	net2 "github.com/rkbalgi/libiso/net"
 	log "github.com/sirupsen/logrus"
+	"isosim/internal/db"
 	"isosim/internal/iso"
-	data2 "isosim/internal/iso/data"
 	"isosim/internal/services/v0/data"
 	"net"
 	"sort"
@@ -140,7 +140,6 @@ func (serviceImpl) ParseTrace(ctx context.Context, specId int, msgId int, msgTra
 // so can be used by external entities
 func (serviceImpl) ParseTraceExternal(ctx context.Context, specName string, msgName string, msgTrace string) (*[]data.JsonFieldDataRep, error) {
 
-	log.Debug("Received parseReqExternal() ... ")
 	spec := iso.SpecByName(specName)
 	if spec == nil {
 		return nil, errors.New("isosim: No such spec")
@@ -179,9 +178,9 @@ func (serviceImpl) SaveMessage(ctx context.Context, specId int, msgId int, msgNa
 
 	var err error
 	if update {
-		err = data2.DataSetManager().Update(strconv.Itoa(specId), strconv.Itoa(msgId), msgName, msgData)
+		err = db.DataSetManager().Update(strconv.Itoa(specId), strconv.Itoa(msgId), msgName, msgData)
 	} else {
-		err = data2.DataSetManager().Add(strconv.Itoa(specId), strconv.Itoa(msgId), msgName, msgData)
+		err = db.DataSetManager().Add(strconv.Itoa(specId), strconv.Itoa(msgId), msgName, msgData)
 	}
 
 	if err != nil {
@@ -283,7 +282,7 @@ func (serviceImpl) LoadOrFetchSavedMessages(ctx context.Context, specId int, msg
 
 	if dsName != "" {
 		//load a specific ds
-		ds, err := data2.DataSetManager().Get(strconv.Itoa(specId), strconv.Itoa(msgId), dsName)
+		ds, err := db.DataSetManager().Get(strconv.Itoa(specId), strconv.Itoa(msgId), dsName)
 		if err != nil {
 			return nil, nil, err
 
@@ -296,7 +295,7 @@ func (serviceImpl) LoadOrFetchSavedMessages(ctx context.Context, specId int, msg
 
 	} else {
 		//fetch all
-		ds, err := data2.DataSetManager().GetAll(strconv.Itoa(specId), strconv.Itoa(msgId))
+		ds, err := db.DataSetManager().GetAll(strconv.Itoa(specId), strconv.Itoa(msgId))
 		if err != nil {
 			return nil, nil, fmt.Errorf("isosim Failed to read saved messages :%w", err)
 

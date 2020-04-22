@@ -22,6 +22,7 @@ type JsonFieldInfoRep struct {
 	LengthIndicatorSize int
 	DataEncoding        string
 	LengthEncoding      string
+	Padding             string
 }
 
 // JsonFieldDataRep is the representation of a field's data
@@ -36,17 +37,20 @@ type JsonMessageTemplate struct {
 }
 
 func newJsonFieldTemplate(field *iso.Field) *JsonFieldInfoRep {
-	jFieldInfo := &JsonFieldInfoRep{Children: make([]*JsonFieldInfoRep, 0, 10)}
-	jFieldInfo.ID = field.ID
-	jFieldInfo.Name = field.Name
-	jFieldInfo.Position = field.Position
-	jFieldInfo.DataEncoding = field.DataEncoding.AsString()
 
-	//fieldInfo := field.FieldInfo
+	jFieldInfo := &JsonFieldInfoRep{
+		Name:         field.Name,
+		ID:           field.ID,
+		Children:     make([]*JsonFieldInfoRep, 0, 10),
+		Position:     field.Position,
+		DataEncoding: field.DataEncoding.AsString(),
+		Padding:      string(field.Padding),
+	}
+
+	jFieldInfo.Type = string(field.Type)
 
 	switch field.Type {
 	case iso.BitmappedType:
-		jFieldInfo.Type = "Bitmapped"
 
 	case iso.FixedType:
 		jFieldInfo.Type = "Fixed"
@@ -59,7 +63,6 @@ func newJsonFieldTemplate(field *iso.Field) *JsonFieldInfoRep {
 
 	case iso.VariableType:
 
-		jFieldInfo.Type = "Variable"
 		jFieldInfo.LengthIndicatorSize = field.LengthIndicatorSize
 		jFieldInfo.LengthEncoding = field.LengthIndicatorEncoding.AsString()
 		if len(field.Constraints.ContentType) > 0 {

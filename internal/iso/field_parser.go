@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/rkbalgi/go/encoding/ebcdic"
+	"github.com/rkbalgi/libiso/encoding/ebcdic"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -112,7 +112,7 @@ func parseFixed(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 		return err
 	}
 
-	log.Debugf("Field : [%s] - Data = [%s]\n", field.Name, hex.EncodeToString(fieldData.Data))
+	log.WithFields(log.Fields{"component": "parser"}).Debugf("Field %s, Length: %d, Value: %s\n", field.Name, field.Size, hex.EncodeToString(fieldData.Data))
 
 	parsedMsg.FieldDataMap[field.ID] = fieldData
 
@@ -192,30 +192,29 @@ func parseVariable(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error 
 
 		}
 	case BCD:
-		{
-			//len = 0;
-			if length, err = strconv.ParseUint(hex.EncodeToString(lenData), 10, 64); err != nil {
-				return err
-			}
+		if length, err = strconv.ParseUint(hex.EncodeToString(lenData), 10, 64); err != nil {
+			return err
 		}
 	case ASCII:
-		{
-
-			if length, err = strconv.ParseUint(string(lenData), 10, 64); err != nil {
-				return err
-			}
-
+		if length, err = strconv.ParseUint(string(lenData), 10, 64); err != nil {
+			return err
 		}
 	case EBCDIC:
-		{
 
-			if length, err = strconv.ParseUint(ebcdic.EncodeToString(lenData), 10, 64); err != nil {
-				return err
-			}
+		if length, err = strconv.ParseUint(ebcdic.EncodeToString(lenData), 10, 64); err != nil {
+			return err
 		}
 	default:
 		{
 			return ErrInvalidEncoding
+		}
+	}
+
+	if field.LengthIndicatorMultiplier == 2 && field.DataEncoding == BINARY {
+		//special bcd field handling - https://github.com/rkbalgi/isosim/wiki/Variable-Fields
+		if length%2 != 0 {
+			length++
+			length = length / 2
 		}
 	}
 
@@ -224,7 +223,7 @@ func parseVariable(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error 
 		return err
 	}
 
-	log.Debugf("Field : [%s] - Len: %02d - Data = [%s]\n", field.Name, length, hex.EncodeToString(fieldData.Data))
+	log.WithFields(log.Fields{"component": "parser"}).Debugf("Field %s, Length: %d, Value: %s\n", field.Name, length, hex.EncodeToString(fieldData.Data))
 
 	parsedMsg.FieldDataMap[field.ID] = fieldData
 
@@ -249,7 +248,7 @@ func parseBitmap(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 	if err != nil {
 		return err
 	}
-	log.Debugf("Field : [%s] - Data = [%s]\n", field.Name, bitmap.BinaryString())
+	log.WithFields(log.Fields{"component": "parser"}).Debugf("Field %s, Length: -, Value: %s\n", field.Name, bitmap.BinaryString())
 	parsedMsg.FieldDataMap[field.ID] = &FieldData{Field: field, Bitmap: bitmap}
 
 	return nil

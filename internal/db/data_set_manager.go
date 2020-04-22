@@ -1,4 +1,6 @@
-package data
+package db
+
+import bolt "go.etcd.io/bbolt"
 
 import (
 	"bytes"
@@ -19,6 +21,7 @@ type dataSetManager struct{}
 
 var instance *dataSetManager
 var dataDir string
+var bdb *bolt.DB
 
 const defFileSuffix = ".srvdef.json"
 
@@ -33,6 +36,13 @@ func Init(dirname string) error {
 	}
 	_ = dir.Close()
 	dataDir = dirname
+
+	//we'll use bolt db to store transaction history
+	if bdb, err = bolt.Open(filepath.Join(dataDir, "isosim.bdb"), 0666, nil); err != nil {
+		return err
+	}
+	log.Infoln("Opened Bolt DB .. db-file: isosim.bdb")
+
 	return nil
 }
 
