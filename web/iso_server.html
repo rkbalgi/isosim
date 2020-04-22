@@ -182,11 +182,10 @@
       $('#idActiveServersDiv').show();
 
     }, 'text').fail(function () {
-          $('#idActiveServersDiv').children('div.cl_act_serv_content').html(
-              'Failed to get active servers. Reason = ' + this.statusText);
-          $('#idActiveServersDiv').show();
-        }
-    );
+      $('#idActiveServersDiv').children('div.cl_act_serv_content').html(
+          'Failed to get active servers. Reason = ' + this.statusText);
+      $('#idActiveServersDiv').show();
+    });
 
   }
 
@@ -217,17 +216,13 @@
 
   function showMsgDialog(msg) {
     BootstrapDialog.alert({
-      message: msg,
-      title: 'Information',
-      type: BootstrapDialog.TYPE_INFO
+      message: msg, title: 'Information', type: BootstrapDialog.TYPE_INFO
     });
   }
 
   function showErrorDialog(msg) {
     BootstrapDialog.alert({
-      title: 'Error',
-      message: msg,
-      type: BootstrapDialog.TYPE_WARNING
+      title: 'Error', message: msg, type: BootstrapDialog.TYPE_WARNING
     });
   }
 
@@ -372,7 +367,7 @@
 
     $.post(
         '/iso/v0/server/start?specId=' + $('#idSpecs').val() + '&def=' + loadedServerDef + '&port='
-        + $('#idServerPort').val(), function (response) {
+        + $('#idServerPort').val() + '&mliType=' + $('#idMliType').val(), function (response) {
           showMsgDialog('Server started.');
         }).fail(function () {
       showErrorDialog('Failed to start server.');
@@ -482,13 +477,11 @@
     console.log('adding ...');
     var msgConditionTemplate = '<br/><br/><div class="cl_proc_condition" style="margin-left:20px;padding-left:5px;" id="msgConditionDiv_'
         + msgSelectionConditionId + '"> When field = <select class="cl_field_name"></select> value \
-            <select class="cl_field_match_condition">' +
-        '<option value="StringEquals">StringEquals</option> \
+            <select class="cl_field_match_condition">' + '<option value="StringEquals">StringEquals</option> \
     <option value="IntEquals">IntEquals</option> \
     <option value="IntGt">IntGreaterThan</option> \
     <option value="IntLt">IntLessThan</option> \
-    <option value="Any">Any</option> ' +
-        '</select> - <input class="cl_bytes_value" type="text" name="fieldValue"/> Do - \
+    <option value="Any">Any</option> ' + '</select> - <input class="cl_bytes_value" type="text" name="fieldValue"/> Do - \
     <button onclick="setFieldValue(' + msgSelectionConditionId + ')" class="cl_small_btn">Set Field Value</button> \
             <button onclick="setFieldOff(' + msgSelectionConditionId + ')" class="cl_small_btn"> Set Field Off </button> \
             </div>';
@@ -553,8 +546,7 @@
 
   function loadSpecMessageFields(msgId, pasync = true) {
     $.get({
-      url: '/iso/v1/template/' + selectedSpec + '/' + msgId,
-      success: function (response) {
+      url: '/iso/v1/template/' + selectedSpec + '/' + msgId, success: function (response) {
         var data = JSON.parse(response);
         var fieldList = [];
 
@@ -565,9 +557,7 @@
 
         //alert('initializing specMsgfields..' + fieldList.length);
         specMsgFields = fieldList;
-      },
-      async: pasync,
-      dataType: "text"
+      }, async: pasync, dataType: "text"
     });
 
   }

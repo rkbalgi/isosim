@@ -123,7 +123,7 @@ func startServerHandler() {
 			return
 		}
 
-		specId, def, port := req.Form.Get("specId"), req.Form.Get("def"), req.Form.Get("port")
+		specId, def, port, mliType := req.Form.Get("specId"), req.Form.Get("def"), req.Form.Get("port"), req.Form.Get("mliType")
 		matched, _ := regexp.MatchString("^[0-9]+$", port)
 		if len(port) == 0 || !matched {
 			sendError(rw, "Invalid Port - "+port)
@@ -132,7 +132,7 @@ func startServerHandler() {
 		}
 
 		port_, _ := strconv.Atoi(port)
-		err := server.Start(specId, def, port_)
+		err := server.Start(specId, def, port_, mliType)
 		if err != nil {
 			sendError(rw, err.Error())
 			return

@@ -53,7 +53,7 @@ func Test_IsoServer_MessageProcessing(t *testing.T) {
 	}
 	defName := "IsoMiniSpec_Server_01.srvdef.json"
 
-	if err := Start(strSpecId, defName, 6665); err != nil {
+	if err := Start(strSpecId, defName, 6665, "2i"); err != nil {
 		t.Fatal(err)
 	}
 	defer Stop(defName)

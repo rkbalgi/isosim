@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	net2 "github.com/rkbalgi/libiso/net"
 	log "github.com/sirupsen/logrus"
 	"io"
@@ -87,14 +88,17 @@ func Stop(serverName string) error {
 }
 
 // Start starts a ISO server at port, the behaviour of which is defined by the server definition
-func Start(specId string, serverDefName string, port int) error {
+func Start(specId string, serverDefName string, port int, mliType string) error {
 
 	vServerDef, err := getDef(specId, serverDefName)
 	if err != nil {
 		log.Errorln("Failed to get server definition", err)
 	}
+	//override the MLI type and port
+	vServerDef.MliType = mliType
+	vServerDef.ServerPort = port
 
-	return StartWithDef(vServerDef, serverDefName, port)
+	return StartWithDef(&vServerDef, serverDefName, 0)
 
 }
 
@@ -106,7 +110,7 @@ func StartWithDef(def *data.ServerDef, defName string, port int) error {
 		actualPort = def.ServerPort
 	}
 
-	log.Infoln("Starting ISO Server @ Port = ", actualPort, "MLI = ", def.MliType)
+	log.Infoln("Starting ISO Server @ Port = ", actualPort, "MLI-Type = ", def.MliType)
 	listener, err := net.Listen("tcp", ":"+strconv.Itoa(actualPort))
 	if err != nil {
 		return err
@@ -144,38 +148,32 @@ func closeOnError(connection net.Conn, err error) {
 
 func handleConnection(connection net.Conn, pServerDef *data.ServerDef) {
 
+	slog := log.WithFields(log.Fields{"type": "server"})
+
 	buf := new(bytes.Buffer)
 
-	var mliType net2.MliType
+	mliType, err := getMliFromString(pServerDef.MliType)
+	if err != nil {
+		log.Errorf("isosim: Invalid MLIType %s specified", pServerDef.MliType)
+		return
+	}
 	var mliLen uint32 = 2
-	switch pServerDef.MliType {
-	case "2e", "2E":
-		mliType = net2.Mli2e
-	case "2i", "2I":
-		mliType = net2.Mli2i
-	case "4e", "4E":
-		mliType = net2.Mli4e
+	if mliType == net2.Mli4e || mliType == net2.Mli4i {
 		mliLen = 4
-	case "4i", "4I":
-		mliType = net2.Mli4i
-		mliLen = 4
-	default:
-		log.Errorf("isosim: (server) Invalid MLI-Type - " + pServerDef.MliType)
-
 	}
 
 	mli := make([]byte, mliLen)
 	tmp := make([]byte, 256)
 
 	for {
-		log.Traceln("Reading MLI .. ")
+		slog.Traceln("Reading MLI .. ")
 		n, err := connection.Read(mli)
 
 		if err != nil {
 			log.Traceln("Unexpected error while reading MLI : ", err)
 		}
 		if n > 0 {
-			log.Traceln("read::mli = " + hex.EncodeToString(mli))
+			slog.Traceln("MLI Data = " + hex.EncodeToString(mli))
 		}
 		var msgLen uint32 = 0
 
@@ -196,7 +194,7 @@ func handleConnection(connection net.Conn, pServerDef *data.ServerDef) {
 			closeOnError(connection, err)
 			return
 		}
-		log.Debugf("Expected msgLen: %d", msgLen)
+		slog.Debugf("Expected msgLen: %d", msgLen)
 
 		complete := false
 		for !complete {
@@ -208,16 +206,17 @@ func handleConnection(connection net.Conn, pServerDef *data.ServerDef) {
 			}
 
 			if n > 0 {
-				log.WithFields(log.Fields{"type": "server"}).Traceln("Read = " + hex.EncodeToString(tmp[0:n]))
+
+				slog.Traceln("Read = " + hex.EncodeToString(tmp[0:n]))
 				buf.Write(tmp[0:n])
-				log.WithFields(log.Fields{"type": "server"}).Traceln("msgLen = ", msgLen, " Read = ", n)
+				slog.Traceln("msgLen = ", msgLen, " Read = ", n)
 				if uint32(len(buf.Bytes())) == msgLen {
 					//we have a complete msg
 
 					complete = true
 					var msgData = make([]byte, msgLen)
 					copy(msgData, buf.Bytes())
-					log.Debugf("Received Request, %s\n", hex.Dump(msgData))
+					slog.Debugf("Received Request, \n%s\n", hex.Dump(msgData))
 					buf.Reset()
 					go handleRequest(connection, msgData, pServerDef, mliType)
 
@@ -228,6 +227,23 @@ func handleConnection(connection net.Conn, pServerDef *data.ServerDef) {
 
 	}
 
+}
+
+func getMliFromString(mliType string) (net2.MliType, error) {
+	switch mliType {
+	case "2e", "2E":
+		return net2.Mli2e, nil
+	case "2i", "2I":
+		return net2.Mli2i, nil
+	case "4e", "4E":
+		return net2.Mli4e, nil
+	case "4i", "4I":
+		return net2.Mli4i, nil
+
+	default:
+		return "", fmt.Errorf("isosim: (server) Invalid MLI-Type - %s", mliType)
+
+	}
 }
 
 func handleRequest(connection net.Conn, msgData []byte, pServerDef *data.ServerDef, mliType net2.MliType) {

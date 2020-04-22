@@ -17,7 +17,7 @@ func init() {
 	sd = make(map[string]*data.ServerDef, 10)
 }
 
-func getDef(specId string, defName string) (*data.ServerDef, error) {
+func getDef(specId string, defName string) (data.ServerDef, error) {
 
 	defId := specId + defName
 
@@ -30,14 +30,14 @@ func getDef(specId string, defName string) (*data.ServerDef, error) {
 		def = &data.ServerDef{MsgSelectionConfigs: make([]data.MsgSelectionConfig, 0, 10)}
 		serverDef, err := db.DataSetManager().ServerDef(specId, defName)
 		if err != nil {
-			return nil, fmt.Errorf("isosim: Unexpected error while reading server definition : %w", err)
+			return data.ServerDef{}, fmt.Errorf("isosim: Unexpected error while reading server definition : %w", err)
 		}
 		err = json.NewDecoder(bytes.NewBuffer(serverDef)).Decode(def)
 		if err != nil {
-			return nil, err
+			return data.ServerDef{}, err
 		}
 		sd[defId] = def
 	}
-	return def, nil
+	return *def, nil
 
 }

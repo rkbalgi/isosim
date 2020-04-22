@@ -93,7 +93,18 @@ specs:
                     pan_field_id: 3
                     pan_extract_params: "0:15"
                     pan: ""
-
+              - name: "Currency Code, Transaction"
+                id: 14
+                type: Fixed
+                size: 3
+                data_encoding: ASCII
+                position: 49
+              - name: "Currency Code, Settlement"
+                id: 15
+                type: Fixed
+                size: 3
+                data_encoding: ASCII
+                position: 50
               - name: "MAC"
                 id: 13
                 type: Fixed
