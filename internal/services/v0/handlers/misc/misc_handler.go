@@ -2,10 +2,11 @@ package misc
 
 import (
 	"encoding/hex"
-	"github.com/rkbalgi/go/hsm"
-	"github.com/rkbalgi/go/net"
+	"github.com/rkbalgi/libiso/hsm"
+	"github.com/rkbalgi/libiso/net"
 	log "github.com/sirupsen/logrus"
 	"isosim/internal/iso"
+
 	"net/http"
 	"path/filepath"
 	"strconv"

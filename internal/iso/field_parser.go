@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/rkbalgi/go/encoding/ebcdic"
+	"github.com/rkbalgi/libiso/encoding/ebcdic"
 	log "github.com/sirupsen/logrus"
 )
 

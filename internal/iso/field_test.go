@@ -3,7 +3,7 @@ package iso
 import (
 	"bytes"
 	"encoding/hex"
-	ebcdic "github.com/rkbalgi/go/encoding/ebcdic"
+	ebcdic "github.com/rkbalgi/libiso/encoding/ebcdic"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"testing"

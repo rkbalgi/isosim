@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/rkbalgi/go/crypto/pin"
+	"github.com/rkbalgi/libiso/crypto/pin"
 )
 
 // pin generation

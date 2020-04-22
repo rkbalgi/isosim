@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/go-kit/kit/log"
-	netutil "github.com/rkbalgi/go/net"
+	netutil "github.com/rkbalgi/libiso/net"
 	"isosim/internal/iso"
 	"isosim/internal/services/v0/data"
 )

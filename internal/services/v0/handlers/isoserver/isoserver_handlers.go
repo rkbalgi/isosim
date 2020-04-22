@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
+	"isosim/internal/db"
 	"isosim/internal/iso"
-	"isosim/internal/iso/data"
 	"isosim/internal/iso/server"
 	"net/http"
 	"os"
@@ -47,7 +47,7 @@ func fetchDefHandler() {
 			return
 		}
 
-		serverDefs, err := data.DataSetManager().ServerDefinitions(strSpecId)
+		serverDefs, err := db.DataSetManager().ServerDefinitions(strSpecId)
 		if err != nil {
 			log.Debugln("Server Defs = ", len(serverDefs), serverDefs)
 			if _, ok := err.(*os.PathError); ok {
@@ -80,7 +80,7 @@ func fetchDefHandler() {
 			return
 		}
 
-		serverDef, err := data.DataSetManager().ServerDef(strSpecId, fileName)
+		serverDef, err := db.DataSetManager().ServerDef(strSpecId, fileName)
 		log.Debugln("Def = " + string(serverDef))
 
 		if err != nil {
@@ -102,7 +102,7 @@ func addIsoServerSaveDefHandler() {
 			return
 		}
 
-		serverDef, err := data.DataSetManager().AddServerDef(string(def))
+		serverDef, err := db.DataSetManager().AddServerDef(string(def))
 		if err != nil {
 			sendError(rw, "Failed.  = "+err.Error())
 			return

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	data2 "isosim/internal/iso/data"
+	"isosim/internal/db"
 	"isosim/internal/services/v0/data"
 
 	"sync"
@@ -28,7 +28,7 @@ func getDef(specId string, defName string) (*data.ServerDef, error) {
 	if !ok {
 		//do processing
 		def = &data.ServerDef{MsgSelectionConfigs: make([]data.MsgSelectionConfig, 0, 10)}
-		serverDef, err := data2.DataSetManager().ServerDef(specId, defName)
+		serverDef, err := db.DataSetManager().ServerDef(specId, defName)
 		if err != nil {
 			return nil, fmt.Errorf("isosim: Unexpected error while reading server definition : %w", err)
 		}

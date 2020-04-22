@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	log "github.com/sirupsen/logrus"
+	"isosim/internal/db"
 	"isosim/internal/iso"
-	"isosim/internal/iso/data"
 	"isosim/internal/services"
 	"net/http"
 	_ "net/http/pprof"
@@ -54,7 +54,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	err := data.Init(*dataDir)
+	err := db.Init(*dataDir)
 	if err != nil {
 		log.Fatal(err.Error())
 	}

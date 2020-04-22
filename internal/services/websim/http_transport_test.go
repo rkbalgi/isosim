@@ -10,8 +10,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
+	"isosim/internal/db"
 	"isosim/internal/iso"
-	"isosim/internal/iso/data"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -61,7 +61,7 @@ func (testHttpHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 func Test_WebsimHttpService(t *testing.T) {
 
-	if err := data.Init("../../../test/testdata/appdata"); err != nil {
+	if err := db.Init("../../../test/testdata/appdata"); err != nil {
 		t.Fatal(err)
 	}
 
