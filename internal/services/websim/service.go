@@ -140,7 +140,6 @@ func (serviceImpl) ParseTrace(ctx context.Context, specId int, msgId int, msgTra
 // so can be used by external entities
 func (serviceImpl) ParseTraceExternal(ctx context.Context, specName string, msgName string, msgTrace string) (*[]data.JsonFieldDataRep, error) {
 
-	log.Debug("Received parseReqExternal() ... ")
 	spec := iso.SpecByName(specName)
 	if spec == nil {
 		return nil, errors.New("isosim: No such spec")

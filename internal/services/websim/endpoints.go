@@ -225,6 +225,11 @@ func sendToHostEndpoint(s Service) endpoint.Endpoint {
 			mli = netutil.Mli2i
 		case "2E", "2e":
 			mli = netutil.Mli2e
+		case "4I", "4i":
+			mli = netutil.Mli4i
+		case "4E", "4e":
+			mli = netutil.Mli4e
+
 		default:
 			return nil, fmt.Errorf("isosim: Invalid MLI-Type %s in request", req.MLI)
 
