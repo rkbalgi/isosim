@@ -1,6 +1,7 @@
 package services
 
 import (
+	log "github.com/sirupsen/logrus"
 	"isosim/internal/iso"
 	"isosim/internal/services/crypto"
 	"isosim/internal/services/v0/handlers/isoserver"
@@ -26,6 +27,17 @@ func setRoutes() {
 	//react front-end resources
 	//for static resources
 	http.HandleFunc("/", func(rw http.ResponseWriter, req *http.Request) {
+
+		if req.Method == http.MethodOptions {
+			log.Info("Responding to Options for CORS ")
+			rw.Header().Set("Access-Control-Allow-Origin", "*")
+			rw.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+			rw.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+
+			rw.WriteHeader(http.StatusOK)
+
+			return
+		}
 
 		if req.RequestURI == "/" || req.RequestURI == "/index.html" {
 			http.ServeFile(rw, req, filepath.Join(iso.HTMLDir, "react-fe", "build", "index.html"))

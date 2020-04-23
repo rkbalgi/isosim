@@ -1,4 +1,4 @@
-package crypto
+package iso
 
 import (
 	"encoding/hex"
@@ -13,7 +13,7 @@ func Test_GeneratePinBlock_ISO0(t *testing.T) {
 	if err := yaml.Unmarshal([]byte("pin_clear: \"1234\"\npin_format: \"ISO-0\"\npin_key: \"AB9292288227277226252525224665FE\"\npan_field_id: 3\npan_extract_params: \"0:16\"\npan_user_supplied: \"4356876509876788\""), pgp); err != nil {
 		t.Fatal(err)
 	}
-	pb, err := pgp.generate()
+	pb, err := pgp.Generate()
 	if err != nil {
 		t.Fatal(err)
 	}

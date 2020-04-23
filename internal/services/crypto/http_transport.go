@@ -3,6 +3,7 @@ package crypto
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/go-kit/kit/log/logrus"
 	"github.com/go-kit/kit/transport"
@@ -16,7 +17,10 @@ const URLCryptoPinGen = "/iso/v1/crypto/pin_gen"
 
 func pinGenReqDecoder(ctx context.Context, req *http.Request) (response interface{}, err error) {
 
+	fmt.Println("Decoding...")
+
 	reqData, err := ioutil.ReadAll(req.Body)
+	fmt.Println(string(reqData))
 	if err != nil {
 		return nil, err
 	}
@@ -33,6 +37,7 @@ func pinGenReqDecoder(ctx context.Context, req *http.Request) (response interfac
 
 // decode the response into JSON - generic decoder
 func respEncoder(ctx context.Context, rw http.ResponseWriter, response interface{}) error {
+
 	if f, ok := response.(endpoint.Failer); ok && f.Failed() != nil {
 		errorEncoder(ctx, f.Failed(), rw)
 		return nil

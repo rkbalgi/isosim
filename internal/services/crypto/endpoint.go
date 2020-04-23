@@ -4,14 +4,15 @@ import (
 	"context"
 	"encoding/hex"
 	"github.com/go-kit/kit/endpoint"
+	"isosim/internal/iso"
 	"strings"
 )
 
 type PinGenRequest struct {
-	PINClear  string    `yaml:"pin_clear",json:"pin_clear"`
-	PINFormat PinFormat `yaml:"pin_format",json:"pin_format"`
-	PINKey    string    `yaml:"pin_key",json:"pin_key"`
-	PAN       string    `yaml:"pan",json:"pan"`
+	PINClear  string        `yaml:"pin_clear",json:"pin_clear"`
+	PINFormat iso.PinFormat `yaml:"pin_format",json:"pin_format"`
+	PINKey    string        `yaml:"pin_key",json:"pin_key"`
+	PAN       string        `yaml:"pan",json:"pan"`
 }
 
 type PinGenResponse struct {

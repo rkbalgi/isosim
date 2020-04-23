@@ -18,6 +18,24 @@ var constraintsRegExp2, _ = regexp.Compile("(([a-zA-Z]+):([0-9A-Za-z]+));")
 
 type PaddingType string
 
+type PinFormat string
+
+const (
+	ISO0    PinFormat = "ISO0"
+	ISO1    PinFormat = "ISO1"
+	ISO3    PinFormat = "ISO3"
+	IBM3264 PinFormat = "IBM3264"
+)
+
+type PinGenProps struct {
+	PINClear         string    `yaml:"pin_clear",json:"pin_clear"`
+	PINFormat        PinFormat `yaml:"pin_format",json:"pin_format"`
+	PINKey           string    `yaml:"pin_key",json:"pin_key"`
+	PANFieldID       int       `yaml:"pan_field_id",json:"pan_field_id"`
+	PANExtractParams string    `yaml:"pan_extract_params",json:"pan_extract_params"`
+	PAN              string    `yaml:"pan",json:"pan"`
+}
+
 const (
 	LeadingZeroes PaddingType = "LEADING_ZEROES"
 	LeadingSpaces PaddingType = "LEADING_SPACES"
@@ -87,8 +105,10 @@ type Field struct {
 
 	msg *Message `yaml:"-"json:"-"`
 	//for bitmap only
-	fieldsByPosition map[int]*Field
-	ParentId         int
+	fieldsByPosition   map[int]*Field
+	ParentId           int
+	ValueGeneratorType string       `yaml:"gen_type"`
+	PinGenProps        *PinGenProps `yaml:"pin_gen_props,omitempty"`
 }
 
 type FieldConstraints struct {
