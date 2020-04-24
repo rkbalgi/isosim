@@ -16,6 +16,7 @@ import (
 	"net"
 	"sort"
 	"strconv"
+	"time"
 )
 
 type NetOptions struct {
@@ -76,6 +77,19 @@ func (i serviceImpl) SendToHost(ctx context.Context, specId int, msgId int, netO
 		return nil, err
 	}
 
+	dbMsg := db.DbMessage{
+		SpecID:           specId,
+		MsgID:            msgId,
+		RequestTS:        time.Now().Unix(),
+		RequestMsg:       hex.EncodeToString(reqIsoMsg),
+		ParsedRequestMsg: ToJsonList(parsedMsg),
+	}
+	defer func() {
+		if err := db.Write(dbMsg); err != nil {
+			log.Warn("isosim: Failed to write to db..", err)
+		}
+	}()
+
 	log.Debugf("Sending to Iso server @address -  %s:%d\n", hostIpAddr, netOpts.Port)
 
 	isoServerAddr := fmt.Sprintf("%s:%d", hostIpAddr.String(), netOpts.Port)
@@ -105,6 +119,11 @@ func (i serviceImpl) SendToHost(ctx context.Context, specId int, msgId int, netO
 		return nil, err
 	}
 	respJson := ToJsonList(responseMsg)
+
+	dbMsg.ResponseTS = time.Now().Unix()
+	dbMsg.ResponseMsg = hex.EncodeToString(responseData)
+	dbMsg.ParsedResponseMsg = respJson
+
 	return &respJson, nil
 
 }

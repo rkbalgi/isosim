@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/go-kit/kit v0.10.0
+	github.com/google/uuid v1.0.0
 	github.com/rkbalgi/libiso v0.1.5-0.20200424111508-cb62515a9b4a
 	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.5.1
