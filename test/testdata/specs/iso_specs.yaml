@@ -110,6 +110,12 @@ specs:
                 size: 8
                 data_encoding: BINARY
                 position: 64
+                gen_type: "mac_gen"
+                mac_gen_props:
+                  mac_algo: "ANSIX9_19"
+                  mac_key: "AB9292288227277226252525224665FE"
+
+
       - name: "1420 - Reversal"
         id: 2
         fields:

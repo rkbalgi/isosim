@@ -19,13 +19,21 @@ var constraintsRegExp2, _ = regexp.Compile("(([a-zA-Z]+):([0-9A-Za-z]+));")
 type PaddingType string
 
 type PinFormat string
+type MacAlgo string
 
 const (
 	ISO0    PinFormat = "ISO0"
 	ISO1    PinFormat = "ISO1"
 	ISO3    PinFormat = "ISO3"
 	IBM3264 PinFormat = "IBM3264"
+
+	ANSIX9_19 MacAlgo = "ANSIX9_19"
 )
+
+type MacGenProps struct {
+	MacAlgo MacAlgo `yaml:"mac_algo",json:"mac_algo"`
+	MacKey  string  `yaml:"mac_key",json:"mac_key"`
+}
 
 type PinGenProps struct {
 	PINClear         string    `yaml:"pin_clear",json:"pin_clear"`
@@ -109,6 +117,7 @@ type Field struct {
 	ParentId           int
 	ValueGeneratorType string       `yaml:"gen_type"`
 	PinGenProps        *PinGenProps `yaml:"pin_gen_props,omitempty"`
+	MacGenProps        *MacGenProps `yaml:"mac_gen_props,omitempty"`
 }
 
 type FieldConstraints struct {

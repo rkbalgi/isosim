@@ -9,6 +9,7 @@ import (
 
 func (pgp *PinGenProps) Generate() ([]byte, error) {
 
+	// For more info - http://www.paymentsystemsblog.com/2010/03/03/pin-block-formats/
 	key, err := hex.DecodeString(pgp.PINKey)
 	if err != nil {
 		return nil, err

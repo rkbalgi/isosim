@@ -13,13 +13,14 @@ import (
 	"strings"
 )
 
-var version = "v0.7.0"
+var version = "v0.8.0"
 
 //v0.1 - Initial version
 //v0.2 - ISO server development (08/31/2016)
 //v0.5 - Support for embedded/nested fields and logging via sirupsen/logrus
 //v0.6 - react front and multiple other changes
 //v0.7.0 - deprecated old plain JS frontend and fixed lot of issues
+//v0.8.0 - PIN and MAC generation features
 
 func main() {
 

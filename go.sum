@@ -205,8 +205,8 @@ github.com/prometheus/procfs v0.0.0-20190117184657-bf6a532e95b1/go.mod h1:c3At6R
 github.com/prometheus/procfs v0.0.2/go.mod h1:TjEm7ze935MbeOT/UhFTIMYKhuLP4wbCsTZCD3I8kEA=
 github.com/prometheus/procfs v0.0.8/go.mod h1:7Qr8sr6344vo1JqZ6HhLceV9o3AJ1Ff+GxbHq6oeK9A=
 github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
-github.com/rkbalgi/libiso v0.1.4-0.20200422112038-431d6bc3c74f h1:q5tPZzSRqLo37lW8B+UaHZ9v8cQSd2C+mxFd9DiT2AI=
-github.com/rkbalgi/libiso v0.1.4-0.20200422112038-431d6bc3c74f/go.mod h1:h4uRr0I72BG7sajrG5uljWWfQq3SPZTE21W7NOVadvY=
+github.com/rkbalgi/libiso v0.1.5-0.20200424111508-cb62515a9b4a h1:GBq34G1CNMVLs1C2hOt/wTNJns2/h6NJrgSZ5xbJUk8=
+github.com/rkbalgi/libiso v0.1.5-0.20200424111508-cb62515a9b4a/go.mod h1:h4uRr0I72BG7sajrG5uljWWfQq3SPZTE21W7NOVadvY=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/russross/blackfriday/v2 v2.0.1/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=

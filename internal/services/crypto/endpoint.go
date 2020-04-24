@@ -3,8 +3,12 @@ package crypto
 import (
 	"context"
 	"encoding/hex"
+	"encoding/json"
+	"fmt"
 	"github.com/go-kit/kit/endpoint"
+	log "github.com/sirupsen/logrus"
 	"isosim/internal/iso"
+	"isosim/internal/services/v0/data"
 	"strings"
 )
 
@@ -24,6 +28,25 @@ func (pgr PinGenResponse) Failed() error {
 	return pgr.Err
 }
 
+type MacGenRequest struct {
+	MacAlgo iso.MacAlgo `yaml:"mac_algo",json:"mac_algo"`
+	MacKey  string      `yaml:"mac_key",json:"mac_key"`
+	MacData string      `yaml:"mac_data",json:"mac_data"`
+
+	SpecID       int                      `json:"spec_id"`
+	MsgID        int                      `json:"msg_id"`
+	ParsedFields []*data.JsonFieldDataRep `json:"parsed_fields"`
+}
+
+type MacGenResponse struct {
+	Mac string `yaml:"mac",json:"mac"`
+	Err error  `json:"-"`
+}
+
+func (mgr MacGenResponse) Failed() error {
+	return mgr.Err
+}
+
 func pinGenEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 
@@ -39,6 +62,54 @@ func pinGenEndpoint(s Service) endpoint.Endpoint {
 			return PinGenResponse{
 				PinBlock: strings.ToUpper(hex.EncodeToString(pb)),
 				Err:      nil,
+			}, nil
+		}
+	}
+}
+
+func macGenEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+
+		req := request.(MacGenRequest)
+		var macData []byte
+		if req.MacData != "" {
+			macData, err = hex.DecodeString(req.MacData)
+			if err != nil {
+				return MacGenResponse{Err: err}, nil
+			}
+		} else {
+			//parse from fields
+			spec := iso.SpecByID(req.SpecID)
+			if spec == nil {
+				return MacGenResponse{Err: fmt.Errorf("isosim: Invalid specID : %d", req.SpecID)}, nil
+			}
+			msg := spec.MessageByID(req.MsgID)
+			if msg == nil {
+				return MacGenResponse{Err: fmt.Errorf("isosim: Invalid msgID : %d", req.MsgID)}, nil
+			}
+
+			jsonStr, err := json.Marshal(req.ParsedFields)
+			if err != nil {
+				return MacGenResponse{Err: err}, nil
+			}
+
+			if parsedMsg, err := msg.ParseJSON(string(jsonStr)); err != nil {
+				return MacGenResponse{Err: err}, nil
+			} else {
+				macData, err = iso.FromParsedMsg(parsedMsg).Assemble()
+				if err != nil {
+					return MacGenResponse{Err: err}, nil
+				}
+			}
+		}
+
+		if pb, err := s.GenerateMac(req.MacAlgo, req.MacKey, macData); err != nil {
+			return MacGenResponse{Err: err}, nil
+		} else {
+			log.Debug("Generated MAC = ", strings.ToUpper(hex.EncodeToString(pb)))
+			return MacGenResponse{
+				Mac: strings.ToUpper(hex.EncodeToString(pb)),
+				Err: nil,
 			}, nil
 		}
 	}

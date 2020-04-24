@@ -3,7 +3,6 @@ package crypto
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/go-kit/kit/log/logrus"
 	"github.com/go-kit/kit/transport"
@@ -14,13 +13,30 @@ import (
 )
 
 const URLCryptoPinGen = "/iso/v1/crypto/pin_gen"
+const URLCryptoMacGen = "/iso/v1/crypto/mac_gen"
+
+func macGenReqDecoder(ctx context.Context, req *http.Request) (response interface{}, err error) {
+
+	reqData, err := ioutil.ReadAll(req.Body)
+
+	if err != nil {
+		return nil, err
+	}
+	defer req.Body.Close()
+
+	mgr := &MacGenRequest{}
+	if err := json.Unmarshal(reqData, mgr); err != nil {
+		return nil, err
+	}
+
+	return *mgr, nil
+
+}
 
 func pinGenReqDecoder(ctx context.Context, req *http.Request) (response interface{}, err error) {
 
-	fmt.Println("Decoding...")
-
 	reqData, err := ioutil.ReadAll(req.Body)
-	fmt.Println(string(reqData))
+	log.Tracef("Received pin_gen request - RequestData: %s\n", string(reqData))
 	if err != nil {
 		return nil, err
 	}
@@ -68,5 +84,6 @@ func RegisterHTTPTransport() {
 	service := &serviceImpl{}
 
 	http.Handle(URLCryptoPinGen, httptransport.NewServer(pinGenEndpoint(service), pinGenReqDecoder, respEncoder, options...))
+	http.Handle(URLCryptoMacGen, httptransport.NewServer(macGenEndpoint(service), macGenReqDecoder, respEncoder, options...))
 
 }

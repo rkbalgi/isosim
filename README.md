@@ -25,7 +25,8 @@ other amazing open source libraries.
   * Rules to respond to messages based on fields (rules based on amount, currency etc)   
 * A UI to build and send transactions to servers (as a client)
   * Ability to edit fields on UI
-  * Client-side validation of fields for content, length (more on the way) 
+  * Client-side validation of fields for content, length (more on the way)
+  * [PIN](https://github.com/rkbalgi/isosim/wiki/Pin-Field-(DF52)-Generation) and [MAC](https://github.com/rkbalgi/isosim/wiki/MAC-Generation-(DF64-128)) generation 
   * Save messages that be can be replayed later
 * TLS, Docker 
 

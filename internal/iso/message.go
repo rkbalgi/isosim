@@ -103,7 +103,9 @@ func (msg *Message) ParseJSON(jsonMsg string) (*ParsedMsg, error) {
 
 	buf := bytes.NewBufferString(jsonMsg)
 	fieldValArr := make([]fieldIdValue, 0, 10)
-	json.NewDecoder(buf).Decode(&fieldValArr)
+	if err := json.NewDecoder(buf).Decode(&fieldValArr); err != nil {
+		return nil, err
+	}
 
 	parsedMsg := &ParsedMsg{Msg: msg, FieldDataMap: make(map[int]*FieldData, 64)}
 
