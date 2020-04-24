@@ -20,6 +20,8 @@ type DbMessage struct {
 	SpecID int    `json:"spec_id"`
 	MsgID  int    `json:"msg_id"`
 
+	HostAddr string `json:"host_addr"`
+
 	RequestTS  int64 `json:"request_ts"`
 	ResponseTS int64 `json:"response_ts"`
 

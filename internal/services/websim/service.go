@@ -77,9 +77,13 @@ func (i serviceImpl) SendToHost(ctx context.Context, specId int, msgId int, netO
 		return nil, err
 	}
 
+	isoServerAddr := fmt.Sprintf("%s:%d", hostIpAddr.String(), netOpts.Port)
+
+	// log the message to db
 	dbMsg := db.DbMessage{
 		SpecID:           specId,
 		MsgID:            msgId,
+		HostAddr:         isoServerAddr,
 		RequestTS:        time.Now().Unix(),
 		RequestMsg:       hex.EncodeToString(reqIsoMsg),
 		ParsedRequestMsg: ToJsonList(parsedMsg),
@@ -90,9 +94,8 @@ func (i serviceImpl) SendToHost(ctx context.Context, specId int, msgId int, netO
 		}
 	}()
 
-	log.Debugf("Sending to Iso server @address -  %s:%d\n", hostIpAddr, netOpts.Port)
+	log.Debugf("Sending to Iso server @address -  %s\n", isoServerAddr)
 
-	isoServerAddr := fmt.Sprintf("%s:%d", hostIpAddr.String(), netOpts.Port)
 	ncc := net2.NewNetCatClient(isoServerAddr, netOpts.MLIType)
 	if err := ncc.OpenConnection(); err != nil {
 		log.Errorln("Failed to connect to ISO Host @ " + isoServerAddr + " Error: " + err.Error())
