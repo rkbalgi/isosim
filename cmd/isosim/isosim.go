@@ -13,8 +13,6 @@ import (
 	"strings"
 )
 
-var version = "v0.8.0"
-
 //v0.1 - Initial version
 //v0.2 - ISO server development (08/31/2016)
 //v0.5 - Support for embedded/nested fields and logging via sirupsen/logrus
@@ -71,7 +69,7 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	log.Infoln("Starting ISO WebSim ", "Version = "+version)
+	log.Infof("Starting ISO WebSim v%s commit: %s", version, build)
 
 	tlsEnabled := os.Getenv("TLS_ENABLED")
 	if tlsEnabled == "true" {
