@@ -3,6 +3,8 @@ package db
 import (
 	"testing"
 	"time"
+
+	_ "net/http/pprof"
 )
 
 func Test_ReadWriteToBold(t *testing.T) {
@@ -40,6 +42,10 @@ func Test_ReadWriteToBold(t *testing.T) {
 }
 
 func Test_Read(t *testing.T) {
+
+	/*go func() {
+		log.Fatal(http.ListenAndServe("localhost:8765", nil))
+	}()*/
 
 	if err := Init("."); err != nil {
 		t.Fatal(err)

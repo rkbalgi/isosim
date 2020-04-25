@@ -31,6 +31,7 @@ type DbMessage struct {
 	ParsedResponseMsg []data.JsonFieldDataRep `json:"parsed_response_msg"`
 }
 
+// Write writes a message into bolt (into a hourly bucket)
 func Write(dbMsg DbMessage) error {
 
 	var err error
@@ -69,7 +70,6 @@ func Write(dbMsg DbMessage) error {
 	if err = tBkt.Put([]byte(uniqueID.String()), jsonData); err != nil {
 		return err
 	}
-	log.Println("Wrote ..", jsonData, uniqueID.String(), fmt.Sprintf("%d_%d", dbMsg.SpecID, dbMsg.MsgID))
 	if err := tx.Commit(); err != nil {
 		return err
 	}
@@ -99,29 +99,34 @@ func ReadLast(specID int, msgID int, n int) ([]string, error) {
 	for {
 		//hourly buckets
 		bktName := now.Format(timeFormat)
-		log.Println("Reading from .. " + bktName)
 		tBkt := bkt.Bucket([]byte(bktName))
 		if tBkt != nil {
+			//start from the last on the latest bucket
 			c := tBkt.Cursor()
 			k, v := c.Last()
+
 			if k == nil || v == nil {
 				continue
 			}
-			for retrieved < n {
+			res = append(res, string(v))
+			retrieved++
+
+			for len(res) < n {
 				res = append(res, string(v))
+				if len(res) == n {
+					return res, nil
+				}
 				k, v = c.Prev()
 				if k == nil || v == nil {
-					continue
-				} else {
-					retrieved++
-					if retrieved == n {
-						return res, nil
-					}
+					// nothing more in this hour,
+					// break out of this loop
+					goto PREV_HOUR
 				}
-
 			}
 
 		}
+	PREV_HOUR:
+		// we cannot keep looking endlessly
 		select {
 		case <-ctx.Done():
 			return res, nil

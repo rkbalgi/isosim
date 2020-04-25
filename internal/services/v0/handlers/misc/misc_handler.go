@@ -5,6 +5,7 @@ import (
 	"github.com/rkbalgi/libiso/hsm"
 	"github.com/rkbalgi/libiso/net"
 	log "github.com/sirupsen/logrus"
+	"isosim/internal/db"
 	"isosim/internal/iso"
 
 	"net/http"
@@ -23,6 +24,29 @@ func init() {
 }
 
 func AddMiscHandlers() {
+
+	http.HandleFunc("/iso/v1/websim/msg_hist/last_n", func(rw http.ResponseWriter, req *http.Request) {
+
+		if err := req.ParseForm(); err != nil {
+			_, _ = rw.Write([]byte(err.Error()))
+			rw.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		msgId, _ := strconv.Atoi(req.Form.Get("msg_id"))
+		specId, _ := strconv.Atoi(req.Form.Get("spec_id"))
+		count, _ := strconv.Atoi(req.Form.Get("count"))
+
+		if res, err := db.ReadLast(specId, msgId, count); err != nil {
+			_, _ = rw.Write([]byte(err.Error()))
+			rw.WriteHeader(http.StatusBadRequest)
+		} else {
+			for _, tmp := range res {
+				_, _ = rw.Write([]byte(tmp))
+			}
+		}
+
+	})
 
 	http.HandleFunc("/iso/misc", func(rw http.ResponseWriter, req *http.Request) {
 
