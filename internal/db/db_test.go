@@ -8,6 +8,8 @@ import (
 )
 
 func Test_ReadWriteToBold(t *testing.T) {
+
+	t.SkipNow()
 	if err := Init("."); err != nil {
 		t.Fatal(err)
 	}
@@ -46,6 +48,8 @@ func Test_Read(t *testing.T) {
 	/*go func() {
 		log.Fatal(http.ListenAndServe("localhost:8765", nil))
 	}()*/
+
+	t.SkipNow()
 
 	if err := Init("."); err != nil {
 		t.Fatal(err)
