@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,14 +17,14 @@ var timeFormat = "2006-01-02T15"
 // DbMessage is an entry of a request/response that will be persisted to
 // storage
 type DbMessage struct {
-	ID     string `json:"id"`
-	SpecID int    `json:"spec_id"`
-	MsgID  int    `json:"msg_id"`
-
+	ID       string `json:"id"`
+	SpecID   int    `json:"spec_id"`
+	MsgID    int    `json:"msg_id"`
 	HostAddr string `json:"host_addr"`
 
-	RequestTS  int64 `json:"request_ts"`
-	ResponseTS int64 `json:"response_ts"`
+	LogTS      string `json:"log_ts"`
+	RequestTS  int64  `json:"request_ts"`
+	ResponseTS int64  `json:"response_ts"`
 
 	RequestMsg        string                  `json:"request_msg"`
 	ParsedRequestMsg  []data.JsonFieldDataRep `json:"parsed_request_msg"`
@@ -44,6 +45,7 @@ func Write(dbMsg DbMessage) error {
 	if err != nil {
 		log.Warn("Failed to generate UUID for DbMessage", err)
 	} else {
+		dbMsg.LogTS = time.Now().Format(time.RFC3339)
 		dbMsg.ID = uniqueID.String()
 	}
 	var jsonData []byte
@@ -67,7 +69,13 @@ func Write(dbMsg DbMessage) error {
 	if err != nil {
 		return err
 	}
-	if err = tBkt.Put([]byte(uniqueID.String()), jsonData); err != nil {
+	bSeq := make([]byte, 8)
+	binary.BigEndian.PutUint64(bSeq, tBkt.Sequence())
+	if err = tBkt.Put(bSeq, jsonData); err != nil {
+		return err
+	}
+	_, err = tBkt.NextSequence()
+	if err != nil {
 		return err
 	}
 	if err := tx.Commit(); err != nil {
@@ -87,7 +95,7 @@ func ReadLast(specID int, msgID int, n int) ([]string, error) {
 	bktName := fmt.Sprintf("%d_%d", specID, msgID)
 	bkt := tx.Bucket([]byte(bktName))
 	if bkt == nil {
-		log.Println("No bucket for spec/msg")
+		log.Debugf("No bucket for spec/msg - %d:%d", specID, msgID)
 		return nil, nil
 	}
 
@@ -108,11 +116,11 @@ func ReadLast(specID int, msgID int, n int) ([]string, error) {
 			if k == nil || v == nil {
 				continue
 			}
-			res = append(res, string(v))
-			retrieved++
+			//res = append(res, string(v))
 
 			for len(res) < n {
 				res = append(res, string(v))
+				retrieved++
 				if len(res) == n {
 					return res, nil
 				}

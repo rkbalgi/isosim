@@ -1,6 +1,7 @@
 package misc
 
 import (
+	"bytes"
 	"encoding/hex"
 	"github.com/rkbalgi/libiso/hsm"
 	"github.com/rkbalgi/libiso/net"
@@ -41,9 +42,23 @@ func AddMiscHandlers() {
 			_, _ = rw.Write([]byte(err.Error()))
 			rw.WriteHeader(http.StatusBadRequest)
 		} else {
-			for _, tmp := range res {
-				_, _ = rw.Write([]byte(tmp))
+
+			buf := bytes.Buffer{}
+			if len(res) > 0 {
+				buf.Write([]byte(`<html><body>`))
+			} else {
+				rw.Write([]byte("No records found.."))
+				return
 			}
+
+			for _, tmp := range res {
+				buf.Write([]byte(`<div style="color:blue; background-color:azure; border-style:ridge;">`))
+				buf.Write([]byte(tmp))
+				buf.Write([]byte("</div></hr>"))
+			}
+			buf.Write([]byte(`</body></html>`))
+			rw.Header().Add("Content-Type", "text/html")
+			_, _ = rw.Write(buf.Bytes())
 		}
 
 	})

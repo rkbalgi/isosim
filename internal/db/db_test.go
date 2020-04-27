@@ -1,6 +1,7 @@
 package db
 
 import (
+	log "github.com/sirupsen/logrus"
 	_ "net/http/pprof"
 	"testing"
 )
@@ -22,6 +23,7 @@ func Test_ReadWriteToBold(t *testing.T) {
 		ParsedRequestMsg:  nil,
 		ResponseMsg:       "11110........",
 		ParsedResponseMsg: nil,
+		HostAddr:          "localhost:7777",
 	}
 	for i := 0; i < 10; i++ {
 		if err := Write(dbMsg); err != nil {
@@ -43,6 +45,8 @@ func Test_ReadWriteToBold(t *testing.T) {
 
 func Test_Read(t *testing.T) {
 
+	log.SetLevel(log.DebugLevel)
+
 	/*go func() {
 		log.Fatal(http.ListenAndServe("localhost:8765", nil))
 	}()*/
@@ -60,7 +64,9 @@ func Test_Read(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	for _, e := range entries {
+		t.Log(e)
+	}
 	t.Log(len(entries))
-	t.Log(entries)
 
 }
