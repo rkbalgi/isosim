@@ -29,9 +29,9 @@ func (pgr PinGenResponse) Failed() error {
 }
 
 type MacGenRequest struct {
-	MacAlgo iso.MacAlgo `yaml:"mac_algo",json:"mac_algo"`
-	MacKey  string      `yaml:"mac_key",json:"mac_key"`
-	MacData string      `yaml:"mac_data",json:"mac_data"`
+	MacAlgo iso.MacAlgo `json:"mac_algo"`
+	MacKey  string      `json:"mac_key"`
+	MacData string      `json:"mac_data"`
 
 	SpecID       int                      `json:"spec_id"`
 	MsgID        int                      `json:"msg_id"`
@@ -72,9 +72,11 @@ func macGenEndpoint(s Service) endpoint.Endpoint {
 
 		req := request.(MacGenRequest)
 		var macData []byte
+		fmt.Println(req)
 		if req.MacData != "" {
 			macData, err = hex.DecodeString(req.MacData)
 			if err != nil {
+				log.Error("Failed to decode macData", err)
 				return MacGenResponse{Err: err}, nil
 			}
 		} else {
@@ -104,6 +106,7 @@ func macGenEndpoint(s Service) endpoint.Endpoint {
 		}
 
 		if pb, err := s.GenerateMac(req.MacAlgo, req.MacKey, macData); err != nil {
+			log.Error("Failed to generate Mac", err)
 			return MacGenResponse{Err: err}, nil
 		} else {
 			log.Debug("Generated MAC = ", strings.ToUpper(hex.EncodeToString(pb)))

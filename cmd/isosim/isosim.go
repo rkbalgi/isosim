@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"isosim/internal/db"
 	"isosim/internal/iso"
@@ -11,9 +12,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 )
-
-var version = "v0.8.0"
 
 //v0.1 - Initial version
 //v0.2 - ISO server development (08/31/2016)
@@ -23,6 +23,10 @@ var version = "v0.8.0"
 //v0.8.0 - PIN and MAC generation features
 
 func main() {
+
+	fmt.Println("======================================================")
+	fmt.Printf("ISO WebSim v%s commit: %s\n", version, build)
+	fmt.Println("======================================================")
 
 	logLevel := flag.String("log-level", "debug", "Log level - [trace|debug|warn|info|error].")
 	flag.StringVar(&iso.HTMLDir, "html-dir", "", "Directory that contains any HTML's and js/css files etc.")
@@ -71,19 +75,24 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	log.Infoln("Starting ISO WebSim ", "Version = "+version)
+	go func() {
+		tlsEnabled := os.Getenv("TLS_ENABLED")
+		if tlsEnabled == "true" {
+			certFile := os.Getenv("TLS_CERT_FILE")
+			keyFile := os.Getenv("TLS_KEY_FILE")
 
-	tlsEnabled := os.Getenv("TLS_ENABLED")
-	if tlsEnabled == "true" {
-		certFile := os.Getenv("TLS_CERT_FILE")
-		keyFile := os.Getenv("TLS_KEY_FILE")
+			log.Infof("Using certificate file - %s, key file: %s", certFile, keyFile)
+			log.Fatal(http.ListenAndServeTLS(":"+strconv.Itoa(*httpPort), certFile, keyFile, nil))
+		} else {
+			log.Fatal(http.ListenAndServe(":"+strconv.Itoa(*httpPort), nil))
+		}
 
-		log.Infof("Using certificate file - %s, key file: %s", certFile, keyFile)
-		log.Fatal(http.ListenAndServeTLS(":"+strconv.Itoa(*httpPort), certFile, keyFile, nil))
-	} else {
-		log.Fatal(http.ListenAndServe(":"+strconv.Itoa(*httpPort), nil))
-	}
+	}()
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
 
 	log.Infof("ISO WebSim started!")
+	wg.Wait()
 
 }
