@@ -24,8 +24,11 @@ func macGenReqDecoder(ctx context.Context, req *http.Request) (response interfac
 	}
 	defer req.Body.Close()
 
+	log.Debugf("Received Mac Request - ", string(reqData))
+
 	mgr := &MacGenRequest{}
 	if err := json.Unmarshal(reqData, mgr); err != nil {
+		log.Debugf("MacRequest unmarshal Error", err)
 		return nil, err
 	}
 

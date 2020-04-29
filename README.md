@@ -29,10 +29,12 @@ other amazing open source libraries.
   * [PIN](https://github.com/rkbalgi/isosim/wiki/Pin-Field-(DF52)-Generation) and [MAC](https://github.com/rkbalgi/isosim/wiki/MAC-Generation-(DF64-128)) generation 
   * [Padding](https://github.com/rkbalgi/isosim/wiki/Field-Padding) support
   * Save messages that be can be replayed later
+  * [Log](https://github.com/rkbalgi/isosim/wiki/Message-History) of past messages
 * TLS, [Docker](https://github.com/rkbalgi/isosim/wiki/Running-on-Docker) 
 
-Checkout the [wiki](https://github.com/rkbalgi/isosim/wiki) for more details!
 
+
+Checkout the [wiki](https://github.com/rkbalgi/isosim/wiki) for more details!
 
 The specifications themselves are defined in yaml file (Check out an example - [iso_specs.yaml](https://github.com/rkbalgi/isosim/blob/master/test/testdata/specs/iso_specs.yaml))
 

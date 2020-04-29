@@ -1,15 +1,14 @@
 package db
 
 import (
-	"testing"
-	"time"
-
+	log "github.com/sirupsen/logrus"
 	_ "net/http/pprof"
+	"testing"
 )
 
 func Test_ReadWriteToBold(t *testing.T) {
 
-	t.SkipNow()
+	//t.SkipNow()
 	if err := Init("."); err != nil {
 		t.Fatal(err)
 	}
@@ -24,13 +23,14 @@ func Test_ReadWriteToBold(t *testing.T) {
 		ParsedRequestMsg:  nil,
 		ResponseMsg:       "11110........",
 		ParsedResponseMsg: nil,
+		HostAddr:          "localhost:7777",
 	}
 	for i := 0; i < 10; i++ {
 		if err := Write(dbMsg); err != nil {
 			t.Fatal(err)
 		}
 
-		time.Sleep(2 * time.Second)
+		//time.Sleep(1 * time.Second)
 	}
 
 	entries, err := ReadLast(100, 1, 5)
@@ -45,23 +45,28 @@ func Test_ReadWriteToBold(t *testing.T) {
 
 func Test_Read(t *testing.T) {
 
+	log.SetLevel(log.DebugLevel)
+
 	/*go func() {
 		log.Fatal(http.ListenAndServe("localhost:8765", nil))
 	}()*/
 
-	t.SkipNow()
+	//t.SkipNow()
 
 	if err := Init("."); err != nil {
 		t.Fatal(err)
 	}
 
-	entries, err := ReadLast(100, 1, 20)
+	entries, err := ReadLast(100, 1, 90)
 	if entries == nil {
 		t.Fatal("No entries found!")
 	}
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Log(entries)
+	for _, e := range entries {
+		t.Log(e)
+	}
+	t.Log(len(entries))
 
 }
