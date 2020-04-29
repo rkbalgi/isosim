@@ -19,7 +19,7 @@ other amazing open source libraries.
   * ASCII, EBCDIC, BCD and BINARY encoding for fields
   * Fixed, Variable, Bitmapped fields
   * Embedded/Nested fields 
-  * Supported MLI's - 2I, 2E
+  * Supported MLI's - 2I, 2E, 4I, 4E
 * Define and run servers based on specs
   * Run servers from the UI or in [standalone mode](https://github.com/rkbalgi/isosim/wiki/Start-standalone-ISO-server-from-command-line)
   * Rules to respond to messages based on fields (rules based on amount, currency etc)   
@@ -27,9 +27,14 @@ other amazing open source libraries.
   * Ability to edit fields on UI
   * Client-side validation of fields for content, length (more on the way)
   * [PIN](https://github.com/rkbalgi/isosim/wiki/Pin-Field-(DF52)-Generation) and [MAC](https://github.com/rkbalgi/isosim/wiki/MAC-Generation-(DF64-128)) generation 
+  * [Padding](https://github.com/rkbalgi/isosim/wiki/Field-Padding) support
   * Save messages that be can be replayed later
   * [Log](https://github.com/rkbalgi/isosim/wiki/Message-History) of past messages
-* TLS, Docker 
+* TLS, [Docker](https://github.com/rkbalgi/isosim/wiki/Running-on-Docker) 
+
+
+
+Checkout the [wiki](https://github.com/rkbalgi/isosim/wiki) for more details!
 
 The specifications themselves are defined in yaml file (Check out an example - [iso_specs.yaml](https://github.com/rkbalgi/isosim/blob/master/test/testdata/specs/iso_specs.yaml))
 
@@ -65,7 +70,6 @@ $> go run isosim.go -http-port 8080 -specs-dir ..\..\test\testdata\specs -html-d
 ```
 Open chrome and hit this URL [http://localhost:8080/](http://localhost:8080/)
 
-Read more about this on the [wiki](https://github.com/rkbalgi/isosim/wiki)
 
 
 
