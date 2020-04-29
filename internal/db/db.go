@@ -116,8 +116,6 @@ func ReadLast(specID int, msgID int, n int) ([]string, error) {
 			if k == nil || v == nil {
 				continue
 			}
-			//res = append(res, string(v))
-
 			for len(res) < n {
 				res = append(res, string(v))
 				retrieved++
