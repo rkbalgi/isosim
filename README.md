@@ -41,8 +41,8 @@ The specifications themselves are defined in yaml file (Check out an example - [
 The [frontend](https://github.com/rkbalgi/isosim-react-frontend) is bundled with the application and can be accessed at [http://localhost:8080/](http://localhost:8080/)
 
 
-* A quick demo - https://github.com/rkbalgi/isosim/wiki/Test-Examples
-* Running on Docker - https://github.com/rkbalgi/isosim/wiki/Running-on-Docker
+* A quick walkthrough - https://github.com/rkbalgi/isosim/wiki/Test-Examples
+
 
  
 ` Please note that this application has been tested only on the chrome browser.`
