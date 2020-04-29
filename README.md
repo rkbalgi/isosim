@@ -28,6 +28,7 @@ other amazing open source libraries.
   * Client-side validation of fields for content, length (more on the way)
   * [PIN](https://github.com/rkbalgi/isosim/wiki/Pin-Field-(DF52)-Generation) and [MAC](https://github.com/rkbalgi/isosim/wiki/MAC-Generation-(DF64-128)) generation 
   * Save messages that be can be replayed later
+  * [Log](https://github.com/rkbalgi/isosim/wiki/Message-History) of past messages
 * TLS, Docker 
 
 The specifications themselves are defined in yaml file (Check out an example - [iso_specs.yaml](https://github.com/rkbalgi/isosim/blob/master/test/testdata/specs/iso_specs.yaml))
