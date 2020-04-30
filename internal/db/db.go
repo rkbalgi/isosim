@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
+	bolt "go.etcd.io/bbolt"
 	"isosim/internal/services/v0/data"
 	"time"
 )
@@ -58,6 +59,7 @@ func Write(dbMsg DbMessage) error {
 	if err != nil {
 		return err
 	}
+	defer tx.Rollback()
 
 	bkt, err := tx.CreateBucketIfNotExists([]byte(fmt.Sprintf("%d_%d", dbMsg.SpecID, dbMsg.MsgID)))
 	if err != nil {
@@ -81,6 +83,7 @@ func Write(dbMsg DbMessage) error {
 	if err := tx.Commit(); err != nil {
 		return err
 	}
+
 	return nil
 
 }
@@ -88,58 +91,60 @@ func Write(dbMsg DbMessage) error {
 // ReadLast reads last 'n' messages for spec and msg
 func ReadLast(specID int, msgID int, n int) ([]string, error) {
 
-	tx, err := bdb.Begin(false)
-	if err != nil {
-		return nil, err
-	}
-	bktName := fmt.Sprintf("%d_%d", specID, msgID)
-	bkt := tx.Bucket([]byte(bktName))
-	if bkt == nil {
-		log.Debugf("No bucket for spec/msg - %d:%d", specID, msgID)
-		return nil, nil
-	}
-
 	res := make([]string, 0)
-	retrieved := 0
-	now := time.Now()
-	ctx, cancelFunc := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancelFunc()
-	for {
-		//hourly buckets
-		bktName := now.Format(timeFormat)
-		tBkt := bkt.Bucket([]byte(bktName))
-		if tBkt != nil {
-			//start from the last on the latest bucket
-			c := tBkt.Cursor()
-			k, v := c.Last()
 
-			if k == nil || v == nil {
-				continue
-			}
-			for len(res) < n {
-				res = append(res, string(v))
-				retrieved++
-				if len(res) == n {
-					return res, nil
-				}
-				k, v = c.Prev()
+	err := bdb.View(func(tx *bolt.Tx) error {
+
+		bktName := fmt.Sprintf("%d_%d", specID, msgID)
+		bkt := tx.Bucket([]byte(bktName))
+		if bkt == nil {
+			log.Debugf("No bucket for spec/msg - %d:%d", specID, msgID)
+			return nil
+		}
+
+		retrieved := 0
+		now := time.Now()
+		ctx, cancelFunc := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancelFunc()
+		for {
+			//hourly buckets
+			bktName := now.Format(timeFormat)
+			tBkt := bkt.Bucket([]byte(bktName))
+			if tBkt != nil {
+				//start from the last on the latest bucket
+				c := tBkt.Cursor()
+				k, v := c.Last()
+
 				if k == nil || v == nil {
-					// nothing more in this hour,
-					// break out of this loop
-					goto PREV_HOUR
+					continue
 				}
-			}
+				for len(res) < n {
+					res = append(res, string(v))
+					retrieved++
+					if len(res) == n {
+						return nil
+					}
+					k, v = c.Prev()
+					if k == nil || v == nil {
+						// nothing more in this hour,
+						// break out of this loop
+						goto PREV_HOUR
+					}
+				}
 
+			}
+		PREV_HOUR:
+			// we cannot keep looking endlessly
+			select {
+			case <-ctx.Done():
+				return nil
+			default:
+				break
+			}
+			now = now.Add(-1 * time.Hour)
 		}
-	PREV_HOUR:
-		// we cannot keep looking endlessly
-		select {
-		case <-ctx.Done():
-			return res, nil
-		default:
-			break
-		}
-		now = now.Add(-1 * time.Hour)
-	}
+	})
+
+	return res, err
 
 }
