@@ -9,11 +9,11 @@ import (
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	bolt "go.etcd.io/bbolt"
-	"isosim/internal/services/v0/data"
+	"isosim/internal/services/data"
 	"time"
 )
 
-var timeFormat = "2006-01-02T15"
+const timeFormat = "2006-01-02T15"
 
 // DbMessage is an entry of a request/response that will be persisted to
 // storage
@@ -116,6 +116,7 @@ func ReadLast(specID int, msgID int, n int) ([]string, error) {
 				k, v := c.Last()
 
 				if k == nil || v == nil {
+					now = now.Add(-1 * time.Hour)
 					continue
 				}
 				for len(res) < n {

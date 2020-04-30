@@ -12,7 +12,7 @@ import (
 	net2 "github.com/rkbalgi/libiso/net"
 	log "github.com/sirupsen/logrus"
 	"io"
-	"isosim/internal/services/v0/data"
+	"isosim/internal/services/data"
 	"net"
 	"strconv"
 	"sync"

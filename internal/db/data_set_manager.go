@@ -14,7 +14,7 @@ import (
 	"strings"
 	"sync"
 
-	"isosim/internal/services/v0/data"
+	"isosim/internal/services/data"
 )
 
 type dataSetManager struct{}

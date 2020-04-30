@@ -3,7 +3,7 @@ package server
 import (
 	log "github.com/sirupsen/logrus"
 	"isosim/internal/iso"
-	"isosim/internal/services/v0/data"
+	"isosim/internal/services/data"
 )
 
 func buildResponse(isoMsg *iso.Iso, pc *data.ProcessingCondition) {

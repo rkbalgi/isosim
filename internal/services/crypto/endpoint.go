@@ -8,7 +8,7 @@ import (
 	"github.com/go-kit/kit/endpoint"
 	log "github.com/sirupsen/logrus"
 	"isosim/internal/iso"
-	"isosim/internal/services/v0/data"
+	"isosim/internal/services/data"
 	"strings"
 )
 

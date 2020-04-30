@@ -1,4 +1,4 @@
-package isoserver
+package handlers
 
 import (
 	"encoding/json"
@@ -13,6 +13,17 @@ import (
 	"regexp"
 	"strconv"
 )
+
+func AddAll() {
+
+	addIsoServerHandlers()
+	addIsoServerSaveDefHandler()
+	fetchDefHandler()
+	startServerHandler()
+	addGetActiveServersHandler()
+	stopServerHandler()
+
+}
 
 func addIsoServerHandlers() {
 
@@ -179,4 +190,12 @@ func addGetActiveServersHandler() {
 		_, _ = rw.Write([]byte(data))
 
 	})
+}
+
+func sendError(rw http.ResponseWriter, errorMsg string) {
+	log.Debugln("isosim: ISO-Server Error.  Error = " + errorMsg)
+	rw.Header().Set("X-IsoSim-ErrorText", errorMsg)
+	rw.WriteHeader(http.StatusBadRequest)
+	_, _ = rw.Write([]byte(errorMsg))
+
 }
