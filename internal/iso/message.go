@@ -20,6 +20,8 @@ type Message struct {
 	Name   string   `yaml:"name"`
 	ID     int      `yaml:"id"`
 	Fields []*Field `yaml:"fields"`
+	// HeaderMatch
+	HeaderMatch []string `yaml:"header_match"`
 
 	// internal aux fields
 	fieldByIdMap map[int]*Field

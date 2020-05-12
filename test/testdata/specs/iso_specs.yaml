@@ -1,8 +1,18 @@
 specs:
   - name: ISO8583-Test
     id: 3
+    header_fields:
+      - name: "$$header_mti$$"
+        id: 1
+        type: Fixed
+        size: 4
+        data_encoding: ASCII
+        children: []
     messages:
       - name: "1100 - Authorization"
+        header_match:
+          - "1100"
+          - "1110"
         id: 1
         fields:
           - name: "Message Type"
@@ -65,6 +75,7 @@ specs:
                 type: Fixed
                 size: 6
                 data_encoding: ASCII
+                key: true
                 position: 11
               - name: "Approval Code"
                 id: 10
@@ -118,6 +129,9 @@ specs:
 
       - name: "1420 - Reversal"
         id: 2
+        header_match:
+          - "1420"
+          - "1430"
         fields:
           - name: "Message Type"
             id: 1
@@ -155,6 +169,7 @@ specs:
                 id: 6
                 type: Fixed
                 size: 6
+                key: true
                 data_encoding: ASCII
                 position: 11
               - name: "Retrieval Ref Code"

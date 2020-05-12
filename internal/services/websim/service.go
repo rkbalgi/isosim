@@ -10,12 +10,14 @@ import (
 	"fmt"
 	net2 "github.com/rkbalgi/libiso/net"
 	log "github.com/sirupsen/logrus"
+	"io"
 	"isosim/internal/db"
 	"isosim/internal/iso"
 	"isosim/internal/services/data"
 	"net"
 	"sort"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -24,6 +26,10 @@ type NetOptions struct {
 	Port    int
 	MLIType net2.MliType
 }
+
+// cached network connections
+var cachedNCC = sync.Map{}
+var cachedNCCMu = sync.Mutex{}
 
 // Service exposes the ISO WebSim API required by the frontend (browser)
 type Service interface {
@@ -38,6 +44,12 @@ type Service interface {
 }
 
 type serviceImpl struct{}
+
+type isoResponse struct {
+	responseMsg  *iso.ParsedMsg
+	responseData []byte
+	err          error
+}
 
 func New() Service {
 	var service Service
@@ -71,13 +83,29 @@ func (i serviceImpl) SendToHost(ctx context.Context, specId int, msgId int, netO
 	}
 
 	isoMsg := iso.FromParsedMsg(parsedMsg)
-	reqIsoMsg, err := isoMsg.Assemble()
+	reqIsoMsg, meta, err := isoMsg.Assemble()
 	if err != nil {
 		log.Errorln("Failed to assemble message", err.Error())
 		return nil, err
 	}
 
 	isoServerAddr := fmt.Sprintf("%s:%d", hostIpAddr.String(), netOpts.Port)
+
+	var ncc *net2.NetCatClient
+	if meta.MessageKey != "" {
+		// try to use a already open/cached connection
+		if ncc, err = getOrCreateNetClient(isoServerAddr, spec, netOpts.MLIType); err != nil {
+			return nil, err
+		}
+	} else {
+		//create a fresh connection
+		ncc = net2.NewNetCatClient(isoServerAddr, netOpts.MLIType)
+		if err := ncc.OpenConnection(); err != nil {
+			log.Errorln("Failed to connect to ISO Host @ " + isoServerAddr + " Error: " + err.Error())
+			return nil, err
+		}
+		defer ncc.Close()
+	}
 
 	// log the message to db
 	dbMsg := db.DbMessage{
@@ -88,22 +116,51 @@ func (i serviceImpl) SendToHost(ctx context.Context, specId int, msgId int, netO
 		RequestMsg:       hex.EncodeToString(reqIsoMsg),
 		ParsedRequestMsg: ToJsonList(parsedMsg),
 	}
+
 	defer func() {
 		if err := db.Write(dbMsg); err != nil {
-			log.Warn("isosim: Failed to write to db..", err)
+			log.Warn("Failed to write message to hist-db (bolt)", err)
 		}
 	}()
 
 	log.Debugf("Sending to Iso server @address -  %s\n", isoServerAddr)
+	log.Debugf("Assembled request msg = \n %s\nMliType = %v\n", hex.Dump(reqIsoMsg), netOpts.MLIType)
 
-	ncc := net2.NewNetCatClient(isoServerAddr, netOpts.MLIType)
-	if err := ncc.OpenConnection(); err != nil {
-		log.Errorln("Failed to connect to ISO Host @ " + isoServerAddr + " Error: " + err.Error())
+	if meta.MessageKey != "" {
+
+		log.Debugf("Sending message with key - %s to server: %s\n", parsedMsg.MessageKey, isoServerAddr)
+		responseChan := make(chan *isoResponse, 0)
+		ctx, cancelFunc := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancelFunc()
+
+		go send(ncc, msg, reqIsoMsg, meta.MessageKey, responseChan)
+		for {
+			select {
+			case res := <-responseChan:
+				{
+					log.Debugln("Received on channel ", *res)
+					if res.err != nil {
+						return nil, err
+					} else {
+						respJson := ToJsonList(res.responseMsg)
+						dbMsg.ResponseTS = time.Now().Unix()
+						dbMsg.ResponseMsg = hex.EncodeToString(res.responseData)
+						dbMsg.ParsedResponseMsg = respJson
+
+						return &respJson, nil
+					}
+
+				}
+			case <-ctx.Done():
+				close(responseChan)
+				return nil, fmt.Errorf("isosim: Message with key [%s] timed out", meta.MessageKey)
+			}
+		}
 		return nil, err
-	}
-	defer ncc.Close()
 
-	log.Debugf("Assembled request msg = \n%s\n, MliType = %v\n", hex.Dump(reqIsoMsg), netOpts.MLIType)
+	}
+
+	// non-persistent (i.e. connection per message)s connections
 
 	if err := ncc.Write(reqIsoMsg); err != nil {
 		log.Errorln("Failed to send data to ISO Host Error= " + err.Error())
@@ -128,6 +185,98 @@ func (i serviceImpl) SendToHost(ctx context.Context, specId int, msgId int, netO
 	dbMsg.ParsedResponseMsg = respJson
 
 	return &respJson, nil
+
+}
+
+var inFlightsMu = sync.RWMutex{}
+var inFlights = make(map[string]chan *isoResponse)
+
+func send(ncc *net2.NetCatClient, msg *iso.Message, reqData []byte, key string, responseChan chan *isoResponse) {
+
+	inFlightsMu.Lock()
+	inFlights[key] = responseChan
+	inFlightsMu.Unlock()
+
+	if err := ncc.Write(reqData); err != nil {
+		log.Errorln("Failed to send data to ISO Host Error= " + err.Error())
+		responseChan <- &isoResponse{err: err}
+		return
+	}
+
+}
+
+func getOrCreateNetClient(addr string, spec *iso.Spec, mliType net2.MliType) (*net2.NetCatClient, error) {
+
+	if ncc, ok := cachedNCC.Load(addr); ok {
+		return ncc.(*net2.NetCatClient), nil
+	} else {
+
+		cachedNCCMu.Lock()
+		defer cachedNCCMu.Unlock()
+
+		//do another check holding the lock
+		if ncc, ok := cachedNCC.Load(addr); ok {
+			return ncc.(*net2.NetCatClient), nil
+		}
+
+		ncc := net2.NewNetCatClient(addr, mliType)
+		if err := ncc.OpenConnection(); err != nil {
+			log.Errorln("Failed to connect to ISO Host @ " + addr + " Error: " + err.Error())
+			return nil, err
+		}
+		log.Infoln("Opened a persistent connection to ISO Host @ " + addr)
+
+		//socket reader
+		go func(ncc *net2.NetCatClient) {
+
+			for {
+				responseData, err := ncc.ReadNextPacket()
+				if err != nil {
+					log.Errorln("Failed to read response from ISO Host. Error = " + err.Error())
+					if err == io.EOF {
+						// socket closed
+						log.Errorf("Persistent connection to %s for spec: %s dropped.", addr, spec.Name)
+						cachedNCC.Delete(addr)
+						return
+					}
+
+				}
+
+				if len(responseData) == 0 {
+					continue
+				}
+
+				log.Debugln("Received response from ISO Host =" + hex.EncodeToString(responseData))
+
+				msg := spec.FindTargetMsg(responseData)
+				if msg == nil {
+					log.Errorln("isosim: Unable to determine msg for incoming data " + hex.EncodeToString(responseData))
+					return
+				}
+				log.Debugln("Message identified from incoming data = " + msg.Name)
+				if responseMsg, err := msg.Parse(responseData); err != nil {
+					log.Errorln("Failed to parse response from ISO Host. Error = " + err.Error())
+					return
+				} else {
+					inFlightsMu.Lock()
+					log.Tracef("Looking up %s in in-flights: %v\n", responseMsg.MessageKey, inFlights)
+					resChan := inFlights[responseMsg.MessageKey]
+					if resChan != nil {
+						resChan <- &isoResponse{err: nil, responseData: responseData, responseMsg: responseMsg}
+					} else {
+						log.Infoln("Message with key - %s possibly timed out", responseMsg.MessageKey)
+					}
+					delete(inFlights, responseMsg.MessageKey)
+					inFlightsMu.Unlock()
+				}
+			}
+
+		}(ncc)
+
+		cachedNCC.Store(addr, ncc)
+		return ncc, nil
+
+	}
 
 }
 

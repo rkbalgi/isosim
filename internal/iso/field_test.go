@@ -17,7 +17,7 @@ func Test_BitmapField(t *testing.T) {
 	t.Run("parse binary bitmap field - success", func(t *testing.T) {
 		data, _ := hex.DecodeString("F000001018010002E0200000100201000000200004040201")
 
-		f := &Field{ID: 10, Name: StandardNameBitmap, Type: BitmappedType, DataEncoding: BINARY}
+		f := &Field{ID: 10, Name: IsoBitmap, Type: BitmappedType, DataEncoding: BINARY}
 
 		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*Field),
 			fieldByName: make(map[string]*Field)}, FieldDataMap: make(map[int]*FieldData)}
@@ -28,7 +28,7 @@ func Test_BitmapField(t *testing.T) {
 		assert.Nil(t, err)
 
 		for _, pos := range onBits {
-			if !p.Get(StandardNameBitmap).Bitmap.IsOn(pos) {
+			if !p.Get(IsoBitmap).Bitmap.IsOn(pos) {
 				t.Fatalf("%d position is not set", pos)
 			}
 		}
@@ -37,7 +37,7 @@ func Test_BitmapField(t *testing.T) {
 	t.Run("parse binary bitmap field - success (primary only)", func(t *testing.T) {
 		data, _ := hex.DecodeString("7000001018010002")
 
-		f := &Field{ID: 10, Name: StandardNameBitmap, Type: BitmappedType, DataEncoding: BINARY}
+		f := &Field{ID: 10, Name: IsoBitmap, Type: BitmappedType, DataEncoding: BINARY}
 
 		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*Field),
 			fieldByName: make(map[string]*Field)}, FieldDataMap: make(map[int]*FieldData)}
@@ -48,7 +48,7 @@ func Test_BitmapField(t *testing.T) {
 		assert.Nil(t, err)
 
 		for _, pos := range []int{2, 3, 4, 28, 36, 37, 48, 63} {
-			if !p.Get(StandardNameBitmap).Bitmap.IsOn(pos) {
+			if !p.Get(IsoBitmap).Bitmap.IsOn(pos) {
 				t.Fatalf("%d position is not set", pos)
 			}
 		}
@@ -57,7 +57,7 @@ func Test_BitmapField(t *testing.T) {
 	t.Run("parse binary bitmap field - success (primary and secondary)", func(t *testing.T) {
 		data, _ := hex.DecodeString("F0000010180100026020000010020100")
 
-		f := &Field{ID: 10, Name: StandardNameBitmap, Type: BitmappedType, DataEncoding: BINARY}
+		f := &Field{ID: 10, Name: IsoBitmap, Type: BitmappedType, DataEncoding: BINARY}
 
 		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*Field),
 			fieldByName: make(map[string]*Field)}, FieldDataMap: make(map[int]*FieldData)}
@@ -68,7 +68,7 @@ func Test_BitmapField(t *testing.T) {
 		assert.Nil(t, err)
 
 		for _, pos := range []int{1, 2, 3, 4, 28, 36, 37, 48, 63, 66, 67, 75, 100, 111, 120} {
-			if !p.Get(StandardNameBitmap).Bitmap.IsOn(pos) {
+			if !p.Get(IsoBitmap).Bitmap.IsOn(pos) {
 				t.Fatalf("%d position is not set", pos)
 			}
 		}
@@ -77,7 +77,7 @@ func Test_BitmapField(t *testing.T) {
 	t.Run("parse binary bitmap field - failure", func(t *testing.T) {
 		data, _ := hex.DecodeString("F000000018010002E0200000100201000000200004040201")
 
-		info := &Field{ID: 10, Name: StandardNameBitmap, Type: BitmappedType, DataEncoding: BINARY}
+		info := &Field{ID: 10, Name: IsoBitmap, Type: BitmappedType, DataEncoding: BINARY}
 
 		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*Field),
 			fieldByName: make(map[string]*Field)}, FieldDataMap: make(map[int]*FieldData)}
@@ -87,14 +87,14 @@ func Test_BitmapField(t *testing.T) {
 		err := parseBitmap(buf, p, field)
 		assert.Nil(t, err)
 
-		assert.False(t, p.Get(StandardNameBitmap).Bitmap.IsOn(28))
+		assert.False(t, p.Get(IsoBitmap).Bitmap.IsOn(28))
 	})
 
 	t.Run("parse ASCII bitmap field - success", func(t *testing.T) {
 
 		data, _ := hex.DecodeString("463030303030313031383031303030324530323030303030313030323031303030303030323030303034303430323031")
 
-		info := &Field{ID: 10, Name: StandardNameBitmap, Type: BitmappedType, DataEncoding: ASCII}
+		info := &Field{ID: 10, Name: IsoBitmap, Type: BitmappedType, DataEncoding: ASCII}
 
 		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*Field),
 			fieldByName: make(map[string]*Field)}, FieldDataMap: make(map[int]*FieldData)}
@@ -105,7 +105,7 @@ func Test_BitmapField(t *testing.T) {
 		assert.Nil(t, err)
 
 		for _, pos := range onBits {
-			if !p.Get(StandardNameBitmap).Bitmap.IsOn(pos) {
+			if !p.Get(IsoBitmap).Bitmap.IsOn(pos) {
 				t.Fatalf("%d position is not set", pos)
 			}
 		}
@@ -116,7 +116,7 @@ func Test_BitmapField(t *testing.T) {
 		ebcdicBmp := hex.EncodeToString(ebcdic.Decode("F000001018010002E0200000100201000000200004040201"))
 		data, _ := hex.DecodeString(ebcdicBmp)
 
-		info := &Field{ID: 10, Name: StandardNameBitmap, Type: BitmappedType, DataEncoding: EBCDIC}
+		info := &Field{ID: 10, Name: IsoBitmap, Type: BitmappedType, DataEncoding: EBCDIC}
 
 		p := &ParsedMsg{Msg: &Message{fieldByIdMap: make(map[int]*Field),
 			fieldByName: make(map[string]*Field)}, FieldDataMap: make(map[int]*FieldData)}
@@ -127,7 +127,7 @@ func Test_BitmapField(t *testing.T) {
 		assert.Nil(t, err)
 
 		for _, pos := range onBits {
-			if !p.Get(StandardNameBitmap).Bitmap.IsOn(pos) {
+			if !p.Get(IsoBitmap).Bitmap.IsOn(pos) {
 				t.Fatalf("%d position is not set", pos)
 			}
 		}
@@ -160,6 +160,8 @@ func Test_FixedField(t *testing.T) {
 
 func Test_VariableField(t *testing.T) {
 
+	meta := &MetaInfo{}
+
 	name := "VariableField"
 	t.Run("variable field with ascii and ascii", func(t *testing.T) {
 		fieldInfo := &Field{ID: 9, Name: name, Type: VariableType,
@@ -186,14 +188,14 @@ func Test_VariableField(t *testing.T) {
 
 		//also assemble the field and check the length indicator
 		buf2 := &bytes.Buffer{}
-		if err := assemble(buf2, parsedMsg, parsedMsg.Get(name)); err != nil {
+		if err := assemble(buf2, meta, parsedMsg, parsedMsg.Get(name)); err != nil {
 			t.Fatal(err)
 		}
 		assert.Equal(t, []byte{0x30, 0x34, 0x31, 0x32, 0x33, 0x34}, buf2.Bytes())
 
 		buf2.Reset()
 		parsedMsg.Get(name).Set("covid19")
-		if err := assemble(buf2, parsedMsg, parsedMsg.Get(name)); err != nil {
+		if err := assemble(buf2, meta, parsedMsg, parsedMsg.Get(name)); err != nil {
 			t.Fatal(err)
 		}
 		assert.Equal(t, append([]byte{0x30, 0x37}, []byte("covid19")...), buf2.Bytes())
@@ -230,7 +232,7 @@ func Test_VariableField(t *testing.T) {
 
 		//also assemble the field and check the length indicator
 		buf2 := &bytes.Buffer{}
-		if err := assemble(buf2, parsedMsg, parsedMsg.Get(fieldName)); err != nil {
+		if err := assemble(buf2, meta, parsedMsg, parsedMsg.Get(fieldName)); err != nil {
 			t.Fatal(err)
 		}
 		assert.Equal(t, append([]byte{0x11}, []byte("Hello World")...), buf2.Bytes())
@@ -264,7 +266,7 @@ func Test_VariableField(t *testing.T) {
 
 		//also assemble the field and check the length indicator
 		buf2 := &bytes.Buffer{}
-		if err := assemble(buf2, parsedMsg, parsedMsg.Get(fieldName)); err != nil {
+		if err := assemble(buf2, meta, parsedMsg, parsedMsg.Get(fieldName)); err != nil {
 			t.Fatal(err)
 		}
 		assert.Equal(t, append([]byte{0x00, 0x11}, []byte("Hello World")...), buf2.Bytes())
@@ -299,7 +301,7 @@ func Test_VariableField(t *testing.T) {
 
 		//also assemble the field and check the length indicator
 		buf2 := &bytes.Buffer{}
-		if err := assemble(buf2, parsedMsg, parsedMsg.Get(fieldName)); err != nil {
+		if err := assemble(buf2, meta, parsedMsg, parsedMsg.Get(fieldName)); err != nil {
 			t.Fatal(err)
 		}
 		assert.Equal(t, append([]byte{0x0e}, []byte("2020!! covid19")...), buf2.Bytes())
@@ -334,7 +336,7 @@ func Test_VariableField(t *testing.T) {
 
 		//also assemble the field and check the length indicator
 		buf2 := &bytes.Buffer{}
-		if err := assemble(buf2, parsedMsg, parsedMsg.Get(fieldName)); err != nil {
+		if err := assemble(buf2, meta, parsedMsg, parsedMsg.Get(fieldName)); err != nil {
 			t.Fatal(err)
 		}
 		assert.Equal(t, append([]byte{0x00, 0x0e}, []byte("2020!! covid19")...), buf2.Bytes())
@@ -369,7 +371,7 @@ func Test_VariableField(t *testing.T) {
 
 		//also assemble the field and check the length indicator
 		buf2 := &bytes.Buffer{}
-		if err := assemble(buf2, parsedMsg, parsedMsg.Get(fieldName)); err != nil {
+		if err := assemble(buf2, meta, parsedMsg, parsedMsg.Get(fieldName)); err != nil {
 			t.Fatal(err)
 		}
 		assert.Equal(t, append([]byte{0x00, 0x0F}, fdata...), buf2.Bytes())
@@ -404,7 +406,7 @@ func Test_VariableField(t *testing.T) {
 
 		//also assemble the field and check the length indicator
 		buf2 := &bytes.Buffer{}
-		if err := assemble(buf2, parsedMsg, parsedMsg.Get(fieldName)); err != nil {
+		if err := assemble(buf2, meta, parsedMsg, parsedMsg.Get(fieldName)); err != nil {
 			t.Fatal(err)
 		}
 		assert.Equal(t, append([]byte{0x00, 0x15}, fdata...), buf2.Bytes())
@@ -439,7 +441,7 @@ func Test_VariableField(t *testing.T) {
 
 		//also assemble the field and check the length indicator
 		buf2 := &bytes.Buffer{}
-		if err := assemble(buf2, parsedMsg, parsedMsg.Get(fieldName)); err != nil {
+		if err := assemble(buf2, meta, parsedMsg, parsedMsg.Get(fieldName)); err != nil {
 			t.Fatal(err)
 		}
 		assert.Equal(t, append([]byte{0x31, 0x35}, fdata...), buf2.Bytes())
@@ -474,7 +476,7 @@ func Test_VariableField(t *testing.T) {
 
 		//also assemble the field and check the length indicator
 		buf2 := &bytes.Buffer{}
-		if err := assemble(buf2, parsedMsg, parsedMsg.Get(fieldName)); err != nil {
+		if err := assemble(buf2, meta, parsedMsg, parsedMsg.Get(fieldName)); err != nil {
 			t.Fatal(err)
 		}
 		assert.Equal(t, append([]byte{0x00, 0x0F}, fdata...), buf2.Bytes())

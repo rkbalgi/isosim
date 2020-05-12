@@ -98,7 +98,7 @@ func macGenEndpoint(s Service) endpoint.Endpoint {
 			if parsedMsg, err := msg.ParseJSON(string(jsonStr)); err != nil {
 				return MacGenResponse{Err: err}, nil
 			} else {
-				macData, err = iso.FromParsedMsg(parsedMsg).Assemble()
+				macData, _, err = iso.FromParsedMsg(parsedMsg).Assemble()
 				if err != nil {
 					return MacGenResponse{Err: err}, nil
 				}

@@ -146,15 +146,15 @@ func closeOnError(connection net.Conn, err error) {
 
 }
 
-func handleConnection(connection net.Conn, pServerDef *data.ServerDef) {
+func handleConnection(connection net.Conn, def *data.ServerDef) {
 
 	slog := log.WithFields(log.Fields{"type": "server"})
 
 	buf := new(bytes.Buffer)
 
-	mliType, err := getMliFromString(pServerDef.MliType)
+	mliType, err := getMliFromString(def.MliType)
 	if err != nil {
-		log.Errorf("isosim: Invalid MLIType %s specified", pServerDef.MliType)
+		log.Errorf("isosim: Invalid MLIType %s specified", def.MliType)
 		return
 	}
 	var mliLen uint32 = 2
@@ -212,13 +212,12 @@ func handleConnection(connection net.Conn, pServerDef *data.ServerDef) {
 				slog.Traceln("msgLen = ", msgLen, " Read = ", n)
 				if uint32(len(buf.Bytes())) == msgLen {
 					//we have a complete msg
-
 					complete = true
 					var msgData = make([]byte, msgLen)
 					copy(msgData, buf.Bytes())
 					slog.Debugf("Received Request, \n%s\n", hex.Dump(msgData))
 					buf.Reset()
-					go handleRequest(connection, msgData, pServerDef, mliType)
+					go handleRequest(connection, msgData, def, mliType)
 
 				}
 			}
@@ -230,6 +229,7 @@ func handleConnection(connection net.Conn, pServerDef *data.ServerDef) {
 }
 
 func getMliFromString(mliType string) (net2.MliType, error) {
+
 	switch mliType {
 	case "2e", "2E":
 		return net2.Mli2e, nil
