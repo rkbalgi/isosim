@@ -31,6 +31,10 @@ type NetOptions struct {
 var cachedNCC = sync.Map{}
 var cachedNCCMu = sync.Mutex{}
 
+// inflight messages for persistent connections
+var inFlightsMu = sync.RWMutex{}
+var inFlights = make(map[string]chan *isoResponse)
+
 // Service exposes the ISO WebSim API required by the frontend (browser)
 type Service interface {
 	GetAllSpecs(ctx context.Context) ([]UISpec, error)
@@ -133,12 +137,11 @@ func (i serviceImpl) SendToHost(ctx context.Context, specId int, msgId int, netO
 		ctx, cancelFunc := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancelFunc()
 
-		go send(ncc, msg, reqIsoMsg, meta.MessageKey, responseChan)
+		go send(ncc, reqIsoMsg, meta.MessageKey, responseChan)
 		for {
 			select {
 			case res := <-responseChan:
 				{
-					log.Debugln("Received on channel ", *res)
 					if res.err != nil {
 						return nil, err
 					} else {
@@ -153,6 +156,7 @@ func (i serviceImpl) SendToHost(ctx context.Context, specId int, msgId int, netO
 				}
 			case <-ctx.Done():
 				close(responseChan)
+				timedOut(meta.MessageKey)
 				return nil, fmt.Errorf("isosim: Message with key [%s] timed out", meta.MessageKey)
 			}
 		}
@@ -160,13 +164,13 @@ func (i serviceImpl) SendToHost(ctx context.Context, specId int, msgId int, netO
 
 	}
 
-	// non-persistent (i.e. connection per message)s connections
+	// non-persistent (i.e. connection per message) connections
 
 	if err := ncc.Write(reqIsoMsg); err != nil {
 		log.Errorln("Failed to send data to ISO Host Error= " + err.Error())
 		return nil, err
 	}
-	responseData, err := ncc.ReadNextPacket()
+	responseData, err := ncc.Read(&net2.ReadOptions{Deadline: time.Now().Add(5 * time.Second)})
 	if err != nil {
 		log.Errorln("Failed to read response from ISO Host. Error = " + err.Error())
 		return nil, err
@@ -188,10 +192,14 @@ func (i serviceImpl) SendToHost(ctx context.Context, specId int, msgId int, netO
 
 }
 
-var inFlightsMu = sync.RWMutex{}
-var inFlights = make(map[string]chan *isoResponse)
+func timedOut(key string) {
+	inFlightsMu.Lock()
+	delete(inFlights, key)
+	inFlightsMu.Unlock()
 
-func send(ncc *net2.NetCatClient, msg *iso.Message, reqData []byte, key string, responseChan chan *isoResponse) {
+}
+
+func send(ncc *net2.NetCatClient, reqData []byte, key string, responseChan chan *isoResponse) {
 
 	inFlightsMu.Lock()
 	inFlights[key] = responseChan
@@ -226,11 +234,11 @@ func getOrCreateNetClient(addr string, spec *iso.Spec, mliType net2.MliType) (*n
 		}
 		log.Infoln("Opened a persistent connection to ISO Host @ " + addr)
 
-		//socket reader
+		//socket reader goroutine
 		go func(ncc *net2.NetCatClient) {
 
 			for {
-				responseData, err := ncc.ReadNextPacket()
+				responseData, err := ncc.Read(nil)
 				if err != nil {
 					log.Errorln("Failed to read response from ISO Host. Error = " + err.Error())
 					if err == io.EOF {
@@ -242,11 +250,7 @@ func getOrCreateNetClient(addr string, spec *iso.Spec, mliType net2.MliType) (*n
 
 				}
 
-				if len(responseData) == 0 {
-					continue
-				}
-
-				log.Debugln("Received response from ISO Host =" + hex.EncodeToString(responseData))
+				log.Debugf("Received response from ISO Host = %s, Addr: ", hex.EncodeToString(responseData))
 
 				msg := spec.FindTargetMsg(responseData)
 				if msg == nil {
