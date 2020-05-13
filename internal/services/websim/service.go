@@ -268,7 +268,7 @@ func getOrCreateNetClient(addr string, spec *iso.Spec, mliType net2.MliType) (*n
 					if resChan != nil {
 						resChan <- &isoResponse{err: nil, responseData: responseData, responseMsg: responseMsg}
 					} else {
-						log.Infoln("Message with key - %s possibly timed out", responseMsg.MessageKey)
+						log.Infof("Message with key - %s possibly timed out", responseMsg.MessageKey)
 					}
 					delete(inFlights, responseMsg.MessageKey)
 					inFlightsMu.Unlock()
