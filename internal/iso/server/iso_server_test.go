@@ -96,7 +96,7 @@ func Test_IsoServer_MessageProcessing(t *testing.T) {
 
 func sendAndVerify(t *testing.T, ncc *netutil.NetCatClient, spec *iso.Spec, isoReqMsg *iso.Iso, expectedF39 string) {
 
-	data, err := isoReqMsg.Assemble()
+	data, _, err := isoReqMsg.Assemble()
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -19,7 +19,7 @@ func Test_AssembleMsg(t *testing.T) {
 		isoMsg := msg.NewIso()
 
 		//setting directly
-		isoMsg.Set(StandardNameMessageType, "1100")
+		isoMsg.Set(IsoMessageType, "1100")
 		isoMsg.Set("Fixed2_ASCII", "123")
 		isoMsg.Set("Fixed3_EBCDIC", "456")
 		isoMsg.Set("FxdField6_WithSubFields", "12345678")
@@ -30,7 +30,7 @@ func Test_AssembleMsg(t *testing.T) {
 		isoMsg.Bitmap().Set(60, "0987aefe")
 		isoMsg.Bitmap().Set(91, "field91")
 
-		if assembledMsg, err := isoMsg.Assemble(); err != nil {
+		if assembledMsg, _, err := isoMsg.Assemble(); err != nil {
 			t.Fatal(err)
 			return
 		} else {

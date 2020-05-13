@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func Test_ReadWriteToBold(t *testing.T) {
+func Test_ReadWriteToBolt(t *testing.T) {
 
 	//t.SkipNow()
 	if err := Init("."); err != nil {

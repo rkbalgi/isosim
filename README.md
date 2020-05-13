@@ -3,6 +3,7 @@
 [![GoDev](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square)](https://pkg.go.dev/github.com/rkbalgi/isosim?tab=doc)
 ![build](https://github.com/rkbalgi/isosim/workflows/build/badge.svg)
 ![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/rkbalgi/isosim?include_prereleases&style=flat)
+![Docker Pulls](https://img.shields.io/docker/pulls/rkbalgi/isosim?color=%23FF6528&label=docker%20pulls)
 
 # ISO WebSim
 A very short screencast - [https://youtu.be/vSRZ_nzU-Jg](https://youtu.be/vSRZ_nzU-Jg)

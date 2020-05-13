@@ -94,7 +94,7 @@ func (e Encoding) AsString() string {
 	return string(e)
 }
 
-// Field represents a Field in the ISO message
+// Field represents a field in the ISO message
 type Field struct {
 	Name                      string    `yaml:"name"`
 	ID                        int       `yaml:"id"`
@@ -113,11 +113,14 @@ type Field struct {
 
 	msg *Message `yaml:"-"json:"-"`
 	//for bitmap only
-	fieldsByPosition   map[int]*Field
+	fieldsByPosition map[int]*Field
+
 	ParentId           int
 	ValueGeneratorType string       `yaml:"gen_type"`
 	PinGenProps        *PinGenProps `yaml:"pin_gen_props,omitempty"`
 	MacGenProps        *MacGenProps `yaml:"mac_gen_props,omitempty"`
+
+	Key bool `yaml:"key"`
 }
 
 type FieldConstraints struct {

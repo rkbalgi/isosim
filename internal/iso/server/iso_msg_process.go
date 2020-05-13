@@ -6,7 +6,7 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"isosim/internal/iso"
-	"isosim/internal/services/v0/data"
+	"isosim/internal/services/data"
 	"strconv"
 	"strings"
 )
@@ -74,7 +74,7 @@ func processInternal(data []byte, pServerDef *data.ServerDef, msgSelConfig data.
 
 			log.Debugln("[", pc.MatchConditionType+"] Processing condition matched.")
 			buildResponse(isoMsg, &pc)
-			response, err := isoMsg.Assemble()
+			response, _, err := isoMsg.Assemble()
 			return response, true, err
 
 		case "StringEquals":
@@ -84,7 +84,7 @@ func processInternal(data []byte, pServerDef *data.ServerDef, msgSelConfig data.
 					log.Debugln("[", pc.MatchConditionType+"] Processing condition matched.")
 					//set the response fields
 					buildResponse(isoMsg, &pc)
-					response, err := isoMsg.Assemble()
+					response, _, err := isoMsg.Assemble()
 					return response, true, err
 				}
 
@@ -132,7 +132,7 @@ func processInternal(data []byte, pServerDef *data.ServerDef, msgSelConfig data.
 					log.Debugln(pc.MatchConditionType + "] Processing condition matched.")
 					//set the response fields
 					buildResponse(isoMsg, &pc)
-					response, err := isoMsg.Assemble()
+					response, _, err := isoMsg.Assemble()
 					return response, true, err
 				}
 

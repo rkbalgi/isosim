@@ -13,8 +13,11 @@ var specMap = make(map[string]*Spec, 10)
 
 // Spec represents an ISO8583 specification
 type Spec struct {
-	Name     string     `yaml:"name"`
-	ID       int        `yaml:"id"`
+	Name string `yaml:"name"`
+	ID   int    `yaml:"id"`
+
+	HeaderFields []*Field `yaml:"header_fields"`
+
 	Messages []*Message `yaml:"messages"`
 }
 
@@ -78,6 +81,48 @@ func (spec *Spec) MessageByName(msgName string) *Message {
 	for _, msg := range spec.Messages {
 		if msg.Name == msgName {
 			return msg
+		}
+	}
+
+	return nil
+
+}
+
+// FindTargetMsg parses any defined header fields and returns a message
+func (spec *Spec) FindTargetMsg(data []byte) *Message {
+
+	if spec.HeaderFields == nil || len(spec.HeaderFields) == 0 {
+		return nil
+	}
+
+	matchKey := ""
+	buf := bytes.NewBuffer(data)
+	parsedMsg := &ParsedMsg{
+		IsRequest:    false,
+		Msg:          nil,
+		FieldDataMap: make(map[int]*FieldData),
+		MessageKey:   ""}
+
+	for _, field := range spec.HeaderFields {
+		if err := parse(buf, parsedMsg, field); err != nil {
+			log.Errorf("Failed to parse header fields: %s, Error: %v", field.Name, err)
+			return nil
+		}
+	}
+	for _, field := range spec.HeaderFields {
+		matchKey += parsedMsg.GetById(field.ID).Value()
+	}
+
+	if matchKey == "" {
+		log.Errorf("isosim: No match key found!")
+		return nil
+	}
+
+	for _, msg := range spec.Messages {
+		for _, hm := range msg.HeaderMatch {
+			if hm == matchKey {
+				return msg
+			}
 		}
 	}
 

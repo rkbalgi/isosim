@@ -30,7 +30,7 @@ func NewBitmap() *Bitmap {
 func emptyBitmap(parsedMsg *ParsedMsg) *Bitmap {
 	bmp := NewBitmap()
 	bmp.parsedMsg = parsedMsg
-	bmp.field = parsedMsg.Msg.Field(StandardNameBitmap)
+	bmp.field = parsedMsg.Msg.Field(IsoBitmap)
 	return bmp
 }
 

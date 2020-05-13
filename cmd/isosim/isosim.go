@@ -49,7 +49,7 @@ func main() {
 		log.SetLevel(log.ErrorLevel)
 	default:
 		log.Warn("Invalid log-level specified, will default to DEBUG")
-		log.SetLevel(log.InfoLevel)
+		log.SetLevel(log.DebugLevel)
 	}
 
 	log.SetFormatter(&log.TextFormatter{ForceColors: true, DisableColors: false})
@@ -81,7 +81,12 @@ func main() {
 			certFile := os.Getenv("TLS_CERT_FILE")
 			keyFile := os.Getenv("TLS_KEY_FILE")
 
-			log.Infof("Using certificate file - %s, key file: %s", certFile, keyFile)
+			log.Infof("TLS settings: Using Certificate file : %s, Key file: %s", certFile, keyFile)
+
+			if certFile == "" || keyFile == "" {
+				log.Fatalf("SSL enabled, but certificate/key file unspecified.")
+			}
+
 			log.Fatal(http.ListenAndServeTLS(":"+strconv.Itoa(*httpPort), certFile, keyFile, nil))
 		} else {
 			log.Fatal(http.ListenAndServe(":"+strconv.Itoa(*httpPort), nil))

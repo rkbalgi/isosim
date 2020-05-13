@@ -11,12 +11,18 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const (
+	Fixed     = "fixed"
+	Variable  = "variable"
+	Bitmapped = "bitmap"
+)
+
 // NewField is a constructor for Field
 func NewField(info []string) (*Field, error) {
 
 	fieldInfo := &Field{}
 	switch info[0] {
-	case "fixed":
+	case Fixed:
 		{
 			fieldInfo.Type = FixedType
 			hasConstraints := false
@@ -54,7 +60,7 @@ func NewField(info []string) (*Field, error) {
 			}
 
 		}
-	case "bitmap":
+	case Bitmapped:
 		{
 			fieldInfo.Type = BitmappedType
 			if err := setEncoding(&(*fieldInfo).DataEncoding, info[1]); err != nil {
@@ -67,7 +73,7 @@ func NewField(info []string) (*Field, error) {
 			}
 
 		}
-	case "variable":
+	case Variable:
 		{
 			fieldInfo.Type = VariableType
 			hasConstraints := false

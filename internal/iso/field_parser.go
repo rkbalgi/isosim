@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/rkbalgi/libiso/encoding/ebcdic"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -25,8 +24,13 @@ var ErrInvalidEncoding = errors.New("isosim: Invalid encoding")
 type ParsedMsg struct {
 	IsRequest bool
 	Msg       *Message
+
 	//A map of Id to FieldData
 	FieldDataMap map[int]*FieldData
+
+	// MessageKey is a value that unique identifies a transaction
+	// (usually a combination of fields like STAN, PAN etc)
+	MessageKey string
 }
 
 // Get returns the field-data from the parsed message given its name
@@ -57,6 +61,7 @@ func (pMsg *ParsedMsg) Copy() *ParsedMsg {
 	}
 
 	newParsedMsg.Msg = pMsg.Msg
+	newParsedMsg.MessageKey = pMsg.MessageKey
 
 	return newParsedMsg
 
@@ -111,7 +116,9 @@ func parseFixed(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error {
 	if fieldData.Data, err = NextBytes(buf, field.Size); err != nil {
 		return err
 	}
-
+	if field.Key {
+		parsedMsg.MessageKey += fieldData.Value()
+	}
 	log.WithFields(log.Fields{"component": "parser"}).Debugf("Field %s, Length: %d, Value: %s\n", field.Name, field.Size, hex.EncodeToString(fieldData.Data))
 
 	parsedMsg.FieldDataMap[field.ID] = fieldData
@@ -200,8 +207,7 @@ func parseVariable(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error 
 			return err
 		}
 	case EBCDIC:
-
-		if length, err = strconv.ParseUint(ebcdic.EncodeToString(lenData), 10, 64); err != nil {
+		if length, err = strconv.ParseUint(EBCDIC.EncodeToString(lenData), 10, 64); err != nil {
 			return err
 		}
 	default:
@@ -221,6 +227,9 @@ func parseVariable(buf *bytes.Buffer, parsedMsg *ParsedMsg, field *Field) error 
 	fieldData := &FieldData{Field: field}
 	if fieldData.Data, err = NextBytes(buf, int(length)); err != nil {
 		return err
+	}
+	if field.Key {
+		parsedMsg.MessageKey += fieldData.Value()
 	}
 
 	log.WithFields(log.Fields{"component": "parser"}).Debugf("Field %s, Length: %d, Value: %s\n", field.Name, length, hex.EncodeToString(fieldData.Data))

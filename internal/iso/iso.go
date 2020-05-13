@@ -2,16 +2,17 @@ package iso
 
 import (
 	"bytes"
+	"time"
 )
 
 // HTMLDir will point to the directory containing the static assets (HTML/JS/CSS etc)
 var HTMLDir string
 
 const (
-	// StandardNameMessageType is a constant that indicates the Message Type or the MTI
-	// (This name has special meaning within the context of ISO8483 and cannot be name anything else. The same restrictions apply for 'Bitmap')
-	StandardNameMessageType = "Message Type"
-	StandardNameBitmap      = "Bitmap"
+	// IsoMessageType is a constant that indicates the Message Type or the MTI
+	// (This name has special meaning within the context of ISO8583 and cannot be named anything else. The same restrictions apply for 'Bitmap')
+	IsoMessageType = "Message Type"
+	IsoBitmap      = "Bitmap"
 )
 
 // Iso is a handle into accessing the details of a ISO message(via the parsedMsg)
@@ -19,11 +20,20 @@ type Iso struct {
 	parsedMsg *ParsedMsg
 }
 
+// MetaInfo provides additional information about an operation performed
+// For example, in response to a parse or assemble op
+type MetaInfo struct {
+	// OpTime is time taken by an operation
+	OpTime time.Duration
+	// MessageKey is a key that can be used to uniquely identify a transaction
+	MessageKey string
+}
+
 // FromParsedMsg constructs a new Iso from a parsedMsg
 func FromParsedMsg(parsedMsg *ParsedMsg) *Iso {
 	isoMsg := &Iso{parsedMsg: parsedMsg}
 
-	bmpField := parsedMsg.Msg.fieldByName[StandardNameBitmap]
+	bmpField := parsedMsg.Msg.fieldByName[IsoBitmap]
 
 	//if the bitmap field is not set then initialize it to a empty bitmap
 	if _, ok := parsedMsg.FieldDataMap[bmpField.ID]; !ok {
@@ -43,7 +53,7 @@ func (iso *Iso) Set(fieldName string, value string) error {
 		return ErrUnknownField
 	}
 
-	bmpField := iso.parsedMsg.Get(StandardNameBitmap)
+	bmpField := iso.parsedMsg.Get(IsoBitmap)
 	if field.ParentId == bmpField.Field.ID {
 		iso.Bitmap().SetOn(field.Position)
 		iso.Bitmap().Set(field.Position, value)
@@ -70,7 +80,7 @@ func (iso *Iso) Get(fieldName string) *FieldData {
 
 // Bitmap returns the Bitmap from the Iso message
 func (iso *Iso) Bitmap() *Bitmap {
-	field := iso.parsedMsg.Msg.Field(StandardNameBitmap)
+	field := iso.parsedMsg.Msg.Field(IsoBitmap)
 	fieldData := iso.parsedMsg.FieldDataMap[field.ID].Bitmap
 	if fieldData != nil && fieldData.parsedMsg == nil {
 		fieldData.parsedMsg = iso.parsedMsg
@@ -85,16 +95,20 @@ func (iso *Iso) ParsedMsg() *ParsedMsg {
 }
 
 // Assemble assembles the raw form of the message
-func (iso *Iso) Assemble() ([]byte, error) {
+func (iso *Iso) Assemble() ([]byte, *MetaInfo, error) {
 
 	msg := iso.parsedMsg.Msg
 	buf := new(bytes.Buffer)
+	meta := &MetaInfo{}
+	t1 := time.Now()
 	for _, field := range msg.Fields {
-		if err := assemble(buf, iso.parsedMsg, iso.parsedMsg.FieldDataMap[field.ID]); err != nil {
-			return nil, err
+		if err := assemble(buf, meta, iso.parsedMsg, iso.parsedMsg.FieldDataMap[field.ID]); err != nil {
+			return nil, nil, err
 		}
 	}
 
-	return buf.Bytes(), nil
+	meta.OpTime = time.Since(t1)
+
+	return buf.Bytes(), meta, nil
 
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/go-kit/kit/log"
 	netutil "github.com/rkbalgi/libiso/net"
 	"isosim/internal/iso"
-	"isosim/internal/services/v0/data"
+	"isosim/internal/services/data"
 )
 
 type GetAllSpecsRequest struct{}

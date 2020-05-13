@@ -4,8 +4,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"isosim/internal/iso"
 	"isosim/internal/services/crypto"
-	"isosim/internal/services/v0/handlers/isoserver"
-	"isosim/internal/services/v0/handlers/misc"
+	"isosim/internal/services/handlers"
 	"isosim/internal/services/websim"
 	"net/http"
 	"path/filepath"
@@ -54,7 +53,8 @@ func setRoutes() {
 			subDir = "css"
 		case strings.HasSuffix(req.RequestURI, ".js"):
 			subDir = "js"
-		case strings.HasSuffix(req.RequestURI, ".ttf"),
+		case
+			strings.HasSuffix(req.RequestURI, ".ttf"),
 			strings.HasSuffix(req.RequestURI, ".woff"),
 			strings.HasSuffix(req.RequestURI, ".woff2"):
 			subDir = "media"
@@ -64,18 +64,21 @@ func setRoutes() {
 		}
 
 		if strings.HasPrefix(req.RequestURI, "/iso/v0/") && subDir != "" {
-
 			http.ServeFile(rw, req, filepath.Join(iso.HTMLDir, fileName))
 		} else {
 			http.ServeFile(rw, req, filepath.Join(iso.HTMLDir, "react-fe", "build", "static", subDir, fileName))
 		}
 	})
 
-	isoserver.AddAll()
-	misc.AddMiscHandlers()
+	//old legacy handlers
+	handlers.AddAll()
+	handlers.AddMiscHandlers()
 
 	//v1
 	websim.RegisterHTTPTransport()
 	crypto.RegisterHTTPTransport()
+
+	//misc
+	handlers.MsgHistoryHandler()
 
 }
