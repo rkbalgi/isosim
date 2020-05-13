@@ -1,4 +1,4 @@
 package main
 
 var version = "0.10.0"
-var build = "9e52865e"
+var build = "1c5fb3ac"
