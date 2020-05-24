@@ -26,7 +26,8 @@ other amazing open source libraries.
   * Rules to respond to messages based on fields (rules based on amount, currency etc)   
 * A UI to build and send transactions to servers (as a client)
   * Ability to edit fields on UI
-  * Client-side validation of fields for content, length (more on the way)
+  * [UI hints](https://github.com/rkbalgi/isosim/wiki/Field-Hints-for-UI) to render special fields
+  * Client-side validation of fields for content, length 
   * [PIN](https://github.com/rkbalgi/isosim/wiki/Pin-Field-(DF52)-Generation) and [MAC](https://github.com/rkbalgi/isosim/wiki/MAC-Generation-(DF64-128)) generation 
   * [Padding](https://github.com/rkbalgi/isosim/wiki/Field-Padding) support
   * Save messages that be can be replayed later

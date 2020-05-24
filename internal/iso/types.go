@@ -94,6 +94,24 @@ func (e Encoding) AsString() string {
 	return string(e)
 }
 
+// HintType is the type of hint
+type HintType string
+
+const (
+	HintDateTime     HintType = "date_time"
+	HintCurrencyCode HintType = "currency_code"
+)
+
+// Hint represents metadata associated with a field that could be useful for the UI to aid the user to provide value
+// for the field
+type Hint struct {
+
+	//Type is the type of hint - date_time, currency_code and others
+	Type string `yaml:"type"`
+	//Format is an optional qualifier to add more context to the hint
+	Format string `yaml:"format"`
+}
+
 // Field represents a field in the ISO message
 type Field struct {
 	Name                      string    `yaml:"name"`
@@ -121,6 +139,8 @@ type Field struct {
 	MacGenProps        *MacGenProps `yaml:"mac_gen_props,omitempty"`
 
 	Key bool `yaml:"key"`
+
+	Hint Hint `yaml:"hint"`
 }
 
 type FieldConstraints struct {
