@@ -110,6 +110,14 @@ type Hint struct {
 	Type string `yaml:"type"`
 	//Format is an optional qualifier to add more context to the hint
 	Format string `yaml:"format"`
+	//Enumerated values are a array of values for enumerated hint type
+	Values []EnumValue `yaml:"values"`
+}
+
+// EnumValue is an entry for hint type "enumerated"
+type EnumValue struct {
+	Value       string `yaml:"value"`
+	Description string `yaml:"description"`
 }
 
 // Field represents a field in the ISO message
