@@ -43,7 +43,7 @@ type Service interface {
 	LoadOrFetchSavedMessages(ctx context.Context, specId int, msgId int, savedMsgName string) (*SavedMsg, []string, error)
 	ParseTrace(ctx context.Context, specId int, msgId int, msgTrace string) (*[]data.JsonFieldDataRep, error)
 	ParseTraceExternal(ctx context.Context, specName string, msgName string, msgTrace string) (*[]data.JsonFieldDataRep, error)
-	SaveMessage(ctx context.Context, specId int, msgId int, msgName string, msgData string, update bool) error
+	SaveMessage(ctx context.Context, specId int, msgId int, msgName string, msgData string, responseData string, update bool) error
 	SendToHost(ctx context.Context, specId int, msgId int, netOpts NetOptions, msgData string) (*[]data.JsonFieldDataRep, error)
 }
 
@@ -340,7 +340,7 @@ func (serviceImpl) ParseTraceExternal(ctx context.Context, specName string, msgN
 }
 
 // SaveMessage saves a parsed message into persistent storage so that it can be fetched later
-func (serviceImpl) SaveMessage(ctx context.Context, specId int, msgId int, msgName string, msgData string, update bool) error {
+func (serviceImpl) SaveMessage(ctx context.Context, specId int, msgId int, msgName string, msgData string, responseData string, update bool) error {
 
 	spec := iso.SpecByID(specId)
 	if spec == nil {
@@ -353,9 +353,9 @@ func (serviceImpl) SaveMessage(ctx context.Context, specId int, msgId int, msgNa
 
 	var err error
 	if update {
-		err = db.DataSetManager().Update(strconv.Itoa(specId), strconv.Itoa(msgId), msgName, msgData)
+		err = db.DataSetManager().Update(strconv.Itoa(specId), strconv.Itoa(msgId), msgName, msgData, responseData)
 	} else {
-		err = db.DataSetManager().Add(strconv.Itoa(specId), strconv.Itoa(msgId), msgName, msgData)
+		err = db.DataSetManager().Add(strconv.Itoa(specId), strconv.Itoa(msgId), msgName, msgData, responseData)
 	}
 
 	if err != nil {
@@ -381,10 +381,9 @@ func ToJsonList(parsedMsg *iso.ParsedMsg) []data.JsonFieldDataRep {
 	return fieldDataList
 }
 
-type SavedMsg []struct {
-	ID    int
-	Name  string
-	Value string
+type SavedMsg struct {
+	ReqData  *[]data.JsonFieldDataRep `json:"req_data"`
+	RespData *[]data.JsonFieldDataRep `json:"resp_data"`
 }
 
 // UISpec is a representation of the spec for UI client (browser) consumption
