@@ -24,8 +24,13 @@ var dataDir string
 var bdb *bolt.DB
 
 const defFileSuffix = ".srvdef.json"
+const respFileSuffix = "_response_ref.json"
 
 var initDS = sync.Once{}
+
+// ErrDataSetExists is an error that indicates that the dataset by the provided
+// name already exists
+var ErrDataSetExists = errors.New("isosim: data set exists")
 
 // Init verifies and initializes the dataDir passed in during in
 // initialization
@@ -56,10 +61,6 @@ func DataSetManager() *dataSetManager {
 	return instance
 }
 
-// ErrDataSetExists is an error that indicates that the dataset by the provided
-// name already exists
-var ErrDataSetExists = errors.New("isosim: data set exists")
-
 // GetAll returns a list of all data sets (names only) for the given specId
 // and msgId
 func (dsm *dataSetManager) GetAll(specId string, msgId string) ([]string, error) {
@@ -74,7 +75,7 @@ func (dsm *dataSetManager) GetAll(specId string, msgId string) ([]string, error)
 	} else {
 		var dataSets = make([]string, 0, 10)
 		for _, ds := range dirContents {
-			if !ds.IsDir() {
+			if !ds.IsDir() && !strings.HasSuffix(ds.Name(), respFileSuffix) {
 				dataSets = append(dataSets, ds.Name())
 			}
 		}
@@ -82,6 +83,12 @@ func (dsm *dataSetManager) GetAll(specId string, msgId string) ([]string, error)
 		return dataSets, nil
 
 	}
+}
+
+// TestCase is a specialization of a Message that also contains a reference response and affiliated data
+type TestCase struct {
+	ReqData  []*data.JsonFieldDataRep       `json:"req_data"`
+	RespData []*data.TCResponseFieldDataRep `json:"resp_data"`
 }
 
 // Get returns the content of a specific data set
@@ -92,14 +99,29 @@ func (dsm *dataSetManager) Get(specId string, msgId string, dsName string) ([]by
 		return nil, err
 
 	}
-	return dsData, nil
+
+	testCase := TestCase{}
+
+	if err := json.Unmarshal(dsData, &testCase.ReqData); err != nil {
+		return nil, err
+	}
+
+	if respData, err := ioutil.ReadFile(filepath.Join(dataDir, specId, msgId, dsName+respFileSuffix)); err != nil {
+		log.Debugf("No response ref data found for %q, probably not an error", dsName)
+	} else {
+		if err := json.Unmarshal(respData, &testCase.RespData); err != nil {
+			return nil, err
+		}
+	}
+
+	return json.Marshal(testCase)
 
 }
 
-// Add add a new data-set for the given spec and msg
-func (dsm *dataSetManager) Add(specId string, msgId string, name string, data string) error {
+// Add adds a new data-set for the given spec and msg
+func (dsm *dataSetManager) Add(specId string, msgId string, name string, reqData string, respData string) error {
 
-	log.Traceln("Adding data set - " + name + " data = " + data)
+	log.Traceln("Adding msgData set - " + name + " reqData = " + reqData + " respData = " + respData)
 	exists, err := checkIfExists(specId, msgId, name)
 	if err != nil {
 		return err
@@ -108,7 +130,12 @@ func (dsm *dataSetManager) Add(specId string, msgId string, name string, data st
 		return ErrDataSetExists
 	}
 
-	err = ioutil.WriteFile(filepath.Join(dataDir, specId, msgId, name), []byte(data), 0755)
+	err = ioutil.WriteFile(filepath.Join(dataDir, specId, msgId, name), []byte(reqData), 0755)
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile(filepath.Join(dataDir, specId, msgId, name+respFileSuffix), []byte(respData), 0755)
 	if err != nil {
 		return err
 	}
@@ -190,14 +217,30 @@ func (dsm *dataSetManager) ServerDef(specId string, name string) ([]byte, error)
 }
 
 // Update updates a data set
-func (dsm *dataSetManager) Update(specId string, msgId string, name string, data string) error {
+func (dsm *dataSetManager) Update(specId string, msgId string, name string, reqData string, respData string) error {
 
-	log.Debugln("Updating data set - " + name + " data = " + data)
+	log.Debugln("Updating data set - " + name + " data = " + reqData + " respData = " + respData)
 
-	err := ioutil.WriteFile(filepath.Join(dataDir, specId, msgId, name), []byte(data), 0755)
-	if err != nil {
-		return err
+	var err error
+
+	if reqData == "" && respData == "" {
+		return errors.New("A request or a response should be present in an update request")
 	}
+
+	if reqData != "" {
+		err = ioutil.WriteFile(filepath.Join(dataDir, specId, msgId, name), []byte(reqData), 0755)
+		if err != nil {
+			return err
+		}
+	}
+
+	if respData != "" {
+		err = ioutil.WriteFile(filepath.Join(dataDir, specId, msgId, name+respFileSuffix), []byte(respData), 0755)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
