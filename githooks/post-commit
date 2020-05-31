@@ -1,4 +1,4 @@
 #!/usr/bin/bash
 
 cd githooks
-./update_commit_id.sh
+#./update_commit_id.sh
