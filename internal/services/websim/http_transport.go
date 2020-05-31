@@ -146,6 +146,7 @@ func saveMsgReqDecoder(ctx context.Context, req *http.Request) (request interfac
 	msgIdParam := req.PostForm.Get("msgId")
 	dsName := req.PostForm.Get("dsName")
 	msgData := req.PostForm.Get("msg")
+	respMsgData := req.PostForm.Get("response_msg")
 	updateMsg := req.PostForm.Get("updateMsg")
 
 	if specIdParam == "" || msgIdParam == "" {
@@ -170,11 +171,12 @@ func saveMsgReqDecoder(ctx context.Context, req *http.Request) (request interfac
 	}
 
 	return SaveMsgRequest{
-		specId:   specId,
-		msgId:    msgId,
-		msgName:  dsName,
-		msgData:  msgData,
-		isUpdate: update,
+		specId:          specId,
+		msgId:           msgId,
+		msgName:         dsName,
+		msgData:         msgData,
+		responseMsgData: respMsgData,
+		isUpdate:        update,
 	}, nil
 
 }

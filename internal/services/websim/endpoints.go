@@ -72,11 +72,12 @@ type ParseTraceExtResponse struct {
 //save msg
 
 type SaveMsgRequest struct {
-	specId   int
-	msgId    int
-	msgName  string
-	msgData  string
-	isUpdate bool
+	specId          int
+	msgId           int
+	msgName         string
+	msgData         string
+	responseMsgData string
+	isUpdate        bool
 }
 
 type SaveMsgResponse struct {
@@ -206,7 +207,7 @@ func parseTraceExternalEndpoint(s Service) endpoint.Endpoint {
 func saveMsgEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(SaveMsgRequest)
-		err = s.SaveMessage(ctx, req.specId, req.msgId, req.msgName, req.msgData, req.isUpdate)
+		err = s.SaveMessage(ctx, req.specId, req.msgId, req.msgName, req.msgData, req.responseMsgData, req.isUpdate)
 		if err != nil {
 			return SaveMsgResponse{Err: err}, nil
 		}

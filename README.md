@@ -31,6 +31,7 @@ other amazing open source libraries.
   * [PIN](https://github.com/rkbalgi/isosim/wiki/Pin-Field-(DF52)-Generation) and [MAC](https://github.com/rkbalgi/isosim/wiki/MAC-Generation-(DF64-128)) generation 
   * [Padding](https://github.com/rkbalgi/isosim/wiki/Field-Padding) support
   * Save messages that be can be replayed later
+  * Build [Test Cases](https://github.com/rkbalgi/isosim/wiki/Test-Cases) that can be saved and re-run for regression testing etc
   * [Log](https://github.com/rkbalgi/isosim/wiki/Message-History) of past messages
 * TLS, [Docker](https://github.com/rkbalgi/isosim/wiki/Running-on-Docker) 
 
