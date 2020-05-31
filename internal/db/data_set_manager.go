@@ -95,8 +95,8 @@ func (dsm *dataSetManager) Get(specId string, msgId string, dsName string) ([]by
 	}
 
 	testCase := struct {
-		ReqData  []*data.JsonFieldDataRep `json:"req_data"`
-		RespData []*data.JsonFieldDataRep `json:"resp_data"`
+		ReqData  []*data.JsonFieldDataRep       `json:"req_data"`
+		RespData []*data.TCResponseFieldDataRep `json:"resp_data"`
 	}{}
 
 	if err := json.Unmarshal(dsData, &testCase.ReqData); err != nil {
@@ -218,14 +218,26 @@ func (dsm *dataSetManager) Update(specId string, msgId string, name string, reqD
 
 	log.Debugln("Updating data set - " + name + " data = " + reqData + " respData = " + respData)
 
-	err := ioutil.WriteFile(filepath.Join(dataDir, specId, msgId, name), []byte(reqData), 0755)
-	if err != nil {
-		return err
+	var err error
+
+	if reqData == "" && respData == "" {
+		return errors.New("A request or a response should be present in an update request")
 	}
-	err = ioutil.WriteFile(filepath.Join(dataDir, specId, msgId, name+"_response_ref"), []byte(respData), 0755)
-	if err != nil {
-		return err
+
+	if reqData != "" {
+		err = ioutil.WriteFile(filepath.Join(dataDir, specId, msgId, name), []byte(reqData), 0755)
+		if err != nil {
+			return err
+		}
 	}
+
+	if respData != "" {
+		err = ioutil.WriteFile(filepath.Join(dataDir, specId, msgId, name+respFileSuffix), []byte(respData), 0755)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

@@ -36,6 +36,15 @@ type JsonFieldDataRep struct {
 	Value string
 }
 
+// TCResponseFieldDataRep is the representation of a response field's data
+// and comparison operator
+type TCResponseFieldDataRep struct {
+	ID        int
+	Name      string
+	Value     string
+	CompareOp string
+}
+
 type JsonMessageTemplate struct {
 	Fields []*JsonFieldInfoRep
 }

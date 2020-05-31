@@ -382,8 +382,8 @@ func ToJsonList(parsedMsg *iso.ParsedMsg) []data.JsonFieldDataRep {
 }
 
 type SavedMsg struct {
-	ReqData  *[]data.JsonFieldDataRep `json:"req_data"`
-	RespData *[]data.JsonFieldDataRep `json:"resp_data"`
+	ReqData  *[]data.JsonFieldDataRep       `json:"req_data"`
+	RespData *[]data.TCResponseFieldDataRep `json:"resp_data"`
 }
 
 // UISpec is a representation of the spec for UI client (browser) consumption
