@@ -8,8 +8,7 @@
 # ISO WebSim
 A very short screencast - [https://youtu.be/vSRZ_nzU-Jg](https://youtu.be/vSRZ_nzU-Jg)
 
-![](https://github.com/rkbalgi/isosim/blob/master/docs/images/home_rel2020.04_01.png)
-![](https://github.com/rkbalgi/isosim/blob/master/docs/images/home_rel2020.04_02.png)
+![](https://github.com/rkbalgi/isosim/wiki/home_collage.png)
 
 
 Iso Websim is a ISO8583 simulator built using [Go](http://golang.org), [React](https://reactjs.org/), [Material-UI](https://material-ui.com/) and
