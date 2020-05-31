@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	netutil "github.com/rkbalgi/libiso/net"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -67,7 +68,19 @@ func Test_IsoServer_MessageProcessing(t *testing.T) {
 		t.Fatal(err)
 	}
 	var parsedMsg *iso.ParsedMsg
-	if parsedMsg, err = spec.MessageByName("1100").ParseJSON(string(dsData)); err != nil {
+	t.Log(string(dsData))
+
+	tc := &db.TestCase{}
+	if err := json.Unmarshal(dsData, tc); err != nil {
+		t.Fatal(err)
+	}
+
+	var reqData []byte
+	if reqData, err = json.Marshal(tc.ReqData); err != nil {
+		t.Fatal(err)
+	}
+
+	if parsedMsg, err = spec.MessageByName("1100").ParseJSON(string(reqData)); err != nil {
 		t.Fatal(err)
 	}
 

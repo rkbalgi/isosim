@@ -85,6 +85,12 @@ func (dsm *dataSetManager) GetAll(specId string, msgId string) ([]string, error)
 	}
 }
 
+// TestCase is a specialization of a Message that also contains a reference response and affiliated data
+type TestCase struct {
+	ReqData  []*data.JsonFieldDataRep       `json:"req_data"`
+	RespData []*data.TCResponseFieldDataRep `json:"resp_data"`
+}
+
 // Get returns the content of a specific data set
 func (dsm *dataSetManager) Get(specId string, msgId string, dsName string) ([]byte, error) {
 
@@ -94,17 +100,14 @@ func (dsm *dataSetManager) Get(specId string, msgId string, dsName string) ([]by
 
 	}
 
-	testCase := struct {
-		ReqData  []*data.JsonFieldDataRep       `json:"req_data"`
-		RespData []*data.TCResponseFieldDataRep `json:"resp_data"`
-	}{}
+	testCase := TestCase{}
 
 	if err := json.Unmarshal(dsData, &testCase.ReqData); err != nil {
 		return nil, err
 	}
 
 	if respData, err := ioutil.ReadFile(filepath.Join(dataDir, specId, msgId, dsName+respFileSuffix)); err != nil {
-		log.Debugln("No response ref data found for %q, probably not an error", dsName)
+		log.Debugf("No response ref data found for %q, probably not an error", dsName)
 	} else {
 		if err := json.Unmarshal(respData, &testCase.RespData); err != nil {
 			return nil, err
