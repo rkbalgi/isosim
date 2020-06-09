@@ -8,6 +8,8 @@
 # ISO WebSim
 A very short screencast - [https://youtu.be/vSRZ_nzU-Jg](https://youtu.be/vSRZ_nzU-Jg)
 
+Pulling a [docker](https://github.com/rkbalgi/isosim/wiki/Running-on-Docker) image would be the quickest way to run without any hassles of building/configuring etc!
+
 ![](https://github.com/rkbalgi/isosim/wiki/home_collage.png)
 
 
