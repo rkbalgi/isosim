@@ -1,0 +1,24 @@
+name: build
+on:
+  push:   
+    branches: 
+      - master
+  schedule:
+  - cron: '0 0 */7 * *'
+
+jobs:
+  checks:
+    name: run
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - run: go test -v -coverprofile=coverage.out ./...
+
+    - name: run
+      uses: cedrickring/golang-action@1.5.1
+    
+    - uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./coverage.out
+        fail_ci_if_error: true

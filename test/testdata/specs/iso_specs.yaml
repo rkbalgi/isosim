@@ -1,0 +1,689 @@
+specs:
+  - name: ISO8583-Test
+    id: 3
+    header_fields:
+      - name: "$$header_mti$$"
+        id: 1
+        type: Fixed
+        size: 4
+        data_encoding: ASCII
+        children: []
+    messages:
+      - name: "1100 - Authorization"
+        header_match:
+          - "1100"
+          - "1110"
+        id: 1
+        fields:
+          - name: "Message Type"
+            id: 1
+            type: Fixed
+            size: 4
+            data_encoding: ASCII
+            constraints:
+              content_type: Numeric
+            children: []
+          - name: "Bitmap"
+            id: 2
+            type: Bitmapped
+            data_encoding: BINARY
+            children:
+              - name: "PAN"
+                id: 3
+                type: Variable
+                length_indicator_size: 2
+                length_indicator_encoding: ASCII
+                data_encoding: ASCII
+                position: 2
+                constraints:
+                  content_type: Numeric
+                  max_size: 19
+                  min_size: 12
+              - name: "Processing Code"
+                id: 4
+                type: Fixed
+                size: 6
+                data_encoding: ASCII
+                position: 3
+                children:
+                  - name: "Transaction Type"
+                    id: 5
+                    type: Fixed
+                    size: 2
+                    data_encoding: ASCII
+                    position: 1
+                  - name: "Acct From"
+                    id: 6
+                    type: Fixed
+                    size: 2
+                    data_encoding: ASCII
+                    position: 2
+                  - name: "Acct To"
+                    id: 7
+                    type: Fixed
+                    size: 2
+                    data_encoding: ASCII
+                    position: 3
+              - name: "Amount"
+                id: 8
+                type: Fixed
+                size: 12
+                data_encoding: ASCII
+                position: 4
+
+              - name: "STAN"
+                id: 9
+                type: Fixed
+                size: 6
+                data_encoding: ASCII
+                key: true
+                position: 11
+
+              - name: "Time, Local Transaction"
+                id: 16
+                type: Fixed
+                size: 6
+                data_encoding: ASCII
+                hint:
+                  type: "date_time"
+                  format: "HHmmss"
+                position: 12
+
+              - name: "Date, Local Transaction"
+                id: 17
+                type: Fixed
+                size: 4
+                data_encoding: ASCII
+                hint:
+                  type: "date_time"
+                  format: "MMdd"
+                position: 13
+
+              - name: "Merchant Type"
+                id: 19
+                type: Fixed
+                size: 4
+                data_encoding: ASCII
+                hint:
+                  type: "enumerated"
+                  values:
+                    - {value: "5139", description: "5139 - Commercial Footwear"}
+                    - {value: "5172", description: "5172 - Petroleum and Petroleum Products"}
+                    - {value: "5311", description: "5311 - Department Stores"}
+                    - {value: "5411", description: "5411 - Supermarkets"}
+                    - {value: "9311", description: "9311 - Tax Payments"}
+                position: 18
+
+              - name: "Country Code, Acquiring Institution"
+                id: 18
+                type: Fixed
+                size: 3
+                data_encoding: ASCII
+                hint:
+                  type: "country_code"
+                position: 19
+
+              - name: "Approval Code"
+                id: 10
+                type: Fixed
+                size: 6
+                data_encoding: ASCII
+                position: 38
+              - name: "Action Code"
+                id: 11
+                type: Fixed
+                size: 3
+                data_encoding: ASCII
+                position: 39
+              - name: "PIN Data"
+                id: 12
+                type: Fixed
+                size: 8
+                data_encoding: BINARY
+                position: 52
+                gen_type: "pin_gen"
+                pin_gen_props:
+                  pin_clear: "1234"
+                  pin_format: "ISO0"
+                  pin_key: "AB9292288227277226252525224665FE"
+                  pan_field_id: 3
+                  pan_extract_params: "0:15"
+                  pan: ""
+              - name: "Currency Code, Transaction"
+                id: 14
+                type: Fixed
+                size: 3
+                data_encoding: ASCII
+                hint:
+                  type: "currency_code"
+                position: 49
+              - name: "Currency Code, Settlement"
+                id: 15
+                type: Fixed
+                size: 3
+                data_encoding: ASCII
+                position: 50
+              - name: "MAC"
+                id: 13
+                type: Fixed
+                size: 8
+                data_encoding: BINARY
+                position: 64
+                gen_type: "mac_gen"
+                mac_gen_props:
+                  mac_algo: "ANSIX9_19"
+                  mac_key: "AB9292288227277226252525224665FE"
+
+
+      - name: "1420 - Reversal"
+        id: 2
+        header_match:
+          - "1420"
+          - "1430"
+        fields:
+          - name: "Message Type"
+            id: 1
+            type: Fixed
+            size: 4
+            data_encoding: ASCII
+            constraints:
+              content_type: Numeric
+            children: []
+          - name: "Bitmap"
+            id: 2
+            type: Bitmapped
+            data_encoding: BINARY
+            children:
+              - name: "PAN"
+                id: 3
+                type: Variable
+                length_indicator_size: 2
+                length_indicator_encoding: ASCII
+                data_encoding: ASCII
+                position: 2
+              - name: "Processing Code"
+                id: 4
+                type: Fixed
+                size: 6
+                data_encoding: ASCII
+                position: 3
+              - name: "Amount"
+                id: 5
+                type: Fixed
+                size: 12
+                data_encoding: ASCII
+                position: 4
+              - name: "STAN"
+                id: 6
+                type: Fixed
+                size: 6
+                key: true
+                data_encoding: ASCII
+                position: 11
+              - name: "Retrieval Ref Code"
+                id: 7
+                type: Variable
+                length_indicator_size: 2
+                length_indicator_encoding: ASCII
+                data_encoding: ASCII
+                position: 37
+              - name: "Approval Code"
+                id: 8
+                type: Fixed
+                size: 6
+                data_encoding: ASCII
+                position: 38
+              - name: "Action Code"
+                id: 9
+                type: Fixed
+                size: 3
+                data_encoding: ASCII
+                position: 39
+              - name: "PIN Data"
+                id: 10
+                type: Fixed
+                size: 8
+                data_encoding: BINARY
+                position: 52
+              - name: "MAC"
+                id: 11
+                type: Fixed
+                size: 8
+                data_encoding: BINARY
+                position: 64
+      - name: "1100(A) - Authorization"
+        description: A sample authorization message with an ASCII bitmap
+        id: 3
+        fields:
+          - name: "Message Type"
+            id: 1
+            type: Fixed
+            size: 4
+            data_encoding: ASCII
+            constraints:
+              content_type: Numeric
+            children: []
+          - name: "Bitmap"
+            id: 2
+            type: Bitmapped
+            data_encoding: ASCII
+            children:
+              - name: "PAN"
+                id: 3
+                type: Variable
+                length_indicator_size: 2
+                length_indicator_encoding: ASCII
+                data_encoding: ASCII
+                position: 2
+                constraints:
+                  content_type: Numeric
+                  max_size: 19
+                  min_size: 12
+              - name: "Processing Code"
+                id: 4
+                type: Fixed
+                size: 6
+                data_encoding: ASCII
+                position: 3
+                children: []
+              - name: "Amount"
+                id: 8
+                type: Fixed
+                size: 12
+                data_encoding: ASCII
+                position: 4
+              - name: "STAN"
+                id: 9
+                type: Fixed
+                size: 6
+                data_encoding: ASCII
+                position: 11
+              - name: "Track 2"
+                id: 10
+                type: Variable
+                length_indicator_size: 2
+                data_encoding: BINARY
+                length_indicator_encoding: ASCII
+                position: 35
+              - name: "Track 3"
+                id: 11
+                type: Variable
+                length_indicator_size: 2
+                data_encoding: BINARY
+                length_indicator_encoding: ASCII
+                position: 36
+              - name: "Approval Code"
+                id: 12
+                type: Fixed
+                size: 6
+                data_encoding: ASCII
+                position: 38
+              - name: "Action Code"
+                id: 13
+                type: Fixed
+                size: 3
+                data_encoding: ASCII
+                position: 39
+              - name: "PIN Data"
+                id: 14
+                type: Fixed
+                size: 8
+                data_encoding: BINARY
+                position: 52
+              - name: "ICC Data"
+                id: 15
+                type: Variable
+                length_indicator_size: 2
+                data_encoding: BINARY
+                length_indicator_encoding: ASCII
+                position: 55
+              - name: "MAC"
+                id: 16
+                type: Fixed
+                size: 8
+                data_encoding: BINARY
+                position: 64
+              - name: "Original Data Elements"
+                id: 17
+                type: Fixed
+                size: 8
+                data_encoding: BINARY
+                position: 90
+              - name: "Reserved - National Use"
+                id: 18
+                type: Fixed
+                size: 8
+                data_encoding: BINARY
+                position: 118
+              - name: "Reserved - Private Use"
+                id: 19
+                type: Fixed
+                size: 8
+                data_encoding: BINARY
+                position: 120
+              - name: "MAC(2)"
+                id: 20
+                type: Fixed
+                size: 8
+                data_encoding: BINARY
+                position: 128
+      - name: "1100(E) - Authorization"
+        description: A sample authorization message with an EBCDIC bitmap
+        id: 4
+        fields:
+          - name: "Message Type"
+            id: 1
+            type: Fixed
+            size: 4
+            data_encoding: EBCDIC
+            constraints:
+              content_type: Numeric
+            children: []
+          - name: "Bitmap"
+            id: 2
+            type: Bitmapped
+            data_encoding: EBCDIC
+            children:
+              - name: "PAN"
+                id: 3
+                type: Variable
+                length_indicator_size: 2
+                length_indicator_encoding: ASCII
+                data_encoding: ASCII
+                position: 2
+                constraints:
+                  content_type: Numeric
+                  max_size: 19
+                  min_size: 12
+              - name: "Processing Code"
+                id: 4
+                type: Fixed
+                size: 6
+                data_encoding: ASCII
+                position: 3
+                children: []
+              - name: "Amount"
+                id: 8
+                type: Fixed
+                size: 12
+                data_encoding: ASCII
+                position: 4
+              - name: "STAN"
+                id: 9
+                type: Fixed
+                size: 6
+                data_encoding: ASCII
+                position: 11
+              - name: "Track 2"
+                id: 10
+                type: Variable
+                length_indicator_size: 2
+                data_encoding: BINARY
+                length_indicator_encoding: ASCII
+                position: 35
+              - name: "Track 3"
+                id: 11
+                type: Variable
+                length_indicator_size: 2
+                data_encoding: BINARY
+                length_indicator_encoding: ASCII
+                position: 36
+              - name: "Approval Code"
+                id: 12
+                type: Fixed
+                size: 6
+                data_encoding: ASCII
+                position: 38
+              - name: "Action Code"
+                id: 13
+                type: Fixed
+                size: 3
+                data_encoding: ASCII
+                position: 39
+              - name: "PIN Data"
+                id: 14
+                type: Fixed
+                size: 8
+                data_encoding: BINARY
+                position: 52
+              - name: "ICC Data"
+                id: 15
+                type: Variable
+                length_indicator_size: 2
+                data_encoding: BINARY
+                length_indicator_encoding: ASCII
+                position: 55
+              - name: "MAC"
+                id: 16
+                type: Fixed
+                size: 8
+                data_encoding: BINARY
+                position: 64
+              - name: "Original Data Elements"
+                id: 17
+                type: Fixed
+                size: 8
+                data_encoding: BINARY
+                position: 90
+              - name: "Reserved - National Use"
+                id: 18
+                type: Fixed
+                size: 8
+                data_encoding: BINARY
+                position: 118
+              - name: "Reserved - Private Use"
+                id: 19
+                type: Fixed
+                size: 8
+                data_encoding: BINARY
+                position: 120
+              - name: "MAC(2)"
+                id: 20
+                type: Fixed
+                size: 8
+                data_encoding: BINARY
+                position: 128
+      - name: "Playground"
+        description: A sample message used in test and other experiements
+        id: 5
+        fields:
+          - name: "Message Type"
+            id: 1
+            type: Fixed
+            size: 4
+            data_encoding: ASCII
+            constraints:
+              content_type: Numeric
+            children: []
+          - name: "Bitmap"
+            id: 2
+            type: Bitmapped
+            data_encoding: ASCII
+            children:
+              - name: "PAN"
+                id: 3
+                type: Variable
+                length_indicator_size: 2
+                length_indicator_encoding: ASCII
+                data_encoding: ASCII
+                position: 2
+                constraints:
+                  content_type: Numeric
+                  max_size: 19
+                  min_size: 12
+              - name: "Processing Code"
+                id: 4
+                type: Fixed
+                size: 6
+                data_encoding: ASCII
+                position: 3
+                children: []
+
+              - name: "Amount"
+                id: 8
+                type: Fixed
+                size: 12
+                data_encoding: ASCII
+                padding: LEADING_ZEROES
+                position: 4
+              - name: "Amount"
+                id: 17
+                type: Fixed
+                size: 12
+                data_encoding: EBCDIC
+                padding: TRAILING_ZEROES
+                position: 5
+
+              - name: "BCDField_PadLeading0"
+                id: 18
+                type: Fixed
+                size: 3
+                data_encoding: BCD
+                padding: LEADING_ZEROES
+                position: 6
+
+              - name: "BCDField_PadTrailing0"
+                id: 19
+                type: Fixed
+                size: 3
+                data_encoding: BCD
+                padding: TRAILING_ZEROES
+                position: 7
+
+              - name: "BinaryField_PadLeading0"
+                id: 20
+                type: Fixed
+                size: 3
+                data_encoding: BINARY
+                padding: LEADING_ZEROES
+                position: 8
+
+              - name: "BinaryField_PadTrailing0"
+                id: 21
+                type: Fixed
+                size: 3
+                data_encoding: BINARY
+                padding: TRAILING_ZEROES
+                position: 9
+
+
+
+              - name: "STAN"
+                id: 9
+                type: Fixed
+                size: 6
+                data_encoding: ASCII
+                position: 11
+
+              - name: "BinaryField_PadLeadingF"
+                id: 22
+                type: Fixed
+                size: 3
+                data_encoding: BINARY
+                padding: LEADING_F
+                position: 12
+
+              - name: "BinaryField_PadTrailingF"
+                id: 23
+                type: Fixed
+                size: 3
+                data_encoding: BINARY
+                padding: TRAILING_F
+                position: 13
+
+              - name: "PAN_BCD_Special"
+                id: 29
+                type: Variable
+                length_indicator_size: 2
+                length_indicator_multiplier: 2
+                length_indicator_encoding: BCD
+                data_encoding: BINARY
+                padding: TRAILING_F
+                position: 14
+
+              - name: "ASCIIField_PadTrailingSpaces"
+                id: 25
+                type: Fixed
+                size: 10
+                data_encoding: ASCII
+                padding: TRAILING_SPACES
+                position: 15
+
+
+              - name: "ASCIIField_PadLeadingSpaces"
+                id: 26
+                type: Fixed
+                size: 10
+                data_encoding: ASCII
+                padding: LEADING_SPACES
+                position: 16
+
+              - name: "EBCDICField_PadTrailingSpaces"
+                id: 27
+                type: Fixed
+                size: 10
+                data_encoding: EBCDIC
+                padding: TRAILING_SPACES
+                position: 17
+
+              - name: "EBCDICField_LeadingZeroes"
+                id: 28
+                type: Fixed
+                size: 10
+                data_encoding: EBCDIC
+                padding: LEADING_ZEROES
+                position: 18
+
+
+              - name: "Track 2"
+                id: 10
+                type: Variable
+                length_indicator_size: 2
+                data_encoding: BINARY
+                length_indicator_encoding: ASCII
+                position: 35
+
+              - name: "Track 3"
+                id: 11
+                type: Variable
+                length_indicator_size: 2
+                data_encoding: BINARY
+                length_indicator_encoding: ASCII
+                position: 36
+
+
+              - name: "Approval Code"
+                id: 12
+                type: Fixed
+                size: 6
+                data_encoding: ASCII
+                position: 38
+              - name: "Action Code"
+                id: 13
+                type: Fixed
+                size: 3
+                data_encoding: ASCII
+                position: 39
+              - name: "PIN Data"
+                id: 14
+                type: Fixed
+                size: 8
+                data_encoding: BINARY
+                position: 52
+              - name: "ICC Data"
+                id: 15
+                type: Variable
+                length_indicator_size: 2
+                data_encoding: BINARY
+                length_indicator_encoding: ASCII
+                position: 55
+              - name: "MAC"
+                id: 16
+                type: Fixed
+                size: 8
+                data_encoding: BINARY
+                position: 64
+
+
+
+

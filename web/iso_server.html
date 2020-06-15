@@ -1,0 +1,651 @@
+<html>
+
+
+<head>
+
+  <link href="https://fonts.googleapis.com/css?family=Lora" rel="stylesheet">
+
+  <link rel="stylesheet" type="text/css" href="isosim_styles.css">
+  <link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="bootstrap-dialog.min.css">
+
+  <script type="text/javascript" src="jquery-3.1.0.js"></script>
+  <script type="text/javascript" src="bootstrap.min.js"></script>
+
+  <script type="text/javascript" src="bootstrap-dialog.min.js"></script>
+
+
+  <script type="text/javascript" src="isosim_common.js"></script>
+
+</head>
+
+<body>
+
+
+<div id="headerDiv">
+  <div class="cl_cursive_heading"> ISO WebSim - Manage Servers</div>
+</div>
+
+
+<div id="navDiv">
+
+  <ul style="list-style-type: none; margin:0;padding:0;">
+    <li>
+      <button onclick="addMsgSelector()" class="cl_small_btn"> + Msg Selector</button>
+    </li>
+    <li>
+      <button onclick="loadDef()" id="idLoadDefBtn" class="cl_small_btn" disabled>Load Definition
+      </button>
+    </li>
+    <li>
+      <button onclick="saveServer()" class="cl_small_btn">Save</button>
+    </li>
+    <li>
+      <button onclick="showActiveServers()" class="cl_small_btn">Show Active Servers</button>
+    </li>
+    <li>
+      <button onclick="startServer()" class="cl_small_btn">Start</button>
+    </li>
+  </ul>
+
+
+</div>
+
+
+<div id="bodyDiv">
+  <table class="cl_field_name">
+
+    <tr>
+      <td> Server Name</td>
+      <td>
+        <input type="text" id="idServerName" class="cl_field_name" value="IsoTestSpec_Server_01"/>
+      </td>
+    </tr>
+    <tr>
+      <td> Server Port</td>
+      <td>
+        <input type="text" id="idServerPort" class="cl_field_name" value="6666"/>
+      </td>
+    </tr>
+    <tr>
+      <td> Spec</td>
+      <td>
+        <select class="cl_field_name" id="idSpecs">
+        </select>
+      </td>
+    </tr>
+
+    <tr>
+      <td>MLI Type</td>
+      <td>
+        <select id="idMliType" class="cl_field_name">
+          <option value="2I">2I</option>
+          <option value="2E">2E</option>
+          <option value="4I">4I</option>
+          <option value="4E">4E</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td> Server Def</td>
+      <td>
+        <select class="cl_field_name" id="idServerDefs">
+        </select>
+      </td>
+      <td>
+        <button onclick="fetchAllSpecDefs()" class="cl_small_btn" style="width:180px;"> Fetch All
+        </button>
+      </td>
+
+    </tr>
+  </table>
+  <br/>
+
+  <div id="serverDef">
+  </div>
+
+</div>
+
+
+<br/>
+<div id="idActiveServersDiv"
+     style="border-style:ridge;display:none; background-color: #dde8e2; position:absolute; float:right; right: 20px; top: 20px;width:445px; height: 90%; z-index:99">
+
+  <div class="cl_field_name" style="width:440 px;height:20px; position:relative; float:right;">
+    <div style="background-color:#c9bdbd;height:30px;">
+      <span>Active Server Instances</span>
+      <a href='#' onclick="closeThis(this)" class="btn btn-primary link btn-sm"
+         style="cursor:pointer;float:right;background-color:#c9bdbd;">X</a>
+    </div>
+  </div>
+  <br/>
+  <br/>
+  <div class="cl_act_serv_content cl_field_name"></div>
+
+</div>
+
+
+<script type="text/javascript">
+  var msgSelectorId = 0;
+  var msgSelectionConditionId = 0;
+  var specMessages, selectedSpec;
+  var specMsgFields;
+  var fieldSelectorId = 0;
+  var proc_cond_class = "cl_proc_condition";
+  var forInspection;
+
+  var loadedServerDef = '';
+
+  function closeThis(elem) {
+    $(elem).closest('div#idActiveServersDiv').hide();
+  }
+
+  function stopServer(serverName) {
+
+    $.get('/iso/v0/server/stop?name=' + serverName, function (response) {
+
+      showActiveServers();
+      showMsgDialog('Server stopped. ');
+
+    }, 'text').fail(function () {
+
+      showErrorDialog('Failed to stop server. ' + this.responseText);
+
+    });
+
+  }
+
+  function showActiveServers() {
+
+    $.get('/iso/v0/server/active', function (response) {
+
+      //alert(response);
+      var obj = JSON.parse(response);
+      if (obj.msg) {
+        $('#idActiveServersDiv').children('div.cl_act_serv_content').html(obj.msg);
+      } else {
+
+        var htmlContent = '<table class="cl_field_name" style="font-size:13px;"><tr><th>Name</th><th>Port</th><th>Action</th></tr>'
+
+        $(obj).each(function (i, o) {
+
+          htmlContent += '<tr><td>' + o.Name + '</td><td>' + o.Port + '</td>';
+          htmlContent += '<td><button class="cl_small_btn" onclick=\"stopServer(\'' + o.Name
+              + o.Port + '\')\">Stop</button></td></tr>'
+
+        });
+        htmlContent += '</table>'
+
+      }
+
+      $('#idActiveServersDiv').children('div.cl_act_serv_content').html(htmlContent);
+      $('#idActiveServersDiv').show();
+
+    }, 'text').fail(function () {
+      $('#idActiveServersDiv').children('div.cl_act_serv_content').html(
+          'Failed to get active servers. Reason = ' + this.statusText);
+      $('#idActiveServersDiv').show();
+    });
+
+  }
+
+  var onSpecChange = function () {
+
+    $("#serverDef").html('');
+
+    selectedSpec = $('#idSpecs').val();
+    $.getJSON('/iso/v1/msgs/' + selectedSpec, function (data) {
+      console.log("Retrieved spec messages..", data)
+      specMessages = data.messages;
+    }).fail(function () {
+      showErrorDialog('failed to load spec messages!. please check if the server is running..');
+    });
+  }
+
+  function showDiv(divId) {
+
+    hideAll();
+    $('#' + divId).show();
+  }
+
+  function hideAll() {
+    ['idStartServerDiv', 'bodyDiv'].forEach(function (e, i) {
+      $('#' + e).hide();
+    });
+  }
+
+  function showMsgDialog(msg) {
+    BootstrapDialog.alert({
+      message: msg, title: 'Information', type: BootstrapDialog.TYPE_INFO
+    });
+  }
+
+  function showErrorDialog(msg) {
+    BootstrapDialog.alert({
+      title: 'Error', message: msg, type: BootstrapDialog.TYPE_WARNING
+    });
+  }
+
+  $(document).ready(function () {
+
+    //hideAll();
+
+    //get all specs and add them to the combo
+    $.getJSON('/iso/v1/specs', function (data) {
+
+      $.each(data.specs, function (i, spec) {
+        $('#idSpecs').append('<option value="' + spec.ID + '">' + spec.Name + '</option>');
+        $('#idSpecs0').append('<option value="' + spec.ID + '">' + spec.Name + '</option>');
+      });
+
+      $('#idSpecs').selectedIndex = 0;
+      $('#idSpecs0').selectedIndex = 0;
+
+      selectedSpec = $('#idSpecs').val();
+      $.getJSON('/iso/v1/msgs/' + selectedSpec, function (data) {
+        specMessages = data.messages;
+      }).fail(function () {
+        showErrorDialog('failed to load spec messages!. please check if the server is running..');
+      });
+
+    }).fail(function () {
+      showErrorDialog('failed to load specs!. please check if the server is running..');
+    });
+
+    $('#idSpecs').change(onSpecChange);
+    $('#idSpecs0').change(onSpecChange);
+  });
+
+  function loadDef() {
+
+    var serverDefName = $('#idServerDefs').val();
+    var specId = $("#idSpecs").val();
+    $.get('/iso/v0/server/defs/get?specId=' + specId + '&name=' + serverDefName,
+        function (response) {
+          //alert(response);
+          $("#serverDef").html('');
+          var serverDef = JSON.parse(response);
+          //alert(serverDef.ServerName)
+          $('#idServerName').val(serverDef.ServerName);
+          $('#idServerPort').val(serverDef.ServerPort);
+          $('#idMliType').val(serverDef.MliType);
+          $('#idSpecs').val(serverDef.SpecId);
+
+          serverDef.MsgSelectionConfigs.forEach(function (msc, i) {
+            addMsgSelector(msc);
+
+          });
+
+          loadedServerDef = serverDefName;
+
+        }, 'text').fail(function () {
+
+      showErrorDialog('failed to get spec definition - ' + this.responseText);
+
+    });
+  }
+
+  function getCurrentSpecMsgs() {
+    var htmlContent = '';
+    //alert(specMessages);
+    specMessages.forEach(function (arg) {
+      htmlContent += '<option value="' + arg.ID + '">' + arg.Name + '</option>';
+    });
+
+    return htmlContent;
+  }
+
+  function setFieldValue(id, fieldId, fieldValue, fieldsHtml) {
+    var lId = 'idFieldVal_' + fieldSelectorId;
+    var fieldValTemplate = '<div id="' + lId + '" style="margin-left:20px;padding-left:10px;" class="cl_field_val"> \
+            Set field <select class="cl_field_name"></select> Value = <input type="text" class="cl_field_value"/>\
+            <button  class="cl_small_btn" onclick="removeDiv(\'' + lId + '\')">Remove</button> \
+            </div>';
+    $('#msgConditionDiv_' + id).append(fieldValTemplate);
+    //$('#msgConditionDiv_' + id + ' select').html(getCurrentSpecMsgs());
+
+    if (!fieldsHtml) {
+      fieldsHtml = $('#msgConditionDiv_' + id).children('select.cl_field_name').html();
+    }
+
+    $('#' + lId).children('select.cl_field_name').html(fieldsHtml);
+    //alert("field id =" + fieldId);
+    $('#' + lId).children('select.cl_field_name').val(fieldId);
+    $('#' + lId).children('input.cl_field_value').val(fieldValue);
+    fieldSelectorId++;
+
+  }
+
+  function setFieldOff(id, fieldId, fieldsHtml) {
+    //alert(event)
+    var lId = 'idFieldSelect_' + fieldSelectorId;
+    var fieldOffTemplate = '<div id="' + lId + '" style="margin-left:20px;padding-left:10px;" class="cl_field_off"> \
+            Turn off field <select class="cl_field_name"></select>  <button class="cl_small_btn" onclick="removeDiv(\''
+        + lId + '\')"> Remove </button> </div>';
+    $('#msgConditionDiv_' + id).append(fieldOffTemplate);
+
+    if (!fieldsHtml) {
+      fieldsHtml = $('#msgConditionDiv_' + id).children('select.cl_field_name').html();
+    }
+
+    $('#' + lId).children('select.cl_field_name').html(fieldsHtml);
+    //alert("field id =" + fieldId);
+    $('#' + lId).children('select.cl_field_name').val(fieldId);
+    fieldSelectorId++;
+
+  }
+
+  function remove(el) {
+    $(el.target.parentNode).remove();
+
+  }
+
+  function validateNotEmpty(elem, childIds) {
+
+    retval = false;
+    childIds.forEach(function (childId, i) {
+
+      if (!$(elem).children(childId).val()) {
+        $(elem).children(childId).css('background-color', 'red');
+        retval = true;
+      } else {
+        $(elem).children(childId).css('background-color', 'white');
+      }
+
+    });
+
+    return retval;
+
+  }
+
+  function startServer() {
+
+    if (!loadedServerDef) {
+      showErrorDialog('Please load a server definition.');
+      return;
+    }
+
+    $.post(
+        '/iso/v0/server/start?specId=' + $('#idSpecs').val() + '&def=' + loadedServerDef + '&port='
+        + $('#idServerPort').val() + '&mliType=' + $('#idMliType').val(), function (response) {
+          showMsgDialog('Server started.');
+        }).fail(function () {
+      showErrorDialog('Failed to start server.');
+    })
+
+  }
+
+  function saveServer() {
+
+    var serverName = $('#idServerName').val();
+    var serverPort = $('#idServerPort').val();
+
+    if (!serverName || !serverPort) {
+      showErrorDialog('Please provide a valid server name and port.');
+      return;
+    }
+
+    if (!numericRE.exec(serverPort)) {
+      showErrorDialog('Please provide a valid listen port.');
+      return;
+    }
+
+    var serverDef = {};
+    serverDef.SpecId = parseInt($('#idSpecs').val());
+    serverDef.ServerName = serverName;
+    serverDef.ServerPort = parseInt(serverPort);
+    serverDef.MliType = $('#idMliType').val();
+    serverDef.MsgSelectionConfigs = [];
+    var validationFailed = false;
+
+    $('#serverDef').children('div.cl_msg_selector').each(function (i, elem) {
+
+      var msg = {};
+      msg.ProcessingConditions = [];
+      //msg.SpecId=$(elem).children('select.cl_spec_msg').val();
+
+      if (validateNotEmpty(elem,
+          ['input.cl_bytes_from', 'input.cl_bytes_to', 'input.cl_bytes_value'])) {
+        //alert('Please fix all the errors.');
+        //return;
+        validationFailed = true;
+
+      }
+
+      msg.Msg = parseInt($(elem).children('select.cl_spec_msg').val());
+      msg.BytesFrom = parseInt($(elem).children('input.cl_bytes_from').val());
+      msg.BytesTo = parseInt($(elem).children('input.cl_bytes_to').val());
+      msg.BytesValue = $(elem).children('input.cl_bytes_value').val();
+      serverDef.MsgSelectionConfigs.push(msg);
+
+      $(elem).children('div.cl_proc_condition').each(function (i, elem) {
+
+        var procCondition = {};
+        procCondition.OffFields = [];
+        procCondition.ValFields = [];
+        procCondition.FieldId = parseInt($(elem).children('select.cl_field_name').val());
+        procCondition.MatchConditionType = $(elem).children(
+            'select.cl_field_match_condition').val();
+
+        if (validateNotEmpty(elem, ['input[name="fieldValue"]'])) {
+          validationFailed = true;
+        }
+
+        procCondition.FieldValue = $(elem).children('input[name="fieldValue"]').val();
+        msg.ProcessingConditions.push(procCondition);
+
+        $(elem).children('div.cl_field_off').each(function (i, elem) {
+          procCondition.OffFields.push(parseInt($(elem).children('select.cl_field_name').val()));
+        });
+
+        $(elem).children('div.cl_field_val').each(function (i, elem) {
+          var fieldValCond = {};
+
+          if (validateNotEmpty(elem, ['input.cl_field_value'])) {
+            validationFailed = true;
+          }
+
+          fieldValCond.FieldId = parseInt($(elem).children('select.cl_field_name').val());
+          fieldValCond.FieldValue = $(elem).children('input.cl_field_value').val();
+          procCondition.ValFields.push(fieldValCond);
+        });
+
+      });
+
+    });
+
+    if (validationFailed) {
+      showErrorDialog('Please fix all the errors.');
+      return;
+    }
+
+    var jqXhr = $.post('/iso/v0/server/defs/save', JSON.stringify(serverDef), function (response) {
+      showMsgDialog('Server definition saved succesfully.');
+      loadedServerDef = response;
+
+    }, 'text').fail(function () {
+      showErrorDialog(
+          'Server definition could not be saved. Error = ' + jqXhr.statusText + " Reason: "
+          + jqXhr.responseText);
+
+    });
+
+  }
+
+  function addMsgProcessingCondition(id, pc) {
+
+    console.log('adding ...');
+    var msgConditionTemplate = '<br/><br/><div class="cl_proc_condition" style="margin-left:20px;padding-left:5px;" id="msgConditionDiv_'
+        + msgSelectionConditionId + '"> When field = <select class="cl_field_name"></select> value \
+            <select class="cl_field_match_condition">' + '<option value="StringEquals">StringEquals</option> \
+    <option value="IntEquals">IntEquals</option> \
+    <option value="IntGt">IntGreaterThan</option> \
+    <option value="IntLt">IntLessThan</option> \
+    <option value="Any">Any</option> ' + '</select> - <input class="cl_bytes_value" type="text" name="fieldValue"/> Do - \
+    <button onclick="setFieldValue(' + msgSelectionConditionId + ')" class="cl_small_btn">Set Field Value</button> \
+            <button onclick="setFieldOff(' + msgSelectionConditionId + ')" class="cl_small_btn"> Set Field Off </button> \
+            </div>';
+
+    $('#msgSelectorDiv_' + id).append(msgConditionTemplate);
+
+    //get fields for message selected in the parent div
+    var msgId = $('#msgSelectorDiv_' + id).children('select.cl_spec_msg').val();
+
+    $('#msgSelectorDiv_' + id).children('select.cl_spec_msg').change({
+      id: msgSelectionConditionId
+    }, function (event) {
+      var msgId = $('#msgSelectorDiv_' + id).children('select.cl_spec_msg').val();
+      $('#msgConditionDiv_' + event.data.id).children('select.cl_field_name').html(
+          getFields(msgId));
+
+    });
+
+    var fieldsHtml = getFields(msgId);
+    $('#msgConditionDiv_' + msgSelectionConditionId).children('select.cl_field_name').html(
+        fieldsHtml);
+
+    if (pc) {
+
+      $('#msgConditionDiv_' + msgSelectionConditionId).children('select.cl_field_name').val(
+          pc.FieldId);
+      $('#msgConditionDiv_' + msgSelectionConditionId).children(
+          'select.cl_field_match_condition').val(pc.MatchConditionType);
+      $('#msgConditionDiv_' + msgSelectionConditionId).children('input[name="fieldValue"]').val(
+          pc.FieldValue);
+
+      if (pc.OffFields.length > 0) {
+        pc.OffFields.forEach(function (obj, i) {
+          setFieldOff(msgSelectionConditionId, obj, fieldsHtml);
+        });
+
+      }
+      if (pc.ValFields.length > 0) {
+        pc.ValFields.forEach(function (obj, i) {
+          setFieldValue(msgSelectionConditionId, obj.FieldId, obj.FieldValue, fieldsHtml);
+        });
+
+      }
+
+    }
+
+    msgSelectionConditionId++;
+  }
+
+  function getFields(msgId) {
+
+    loadSpecMessageFields(msgId, false);
+    var htmlContent = '';
+
+    $.each(specMsgFields, function (i, v) {
+      htmlContent += '<option value="' + v.ID + '">' + v.Name + '</option>';
+    });
+
+    //alert(htmlContent);
+    return htmlContent;
+  }
+
+  function loadSpecMessageFields(msgId, pasync = true) {
+    $.get({
+      url: '/iso/v1/template/' + selectedSpec + '/' + msgId, success: function (response) {
+        var data = JSON.parse(response);
+        var fieldList = [];
+
+        $.each(data.fields, function (i, field) {
+          fieldList.push(field);
+          addFieldToList(field, fieldList);
+        });
+
+        //alert('initializing specMsgfields..' + fieldList.length);
+        specMsgFields = fieldList;
+      }, async: pasync, dataType: "text"
+    });
+
+  }
+
+  function addFieldToList(field, fieldList) {
+
+    if (field.Children.length > 0) {
+
+      $.each(field.Children, function (i, f) {
+        fieldList.push(f);
+        addFieldToList(f, fieldList);
+      });
+
+    }
+  }
+
+  function removeDiv(divId) {
+    $('#' + divId).remove();
+  }
+
+  function addMsgSelector(msc) {
+
+    var msgSelectorTemplate = '<br/><br/><div class="cl_msg_selector" style="background:#ead4d4;" id="msgSelectorDiv_'
+        + msgSelectorId
+        + '"> Use message = <select class="cl_spec_msg"></select> When bytes <input type="text" class="cl_bytes_from"/> To <input type="text" class="cl_bytes_to"/>  = <input class="cl_bytes_value" type="text"/>';
+
+    msgSelectorTemplate += '<button onclick="addMsgProcessingCondition(' + msgSelectorId
+        + ')\" class="cl_small_btn" style="width: 180px;"> Add Processing Condition  </button><button onclick="removeDiv(\'msgSelectorDiv_'
+        + msgSelectorId + '\')\" class="cl_small_btn"> Remove </button> </div>';
+
+    $("#serverDef").append(msgSelectorTemplate);
+    var elem = $('#msgSelectorDiv_' + msgSelectorId + ' select');
+    elem.html(getCurrentSpecMsgs());
+
+    //alert("debug  -" + selectedSpec + " msg = " + $(elem).val())
+    //loadSpecMessageFields($(elem).val(), false);
+    //elem.change(function () {
+    //    loadSpecMessageFields($(elem).val());
+
+    //});
+
+    if (msc) {
+      $('#msgSelectorDiv_' + msgSelectorId + ' select').val(msc.Msg);
+      $('#msgSelectorDiv_' + msgSelectorId).children('input.cl_bytes_from').val(msc.BytesFrom);
+      $('#msgSelectorDiv_' + msgSelectorId).children('input.cl_bytes_to').val(msc.BytesTo);
+      $('#msgSelectorDiv_' + msgSelectorId).children('input.cl_bytes_value').val(msc.BytesValue);
+
+      msc.ProcessingConditions.forEach(function (pc, i) {
+
+        addMsgProcessingCondition(msgSelectorId, pc);
+
+      });
+
+    }
+
+    msgSelectorId++;
+  }
+
+  function fetchAllSpecDefs() {
+
+    var specId = $('#idSpecs').val();
+
+    $.get('/iso/v0/server/defs/fetch?specId=' + specId, function (data) {
+
+      var serverDefs = JSON.parse(data);
+      var htmlContent = '<table>';
+      serverDefs.forEach(function (obj, i) {
+        //alert(obj);
+        //var id = "idOverridePort_" + i;
+        //htmlContent += '<tr><td>' + obj + '</td>' + '<td> Override Port <input type="text" id="' + id + '"/></td>' + '<td>' + //'<button onclick=' + 'startServer(' + obj + ',' + id + ')' + '">Start</button>' + '</td></tr>'
+        htmlContent += '<option name="' + obj + '">' + obj + "</option>";
+
+      });
+      htmlContent += '</table>\n';
+      $('#idServerDefs').html(htmlContent);
+      $('#idLoadDefBtn').prop('disabled', false);
+
+    }, 'text').fail(function (jqXhr, statusText, errorThrown) {
+      var errorText = jqXhr.getResponseHeader("X-IsoSim-ErrorText");
+      if (!errorText) {
+        errorText = "Unspecified";
+      }
+      showErrorDialog("Failed to get server definitions. Reason = " + errorText);
+    });
+
+  }
+</script>
+
+</body>
+
+</html>
