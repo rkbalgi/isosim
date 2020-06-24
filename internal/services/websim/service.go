@@ -132,7 +132,7 @@ func (i serviceImpl) SendToHost(ctx context.Context, specId int, msgId int, netO
 
 	if meta.MessageKey != "" {
 
-		log.Debugf("Sending message with key - %s to server: %s\n", parsedMsg.MessageKey, isoServerAddr)
+		log.Debugf("Sending message with key - %s to server: %s\n", meta.MessageKey, isoServerAddr)
 		responseChan := make(chan *isoResponse, 0)
 		ctx, cancelFunc := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancelFunc()

@@ -1,0 +1,228 @@
+specs:
+  - name: SampleSpec
+    id: 4
+    header_fields:
+      - name: "hdr_msg_type"
+        id: 1
+        type: Fixed
+        size: 4
+        data_encoding: ASCII
+        children: []
+    messages:
+      - name: "1100 - Authorization"
+        header_match:
+          - "1100"
+          - "1110"
+        id: 1
+        fields:
+          - name: "Message Type"
+            id: 1
+            type: Fixed
+            size: 4
+            data_encoding: ASCII
+
+          - name: "Bitmap"
+            id: 2
+            type: Bitmapped
+            data_encoding: BINARY
+            children:
+              - name: "pan"
+                id: 16
+                type: Variable
+                length_indicator_size: 2
+                length_indicator_encoding: ASCII
+                data_encoding: ASCII
+                position: 2
+
+              - name: "proc_code"
+                id: 3
+                type: Fixed
+                size: 6
+                data_encoding: ASCII
+                position: 3
+
+              - name: "amount"
+                id: 4
+                type: Fixed
+                size: 12
+                data_encoding: ASCII
+                position: 4
+
+              - name: "stan"
+                id: 5
+                type: Fixed
+                size: 6
+                data_encoding: ASCII
+                key: true
+                position: 11
+
+              - name: "expiration_date"
+                id: 6
+                type: Fixed
+                size: 4
+                data_encoding: ASCII
+                position: 14
+
+              - name: "country_code"
+                id: 7
+                type: Fixed
+                size: 3
+                data_encoding: EBCDIC
+                position: 19
+
+              - name: "approval_code"
+                id: 8
+                type: Fixed
+                size: 6
+                data_encoding: ASCII
+                position: 38
+
+              - name: "action_code"
+                id: 9
+                type: Fixed
+                size: 3
+                data_encoding: ASCII
+                position: 39
+
+              - name: "pin_data"
+                id: 10
+                type: Fixed
+                size: 8
+                data_encoding: BINARY
+                position: 52
+
+              - name: "private_1"
+                id: 11
+                type: Variable
+                length_indicator_size: 2
+                length_indicator_encoding: BCD
+                data_encoding: ASCII
+                position: 61
+
+              - name: "private_2"
+                id: 12
+                type: Variable
+                length_indicator_size: 1
+                length_indicator_encoding: BINARY
+                data_encoding: EBCDIC
+                position: 62
+
+              - name: "private_3"
+                id: 13
+                type: Variable
+                length_indicator_size: 3
+                length_indicator_encoding: EBCDIC
+                data_encoding: ASCII
+                position: 63
+
+              - name: "key_mgmt_data"
+                id: 14
+                type: Fixed
+                size: 4
+                data_encoding: ASCII
+                position: 96
+
+              - name: "reserved_data"
+                id: 15
+                type: Fixed
+                size: 4
+                data_encoding: ASCII
+                position: 160
+
+      - name: "1420 - Reversal"
+        header_match:
+          - "1420"
+          - "1430"
+        id: 2
+        fields:
+          - name: "Message Type"
+            id: 1
+            type: Fixed
+            size: 4
+            data_encoding: ASCII
+
+          - name: "Bitmap"
+            id: 2
+            type: Bitmapped
+            size: 0
+            data_encoding: BINARY
+            children:
+              - name: "pan"
+                id: 3
+                type: Variable
+                length_indicator_size: 2
+                length_indicator_encoding: ASCII
+                data_encoding: ASCII
+                position: 2
+
+              - name: "proc_code"
+                id: 4
+                type: Fixed
+                size: 6
+                data_encoding: ASCII
+                position: 3
+
+              - name: "amount"
+                id: 8
+                type: Fixed
+                size: 12
+                data_encoding: ASCII
+                position: 4
+
+              - name: "stan"
+                id: 9
+                type: Fixed
+                size: 6
+                data_encoding: ASCII
+                key: true
+                position: 11
+
+              - name: "expiration_date"
+                id: 16
+                type: Fixed
+                size: 4
+                data_encoding: ASCII
+                position: 14
+
+              - name: "country_code"
+                id: 17
+                type: Fixed
+                size: 3
+                data_encoding: EBCDIC
+                position: 19
+
+              - name: "approval_code"
+                id: 10
+                type: Fixed
+                size: 6
+                data_encoding: ASCII
+                position: 38
+
+              - name: "action_code"
+                id: 11
+                type: Fixed
+                size: 3
+                data_encoding: ASCII
+                position: 39
+
+              - name: "private_3"
+                id: 20
+                type: Variable
+                length_indicator_size: 3
+                length_indicator_encoding: EBCDIC
+                data_encoding: ASCII
+                position: 63
+
+              - name: "key_mgmt_data"
+                id: 14
+                type: Fixed
+                size: 4
+                data_encoding: ASCII
+                position: 96
+
+              - name: "reserved_data"
+                id: 15
+                type: Fixed
+                size: 4
+                data_encoding: ASCII
+                position: 160
