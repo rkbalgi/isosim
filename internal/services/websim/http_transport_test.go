@@ -91,7 +91,9 @@ func Test_WebsimHttpService(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		assert.Equal(t, 3, len(allSpecsResponse.Specs))
+		assert.Condition(t, func() (success bool) {
+			return len(allSpecsResponse.Specs) > 0
+		})
 		assert.Nil(t, allSpecsResponse.Err)
 
 	})
