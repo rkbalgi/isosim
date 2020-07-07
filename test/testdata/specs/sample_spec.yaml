@@ -115,12 +115,27 @@ specs:
                 data_encoding: ASCII
                 position: 63
 
+              - name: "mac_1"
+                id: 17
+                type: Fixed
+                size: 8
+                data_encoding: BINARY
+                position: 64
+
               - name: "key_mgmt_data"
                 id: 14
                 type: Fixed
                 size: 4
                 data_encoding: ASCII
                 position: 96
+
+              - name: "mac_2"
+                id: 18
+                type: Fixed
+                size: 8
+                data_encoding: BINARY
+                position: 128
+
 
               - name: "reserved_data"
                 id: 15
