@@ -9,10 +9,10 @@ import (
 	"errors"
 	"fmt"
 	net2 "github.com/rkbalgi/libiso/net"
+	isov2 "github.com/rkbalgi/libiso/v2/iso8583"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"isosim/internal/db"
-	"isosim/internal/iso"
 	"isosim/internal/services/data"
 	"net"
 	"sort"
@@ -38,7 +38,7 @@ var inFlights = make(map[string]chan *isoResponse)
 // Service exposes the ISO WebSim API required by the frontend (browser)
 type Service interface {
 	GetAllSpecs(ctx context.Context) ([]UISpec, error)
-	GetMessages4Spec(ctx context.Context, specId int) ([]*iso.Message, error)
+	GetMessages4Spec(ctx context.Context, specId int) ([]*isov2.Message, error)
 	GetMessageTemplate(ctx context.Context, specId int, msgId int) (*data.JsonMessageTemplate, error)
 	LoadOrFetchSavedMessages(ctx context.Context, specId int, msgId int, savedMsgName string) (*SavedMsg, []string, error)
 	ParseTrace(ctx context.Context, specId int, msgId int, msgTrace string) (*[]data.JsonFieldDataRep, error)
@@ -50,7 +50,7 @@ type Service interface {
 type serviceImpl struct{}
 
 type isoResponse struct {
-	responseMsg  *iso.ParsedMsg
+	responseMsg  *isov2.ParsedMsg
 	responseData []byte
 	err          error
 }
@@ -64,7 +64,7 @@ func New() Service {
 // SendToHost sends a request (ISO message) to a host and returns the response as a array of fields
 func (i serviceImpl) SendToHost(ctx context.Context, specId int, msgId int, netOpts NetOptions, msgData string) (*[]data.JsonFieldDataRep, error) {
 
-	spec := iso.SpecByID(specId)
+	spec := isov2.SpecByID(specId)
 	if spec == nil {
 		return nil, errors.New("isosim: No such spec")
 	}
@@ -86,7 +86,7 @@ func (i serviceImpl) SendToHost(ctx context.Context, specId int, msgId int, netO
 		return nil, err
 	}
 
-	isoMsg := iso.FromParsedMsg(parsedMsg)
+	isoMsg := isov2.FromParsedMsg(parsedMsg)
 	reqIsoMsg, meta, err := isoMsg.Assemble()
 	if err != nil {
 		log.Errorln("Failed to assemble message", err.Error())
@@ -213,7 +213,7 @@ func send(ncc *net2.NetCatClient, reqData []byte, key string, responseChan chan 
 
 }
 
-func getOrCreateNetClient(addr string, spec *iso.Spec, mliType net2.MliType) (*net2.NetCatClient, error) {
+func getOrCreateNetClient(addr string, spec *isov2.Spec, mliType net2.MliType) (*net2.NetCatClient, error) {
 
 	if ncc, ok := cachedNCC.Load(addr); ok {
 		return ncc.(*net2.NetCatClient), nil
@@ -287,7 +287,7 @@ func getOrCreateNetClient(addr string, spec *iso.Spec, mliType net2.MliType) (*n
 // ParseTrace parses a provided trace and returns a list of parsed fields
 func (serviceImpl) ParseTrace(ctx context.Context, specId int, msgId int, msgTrace string) (*[]data.JsonFieldDataRep, error) {
 
-	spec := iso.SpecByID(specId)
+	spec := isov2.SpecByID(specId)
 	if spec == nil {
 		return nil, errors.New("isosim: No such spec")
 	}
@@ -315,7 +315,7 @@ func (serviceImpl) ParseTrace(ctx context.Context, specId int, msgId int, msgTra
 // so can be used by external entities
 func (serviceImpl) ParseTraceExternal(ctx context.Context, specName string, msgName string, msgTrace string) (*[]data.JsonFieldDataRep, error) {
 
-	spec := iso.SpecByName(specName)
+	spec := isov2.SpecByName(specName)
 	if spec == nil {
 		return nil, errors.New("isosim: No such spec")
 	}
@@ -342,7 +342,7 @@ func (serviceImpl) ParseTraceExternal(ctx context.Context, specName string, msgN
 // SaveMessage saves a parsed message into persistent storage so that it can be fetched later
 func (serviceImpl) SaveMessage(ctx context.Context, specId int, msgId int, msgName string, msgData string, responseData string, update bool) error {
 
-	spec := iso.SpecByID(specId)
+	spec := isov2.SpecByID(specId)
 	if spec == nil {
 		return errors.New("isosim: No such spec")
 	}
@@ -365,12 +365,12 @@ func (serviceImpl) SaveMessage(ctx context.Context, specId int, msgId int, msgNa
 
 }
 
-func ToJsonList(parsedMsg *iso.ParsedMsg) []data.JsonFieldDataRep {
+func ToJsonList(parsedMsg *isov2.ParsedMsg) []data.JsonFieldDataRep {
 
 	fieldDataList := make([]data.JsonFieldDataRep, 0, 10)
 	for id, fieldData := range parsedMsg.FieldDataMap {
 		dataRep := data.JsonFieldDataRep{ID: id, Name: fieldData.Field.Name, Value: fieldData.Field.ValueToString(fieldData.Data)}
-		if fieldData.Field.Type == iso.BitmappedType {
+		if fieldData.Field.Type == isov2.BitmappedType {
 			dataRep.Value = fieldData.Bitmap.BinaryString()
 
 		}
@@ -400,7 +400,7 @@ func (serviceImpl) GetAllSpecs(ctx context.Context) ([]UISpec, error) {
 
 	specs := make([]UISpec, 0)
 
-	for _, s := range iso.AllSpecs() {
+	for _, s := range isov2.AllSpecs() {
 
 		messages := make([]struct {
 			ID   int
@@ -427,8 +427,8 @@ func (serviceImpl) GetAllSpecs(ctx context.Context) ([]UISpec, error) {
 }
 
 // GetMessages4Spec returns all the defined messages for a given spec
-func (serviceImpl) GetMessages4Spec(ctx context.Context, specId int) ([]*iso.Message, error) {
-	sp := iso.SpecByID(specId)
+func (serviceImpl) GetMessages4Spec(ctx context.Context, specId int) ([]*isov2.Message, error) {
+	sp := isov2.SpecByID(specId)
 	if sp == nil {
 		return nil, errors.New("isosim: No such spec")
 	}
@@ -438,7 +438,7 @@ func (serviceImpl) GetMessages4Spec(ctx context.Context, specId int) ([]*iso.Mes
 // GetMessageTemplate returns the template/layout for the given spec ad message
 func (i serviceImpl) GetMessageTemplate(ctx context.Context, specId int, msgId int) (*data.JsonMessageTemplate, error) {
 
-	spec := iso.SpecByID(specId)
+	spec := isov2.SpecByID(specId)
 	if spec == nil {
 		return nil, errors.New("isosim: No such spec")
 	}
