@@ -4,20 +4,20 @@ import (
 	"encoding/hex"
 	"errors"
 	"github.com/rkbalgi/libiso/crypto/mac"
+	isov2 "github.com/rkbalgi/libiso/v2/iso8583"
 	log "github.com/sirupsen/logrus"
-	"isosim/internal/iso"
 )
 
 type Service interface {
-	GeneratePin(format iso.PinFormat, clearPin string, pan string, pinKey []byte) ([]byte, error)
-	GenerateMac(format iso.MacAlgo, macKey string, msgData []byte) ([]byte, error)
+	GeneratePin(format isov2.PinFormat, clearPin string, pan string, pinKey []byte) ([]byte, error)
+	GenerateMac(format isov2.MacAlgo, macKey string, msgData []byte) ([]byte, error)
 }
 
 type serviceImpl struct {
 }
 
 // GenerateMac generates a MAC using the specified parameters
-func (s serviceImpl) GenerateMac(algo iso.MacAlgo, macKey string, msgData []byte) ([]byte, error) {
+func (s serviceImpl) GenerateMac(algo isov2.MacAlgo, macKey string, msgData []byte) ([]byte, error) {
 
 	key, err := hex.DecodeString(macKey)
 	if err != nil || len(key) != 16 {
@@ -30,7 +30,7 @@ func (s serviceImpl) GenerateMac(algo iso.MacAlgo, macKey string, msgData []byte
 	log.Debugf("Generating MAC: \n%s\n MAC Key: %s\n", hex.Dump(msgData), hex.EncodeToString(key))
 
 	switch algo {
-	case iso.ANSIX9_19:
+	case isov2.ANSIX9_19:
 		return mac.GenerateMacX919(msgData, key)
 	default:
 		return nil, errors.New(string("isosim: Unsupported MAC algorithm: " + algo))
@@ -39,9 +39,9 @@ func (s serviceImpl) GenerateMac(algo iso.MacAlgo, macKey string, msgData []byte
 }
 
 // GeneratePin generates a PIN block as per the format
-func (s serviceImpl) GeneratePin(format iso.PinFormat, clearPin string, pan string, pinKey []byte) ([]byte, error) {
+func (s serviceImpl) GeneratePin(format isov2.PinFormat, clearPin string, pan string, pinKey []byte) ([]byte, error) {
 
-	pgp := &iso.PinGenProps{
+	pgp := &isov2.PinGenProps{
 		PINClear:  clearPin,
 		PINFormat: format,
 		PINKey:    hex.EncodeToString(pinKey),

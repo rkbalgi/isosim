@@ -3,9 +3,9 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	isov2 "github.com/rkbalgi/libiso/v2/iso8583"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	"isosim/internal/iso"
 	"isosim/internal/iso/server"
 	"isosim/internal/services/data"
 	"os"
@@ -30,7 +30,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := iso.ReadSpecs(*specsDir); err != nil {
+	if err := isov2.ReadSpecs(*specsDir); err != nil {
 		log.Fatal(err)
 	}
 

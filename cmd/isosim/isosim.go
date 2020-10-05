@@ -3,9 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	isov2 "github.com/rkbalgi/libiso/v2/iso8583"
+	"isosim/internal/iso"
+
 	log "github.com/sirupsen/logrus"
 	"isosim/internal/db"
-	"isosim/internal/iso"
 	"isosim/internal/services"
 	"net/http"
 	_ "net/http/pprof"
@@ -65,7 +67,7 @@ func main() {
 	}
 
 	//read all the specs from the spec file
-	err = iso.ReadSpecs(*specsDir)
+	err = isov2.ReadSpecs(*specsDir)
 	if err != nil {
 		log.Fatal(err.Error())
 	}

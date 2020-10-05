@@ -3,7 +3,7 @@
 package data
 
 import (
-	"isosim/internal/iso"
+	isov2 "github.com/rkbalgi/libiso/v2/iso8583"
 )
 
 // JsonFieldInfoRep is a field info that is used in the front end application (sent as a result of
@@ -24,9 +24,9 @@ type JsonFieldInfoRep struct {
 	LengthEncoding      string
 	Padding             string
 	GenType             string
-	PinGenProps         *iso.PinGenProps
-	MacGenProps         *iso.MacGenProps
-	Hint                iso.Hint
+	PinGenProps         *isov2.PinGenProps
+	MacGenProps         *isov2.MacGenProps
+	Hint                isov2.Hint
 }
 
 // JsonFieldDataRep is the representation of a field's data
@@ -49,7 +49,7 @@ type JsonMessageTemplate struct {
 	Fields []*JsonFieldInfoRep
 }
 
-func newJsonFieldTemplate(field *iso.Field) *JsonFieldInfoRep {
+func newJsonFieldTemplate(field *isov2.Field) *JsonFieldInfoRep {
 
 	jFieldInfo := &JsonFieldInfoRep{
 		Name:         field.Name,
@@ -67,25 +67,25 @@ func newJsonFieldTemplate(field *iso.Field) *JsonFieldInfoRep {
 	jFieldInfo.Type = string(field.Type)
 
 	switch field.Type {
-	case iso.BitmappedType:
+	case isov2.BitmappedType:
 
-	case iso.FixedType:
+	case isov2.FixedType:
 		jFieldInfo.Type = "Fixed"
 		jFieldInfo.FixedSize = field.Size
 		if len(field.Constraints.ContentType) > 0 {
 			jFieldInfo.ContentType = field.Constraints.ContentType
 		} else {
-			jFieldInfo.ContentType = iso.ContentTypeAny
+			jFieldInfo.ContentType = isov2.ContentTypeAny
 		}
 
-	case iso.VariableType:
+	case isov2.VariableType:
 
 		jFieldInfo.LengthIndicatorSize = field.LengthIndicatorSize
 		jFieldInfo.LengthEncoding = field.LengthIndicatorEncoding.AsString()
 		if len(field.Constraints.ContentType) > 0 {
 			jFieldInfo.ContentType = field.Constraints.ContentType
 		} else {
-			jFieldInfo.ContentType = iso.ContentTypeAny
+			jFieldInfo.ContentType = isov2.ContentTypeAny
 		}
 
 		jFieldInfo.MinSize = field.Constraints.MinSize
@@ -107,7 +107,7 @@ func newJsonFieldTemplate(field *iso.Field) *JsonFieldInfoRep {
 
 }
 
-func NewJsonMessageTemplate(msg *iso.Message) *JsonMessageTemplate {
+func NewJsonMessageTemplate(msg *isov2.Message) *JsonMessageTemplate {
 
 	jsonMsgTemplate := &JsonMessageTemplate{Fields: make([]*JsonFieldInfoRep, 0, 10)}
 	for _, field := range msg.Fields {

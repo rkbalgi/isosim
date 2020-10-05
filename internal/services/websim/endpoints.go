@@ -6,7 +6,7 @@ import (
 	"github.com/go-kit/kit/endpoint"
 	"github.com/go-kit/kit/log"
 	netutil "github.com/rkbalgi/libiso/net"
-	"isosim/internal/iso"
+	isov2 "github.com/rkbalgi/libiso/v2/iso8583"
 	"isosim/internal/services/data"
 )
 
@@ -19,8 +19,8 @@ type GetAllSpecResponse struct {
 
 type GetMessages4SpecRequest struct{ specId int }
 type GetMessages4SpecResponse struct {
-	Messages []*iso.Message `json:"messages"`
-	Err      error          `json:"-"`
+	Messages []*isov2.Message `json:"messages"`
+	Err      error            `json:"-"`
 }
 
 type GetMessageTemplateRequest struct {

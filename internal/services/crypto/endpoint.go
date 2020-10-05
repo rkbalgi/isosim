@@ -6,17 +6,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-kit/kit/endpoint"
+	isov2 "github.com/rkbalgi/libiso/v2/iso8583"
 	log "github.com/sirupsen/logrus"
-	"isosim/internal/iso"
 	"isosim/internal/services/data"
 	"strings"
 )
 
 type PinGenRequest struct {
-	PINClear  string        `yaml:"pin_clear",json:"pin_clear"`
-	PINFormat iso.PinFormat `yaml:"pin_format",json:"pin_format"`
-	PINKey    string        `yaml:"pin_key",json:"pin_key"`
-	PAN       string        `yaml:"pan",json:"pan"`
+	PINClear  string          `yaml:"pin_clear",json:"pin_clear"`
+	PINFormat isov2.PinFormat `yaml:"pin_format",json:"pin_format"`
+	PINKey    string          `yaml:"pin_key",json:"pin_key"`
+	PAN       string          `yaml:"pan",json:"pan"`
 }
 
 type PinGenResponse struct {
@@ -29,9 +29,9 @@ func (pgr PinGenResponse) Failed() error {
 }
 
 type MacGenRequest struct {
-	MacAlgo iso.MacAlgo `json:"mac_algo"`
-	MacKey  string      `json:"mac_key"`
-	MacData string      `json:"mac_data"`
+	MacAlgo isov2.MacAlgo `json:"mac_algo"`
+	MacKey  string        `json:"mac_key"`
+	MacData string        `json:"mac_data"`
 
 	SpecID       int                      `json:"spec_id"`
 	MsgID        int                      `json:"msg_id"`
@@ -81,7 +81,7 @@ func macGenEndpoint(s Service) endpoint.Endpoint {
 			}
 		} else {
 			//parse from fields
-			spec := iso.SpecByID(req.SpecID)
+			spec := isov2.SpecByID(req.SpecID)
 			if spec == nil {
 				return MacGenResponse{Err: fmt.Errorf("isosim: Invalid specID : %d", req.SpecID)}, nil
 			}
@@ -98,7 +98,7 @@ func macGenEndpoint(s Service) endpoint.Endpoint {
 			if parsedMsg, err := msg.ParseJSON(string(jsonStr)); err != nil {
 				return MacGenResponse{Err: err}, nil
 			} else {
-				macData, _, err = iso.FromParsedMsg(parsedMsg).Assemble()
+				macData, _, err = isov2.FromParsedMsg(parsedMsg).Assemble()
 				if err != nil {
 					return MacGenResponse{Err: err}, nil
 				}

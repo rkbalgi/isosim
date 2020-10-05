@@ -1,8 +1,8 @@
 package server
 
 import (
+	iso "github.com/rkbalgi/libiso/v2/iso8583"
 	log "github.com/sirupsen/logrus"
-	"isosim/internal/iso"
 	"isosim/internal/services/data"
 )
 
