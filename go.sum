@@ -210,10 +210,10 @@ github.com/prometheus/procfs v0.0.8/go.mod h1:7Qr8sr6344vo1JqZ6HhLceV9o3AJ1Ff+Gx
 github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
 github.com/rkbalgi/libiso v0.1.4 h1:dGQMRgvpe8i1dpEfg9GyuZilg7cKcrWG6STWyBGfM80=
 github.com/rkbalgi/libiso v0.1.4/go.mod h1:h4uRr0I72BG7sajrG5uljWWfQq3SPZTE21W7NOVadvY=
-github.com/rkbalgi/libiso v0.1.5-0.20200513063448-de9fd4ba7bce h1:ID0vpI8Ad2Eh0yeNnoRPnk0LrddQVpotCN5u5zlfUdA=
-github.com/rkbalgi/libiso v0.1.5-0.20200513063448-de9fd4ba7bce/go.mod h1:h4uRr0I72BG7sajrG5uljWWfQq3SPZTE21W7NOVadvY=
-github.com/rkbalgi/libiso/v2 v2.0.0-alpha.1.0.20201003172606-b76efc7d41b0 h1:ips+uVy/7uoSnsK+tn7qPhSWv9ZG/NKPpyLGm/qI3BI=
-github.com/rkbalgi/libiso/v2 v2.0.0-alpha.1.0.20201003172606-b76efc7d41b0/go.mod h1:TzvS1p61GJgFf+8lSVDwg+mns7N+wJyK9/O5n7JJpH8=
+github.com/rkbalgi/libiso v1.0.0 h1:c6mr06bRnmhNghmvK4coHLaPHnN1HSVtFhY6rqYHcTQ=
+github.com/rkbalgi/libiso v1.0.0/go.mod h1:h4uRr0I72BG7sajrG5uljWWfQq3SPZTE21W7NOVadvY=
+github.com/rkbalgi/libiso/v2 v2.0.0 h1:MqkTH9o3R9phk2W32hAtV00aDZOjscTly++4WbRvMq0=
+github.com/rkbalgi/libiso/v2 v2.0.0/go.mod h1:TzvS1p61GJgFf+8lSVDwg+mns7N+wJyK9/O5n7JJpH8=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/russross/blackfriday/v2 v2.0.1/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
