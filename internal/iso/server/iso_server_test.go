@@ -4,10 +4,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	netutil "github.com/rkbalgi/libiso/net"
+	isov2 "github.com/rkbalgi/libiso/v2/iso8583"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"isosim/internal/db"
-	"isosim/internal/iso"
 	"strconv"
 	"testing"
 )
@@ -20,11 +20,11 @@ func Test_IsoServer_MessageProcessing(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := iso.ReadSpecs("../../../test/testdata/specs"); err != nil {
+	if err := isov2.ReadSpecs("../../../test/testdata/specs"); err != nil {
 		t.Fatal(err)
 	}
 	specName := "Iso8583-MiniSpec"
-	spec := iso.SpecByName(specName)
+	spec := isov2.SpecByName(specName)
 	if spec == nil {
 		t.Fatal("No such spec - " + specName)
 	}
@@ -67,7 +67,7 @@ func Test_IsoServer_MessageProcessing(t *testing.T) {
 	if err := ncc.OpenConnection(); err != nil {
 		t.Fatal(err)
 	}
-	var parsedMsg *iso.ParsedMsg
+	var parsedMsg *isov2.ParsedMsg
 	t.Log(string(dsData))
 
 	tc := &db.TestCase{}
@@ -84,7 +84,7 @@ func Test_IsoServer_MessageProcessing(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	isoReqMsg := iso.FromParsedMsg(parsedMsg)
+	isoReqMsg := isov2.FromParsedMsg(parsedMsg)
 
 	t.Run("with amount 900", func(t *testing.T) {
 		isoReqMsg.Bitmap().Set(4, "000000000900")
@@ -92,14 +92,14 @@ func Test_IsoServer_MessageProcessing(t *testing.T) {
 
 	})
 	t.Run("with amount 200", func(t *testing.T) {
-		isoReqMsg := iso.FromParsedMsg(parsedMsg)
+		isoReqMsg := isov2.FromParsedMsg(parsedMsg)
 		isoReqMsg.Bitmap().Set(4, "000000000200")
 		sendAndVerify(t, ncc, spec, isoReqMsg, "200")
 
 	})
 
 	t.Run("with amount 100", func(t *testing.T) {
-		isoReqMsg := iso.FromParsedMsg(parsedMsg)
+		isoReqMsg := isov2.FromParsedMsg(parsedMsg)
 		isoReqMsg.Bitmap().Set(4, "000000000100")
 		sendAndVerify(t, ncc, spec, isoReqMsg, "000")
 
@@ -107,7 +107,7 @@ func Test_IsoServer_MessageProcessing(t *testing.T) {
 
 }
 
-func sendAndVerify(t *testing.T, ncc *netutil.NetCatClient, spec *iso.Spec, isoReqMsg *iso.Iso, expectedF39 string) {
+func sendAndVerify(t *testing.T, ncc *netutil.NetCatClient, spec *isov2.Spec, isoReqMsg *isov2.Iso, expectedF39 string) {
 
 	data, _, err := isoReqMsg.Assemble()
 	if err != nil {
@@ -126,7 +126,7 @@ func sendAndVerify(t *testing.T, ncc *netutil.NetCatClient, spec *iso.Spec, isoR
 	if err != nil {
 		t.Fatal(err)
 	}
-	isoResponseMsg := iso.FromParsedMsg(pResponseMsg)
+	isoResponseMsg := isov2.FromParsedMsg(pResponseMsg)
 	assert.Equal(t, expectedF39, isoResponseMsg.Bitmap().Get(39).Value())
 
 }

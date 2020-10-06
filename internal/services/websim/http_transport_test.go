@@ -7,11 +7,11 @@ import (
 	"github.com/go-kit/kit/log/logrus"
 	"github.com/go-kit/kit/transport"
 	httptransport "github.com/go-kit/kit/transport/http"
+	isov2 "github.com/rkbalgi/libiso/v2/iso8583"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"isosim/internal/db"
-	"isosim/internal/iso"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -65,7 +65,7 @@ func Test_WebsimHttpService(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := iso.ReadSpecs("../../../test/testdata/specs"); err != nil {
+	if err := isov2.ReadSpecs("../../../test/testdata/specs"); err != nil {
 		t.Fatal(err)
 	}
 	s := httptest.NewServer(testHttpHandler{})
@@ -99,7 +99,7 @@ func Test_WebsimHttpService(t *testing.T) {
 	})
 
 	t.Run("Get all message for spec - Success", func(t *testing.T) {
-		spec := iso.SpecByName("Iso8583-MiniSpec")
+		spec := isov2.SpecByName("Iso8583-MiniSpec")
 		t.Log(spec.ID)
 		req, err := http.NewRequest(http.MethodGet, s.URL+URLMessages4Spec+"/"+strconv.Itoa(spec.ID), nil)
 		if err != nil {

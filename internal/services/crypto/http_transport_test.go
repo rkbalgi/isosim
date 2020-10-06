@@ -6,11 +6,10 @@ import (
 	"github.com/go-kit/kit/log/logrus"
 	"github.com/go-kit/kit/transport"
 	httptransport "github.com/go-kit/kit/transport/http"
+	isov2 "github.com/rkbalgi/libiso/v2/iso8583"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
-	"isosim/internal/iso"
-
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -89,7 +88,7 @@ func Test_PinGenHTTPService(t *testing.T) {
 	t.Run("MAC Generation X9.19", func(t *testing.T) {
 
 		pgr := &MacGenRequest{
-			MacAlgo: iso.ANSIX9_19,
+			MacAlgo: isov2.ANSIX9_19,
 			MacKey:  "76850752AD7307ADE554D06D3BA73279",
 			MacData: "8155ADCC76B2FB0064F2C40037710477CE13C4BF75FD3DADF13B6D137AC1B915",
 		}
