@@ -16,7 +16,7 @@ func MsgHistoryHandler() {
 
 	http.HandleFunc("/iso/v1/websim/msg_hist/last_n", func(rw http.ResponseWriter, req *http.Request) {
 
-		rw.Header().Add("Access-Control-Allow-Origin", "http://localhost:3000")
+		rw.Header().Add("Access-Control-Allow-Origin", "*")
 
 		if err := req.ParseForm(); err != nil {
 			_, _ = rw.Write([]byte(err.Error()))

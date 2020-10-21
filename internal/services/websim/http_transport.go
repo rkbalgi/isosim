@@ -23,7 +23,7 @@ type errorWrapper struct {
 
 func errorEncoder(_ context.Context, err error, w http.ResponseWriter) {
 	//TODO:: construct specific error types based on err
-	w.Header().Add("Access-Control-Allow-Origin", "http://localhost:3000")
+	w.Header().Add("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusBadRequest)
 	_ = json.NewEncoder(w).Encode(errorWrapper{Error: err.Error()})
 }
@@ -227,7 +227,7 @@ func respEncoder(ctx context.Context, rw http.ResponseWriter, response interface
 		errorEncoder(ctx, f.Failed(), rw)
 		return nil
 	}
-	rw.Header().Add("Access-Control-Allow-Origin", "http://localhost:3000")
+	rw.Header().Add("Access-Control-Allow-Origin", "*")
 	rw.Header().Add("Content-Type", "application/json; charset=utf-8")
 	return json.NewEncoder(rw).Encode(response)
 }
