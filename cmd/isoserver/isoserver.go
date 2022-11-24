@@ -15,12 +15,19 @@ import (
 // Runs an ISO server in standalone mode
 func main() {
 
+	if err := runApp(); err != nil {
+		log.Infoln("failed to start ISO Server. Error: " + err.Error())
+		os.Exit(1)
+	}
+
+}
+
+func runApp() error {
+
 	log.SetLevel(log.TraceLevel)
 	log.Infoln("debug level logging is enabled.")
 
 	specsDir := flag.String("specs-dir", "", "The directory containing the ISO spec definition files.")
-	//spec := flag.String("spec", "", "Name of the spec for which the server is to be started.")
-	//spec := flag.Int("port", "", "Port at which the server is to be started.")
 	defFile := flag.String("def-file", "", "The server definition file.")
 
 	flag.Parse()
@@ -55,4 +62,6 @@ func main() {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	wg.Wait()
+
+	return nil
 }

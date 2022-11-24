@@ -3,10 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	isov2 "github.com/rkbalgi/libiso/v2/iso8583"
 	"isosim/internal/iso"
 
-	log "github.com/sirupsen/logrus"
+	isov2 "github.com/rkbalgi/libiso/v2/iso8583"
+
 	"isosim/internal/db"
 	"isosim/internal/services"
 	"net/http"
@@ -15,17 +15,20 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-)
 
-//v0.1 - Initial version
-//v0.2 - ISO server development (08/31/2016)
-//v0.5 - Support for embedded/nested fields and logging via sirupsen/logrus
-//v0.6 - react front and multiple other changes
-//v0.7.0 - deprecated old plain JS frontend and fixed lot of issues
-//v0.8.0 - PIN and MAC generation features
+	log "github.com/sirupsen/logrus"
+)
 
 func main() {
 
+	if err := runApp(); err != nil {
+		log.Error("Failed to start ISO WebSim. Error= " + err.Error())
+		os.Exit(1)
+	}
+
+}
+
+func runApp() error {
 	fmt.Println("======================================================")
 	fmt.Printf("ISO WebSim v%s commit: %s\n", version, build)
 	fmt.Println("======================================================")
@@ -58,7 +61,7 @@ func main() {
 
 	if *dataDir == "" || *specsDir == "" || iso.HTMLDir == "" {
 		flag.Usage()
-		os.Exit(1)
+		return fmt.Errorf("isosim: invalid/unspecified command line args")
 	}
 
 	err := db.Init(*dataDir)
@@ -77,21 +80,25 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
+	// TLS parameters
+	tlsEnabled := os.Getenv("TLS_ENABLED")
+	certFile, keyFile := "", ""
+	if strings.EqualFold(tlsEnabled, "true") {
+		certFile = os.Getenv("TLS_CERT_FILE")
+		keyFile = os.Getenv("TLS_KEY_FILE")
+		if certFile == "" || keyFile == "" {
+			return fmt.Errorf("isosim: SSL enabled, but certificate/key file unspecified")
+		}
+		log.Infof("tls: Using Certificate file : %s, Key file: %s\n", certFile, keyFile)
+	}
+
 	go func() {
-		tlsEnabled := os.Getenv("TLS_ENABLED")
-		if tlsEnabled == "true" {
-			certFile := os.Getenv("TLS_CERT_FILE")
-			keyFile := os.Getenv("TLS_KEY_FILE")
 
-			log.Infof("TLS settings: Using Certificate file : %s, Key file: %s", certFile, keyFile)
-
-			if certFile == "" || keyFile == "" {
-				log.Fatalf("SSL enabled, but certificate/key file unspecified.")
-			}
-
-			log.Fatal(http.ListenAndServeTLS(":"+strconv.Itoa(*httpPort), certFile, keyFile, nil))
+		addr := ":" + strconv.Itoa(*httpPort)
+		if strings.EqualFold(tlsEnabled, "true") {
+			log.Fatal(http.ListenAndServeTLS(addr, certFile, keyFile, nil))
 		} else {
-			log.Fatal(http.ListenAndServe(":"+strconv.Itoa(*httpPort), nil))
+			log.Fatal(http.ListenAndServe(addr, nil))
 		}
 
 	}()
@@ -102,4 +109,5 @@ func main() {
 	log.Infof("ISO WebSim started!")
 	wg.Wait()
 
+	return nil
 }
